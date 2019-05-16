@@ -1,0 +1,8 @@
+{
+    "compilerOptions": {
+        "target": "esnext",
+        "outFile": "dist/main.js",
+        "module": "amd",
+        "strict": true
+    }
+}
