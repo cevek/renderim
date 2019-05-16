@@ -10,32 +10,18 @@ function updateProps(props: string[], oldProps: string[]) {
     for (let i = 0; i < props.length; i += 2) {
         const prop = props[i];
         const value = props[i + 1];
-        let found = false;
-        for (let j = 0; j < oldProps.length; j += 2) {
-            if (oldProps[j] === prop) {
-                foundOldProps++;
-                if (oldProps[j + 1] !== value) {
-                    diff.push(prop, value);
-                }
-                found = true;
-                break;
-            }
-        }
-        if (!found) {
+        const oldValue = findInProps(oldProps, prop);
+        if (oldValue === value) {
             diff.push(prop, value);
+        }
+        if (oldValue !== undefined) {
+            foundOldProps++;
         }
     }
     if (foundOldProps * 2 !== oldProps.length) {
         for (let i = 0; i < oldProps.length; i += 2) {
             const oldProp = oldProps[i];
-            let found = false;
-            for (let j = 0; j < props.length; j += 2) {
-                if (oldProp === props[j]) {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
+            if (findInProps(props, oldProp) === undefined) {
                 diff.push(oldProp, null);
             }
         }
@@ -51,4 +37,12 @@ function createPropsFromObj(props: object | undefined) {
         arr.push(prop, value);
     }
     return arr;
+}
+
+function findInProps(props: string[], prop: string) {
+    for (let i = 0; i < props.length; i += 2) {
+        if (prop === props[i]) {
+            return props[i + 1];
+        }
+    }
 }
