@@ -29,9 +29,9 @@ function updateProps(props: string[], oldProps: string[]) {
     return diff;
 }
 
-function createPropsFromObj(props: object | undefined) {
+function createPropsFromObj(props: object | undefined | null) {
     const arr: string[] = [];
-    if (props === undefined) return arr;
+    if (props === undefined || props === null) return arr;
     for (const prop in props) {
         const value = props[prop as never];
         arr.push(prop, value);

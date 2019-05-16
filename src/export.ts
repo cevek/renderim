@@ -1,14 +1,13 @@
 function createElement(
     type: string | ((props: object) => VNode | undefined),
-    props: object | undefined,
-    key: string | undefined,
-    children: [],
+    props: object | undefined | null,
+    ...children: Return[]
 ): VComponentNode | VDomNode {
     if (typeof type === 'string') {
         const vdomNode: VDomNode = {
             id: genId(),
             children: children,
-            key: key,
+            key: undefined,
             kind: domKind,
             props: createPropsFromObj(props),
             type: type,
@@ -18,9 +17,9 @@ function createElement(
         const vComponentNode: VComponentNode = {
             id: undefined!,
             children: undefined!,
-            key: key,
+            key: undefined,
             kind: componentKind,
-            props: props === undefined ? defaultProps : props,
+            props: props === undefined || props === null ? defaultProps : props,
             type: type,
         };
         return vComponentNode;

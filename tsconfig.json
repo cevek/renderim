@@ -2,7 +2,10 @@
     "compilerOptions": {
         "target": "esnext",
         "outFile": "dist/main.js",
+        "jsx": "react",
+        "jsxFactory": "createElement",
         "module": "amd",
         "strict": true
-    }
+    },
+    "include": ["src/index.ts"]
 }
