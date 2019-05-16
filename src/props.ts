@@ -11,7 +11,7 @@ function updateProps(props: string[], oldProps: string[]) {
         const prop = props[i];
         const value = props[i + 1];
         const oldValue = findInProps(oldProps, prop);
-        if (oldValue === value) {
+        if (oldValue !== value) {
             diff.push(prop, value);
         }
         if (oldValue !== undefined) {

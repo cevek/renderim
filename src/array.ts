@@ -33,7 +33,7 @@ function updateArray(node: VArrayNode, oldNode: VArrayNode, parentId: ID): VArra
         //     }
         // }
         let beforeVNode = newEnd < node.children.length ? (node.children[newEnd] as VNode) : undefined;
-        for (let i = newEnd - 1; i > skipHead; i--) {
+        for (let i = newEnd - 1; i >= skipHead; i--) {
             const child = norm(node.children[i]);
             const oldChildIdx = map[child.key!];
             const beforeId = beforeVNode === undefined ? null : findChildVDom(beforeVNode).id;
@@ -46,6 +46,7 @@ function updateArray(node: VArrayNode, oldNode: VArrayNode, parentId: ID): VArra
                 beforeVNode = createChild(node, i, child, parentId, beforeId);
             }
         }
+        // console.log({beforeVNode, newEnd, skipHead, oldEnd, map, oldUsed});
         for (let i = skipHead; i < oldEnd; i++) {
             if (oldUsed[i] === undefined) {
                 const oldChild = oldList[i];

@@ -18,3 +18,7 @@ function restartComponent(node: VComponentNode) {
     runComponent(node);
     updateVNode(node.children, oldChildren, node.id);
 }
+
+function Fragment(props: {children: Return}) {
+    return props.children as VComponentNode;
+}

@@ -1,7 +1,9 @@
 declare global {
     namespace JSX {
         // tslint:disable-next-line:no-empty-interface
-        interface Element extends VComponentNode {}
+        interface Element extends VComponentNode {
+            
+        }
         interface ElementClass {}
         interface ElementAttributesProperty {
             props: {};
@@ -10,7 +12,9 @@ declare global {
             children: {};
         }
 
-        interface IntrinsicAttributes {}
+        interface IntrinsicAttributes {
+            key?: string | number;
+        }
         interface IntrinsicClassAttributes<T> {}
 
         interface IntrinsicElements {
