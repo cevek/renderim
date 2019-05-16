@@ -1,5 +1,5 @@
 /// <reference path="./types.ts" />
-/// <reference path="./typings.ts" />
+/// <reference path="./typings.d.ts" />
 /// <reference path="./kind.ts" />
 /// <reference path="./globals.ts" />
 /// <reference path="./create.ts" />

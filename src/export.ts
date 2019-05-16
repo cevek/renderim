@@ -41,3 +41,7 @@ function unmount(htmlId: ID) {
         removeVNode(node);
     }
 }
+
+function getCommandList() {
+    return commandList;
+}

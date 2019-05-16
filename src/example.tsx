@@ -1,1 +1,10 @@
-render(<div>Hello</div>, ('root' as unknown) as ID);
+render(
+    <div class="header">
+        Hello
+        <span class="selected">
+            My name is <b>Artur</b>
+        </span>
+    </div>,
+    ('root' as unknown) as ID,
+);
+console.log(getCommandList());
