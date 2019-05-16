@@ -41,10 +41,19 @@ function norm(node: Return): VNode {
     return createVTextNode('');
 }
 
+// function normChild(parent: VDomNode | VArrayNode | VPortalNode, i: number): VNode {
+//     const child = parent.children[i];
+//     const newChild = norm(child);
+//     if (child !== newChild) {
+//         parent.children[i] = newChild;
+//     }
+//     return newChild;
+// }
+
 function findChildVDom(node: VNode): VDomNode | VTextNode {
     if (node.kind === domKind || node.kind === textKind) return node;
     if (node.kind === componentKind) return findChildVDom(node.children);
     if (node.kind === arrayKind) return findChildVDom(node.children[0] as VNode);
     if (node.kind === portalKind) return findChildVDom(node.children[0] as VNode);
-    return never();
+    return never(node);
 }

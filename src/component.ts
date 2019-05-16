@@ -7,8 +7,7 @@ function runComponent(node: VComponentNode) {
     const prev = currentComponent;
     currentComponent = node;
     try {
-        const child = node.type(node.props);
-        node.children = norm(child);
+        node.children = norm(node.type(node.props));
     } finally {
         currentComponent = prev;
     }

@@ -3,6 +3,7 @@ type VNode = VComponentNode | VDomNode | VTextNode | VPortalNode | VArrayNode;
 
 type Return = undefined | null | boolean | string | number | VNode | {[key: number]: Return};
 
+type VChildrenNode = VDomNode | VArrayNode | VPortalNode;
 type VComponentNode = {
     id: ID;
     kind: typeof componentKind;
@@ -47,6 +48,7 @@ type VPortalNode = {
 type Command =
     | CreateDomCommand
     | UpdateDomCommand
+    | MoveDomCommand
     | RemoveDomCommand
     | CreateTextCommand
     | SetTextCommand
@@ -63,6 +65,11 @@ type UpdateDomCommand = {
     type: 'updateDom';
     id: ID;
     props: (string | null)[];
+};
+type MoveDomCommand = {
+    type: 'moveDom';
+    id: ID;
+    beforeId: ID | null;
 };
 type RemoveDomCommand = {
     type: 'removeDom';
