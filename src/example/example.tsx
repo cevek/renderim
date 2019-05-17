@@ -29,5 +29,18 @@ render(
     'root',
 );
 
-// unmount('root');
+// declare var worker: Worker;
+// let k = 0;
+// console.time('perf');
+// worker.postMessage(getCommandList());
+// worker.onmessage = e => {
+//     // console.log(e.data);
+//     k++;
+//     if (k === 10000) {
+//         console.timeEnd('perf');
+//     } else {
+//         worker.postMessage(getCommandList());
+//     }
+// };
+// // unmount('root');
 console.log(getCommandList());

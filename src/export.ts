@@ -1,40 +1,15 @@
-function createElement(
-    type: string | ((props: object) => VNode | undefined),
-    props: object | null,
-    ...children: Return[]
-): VComponentNode | VDomNode {
-    const key = props !== null ? (props as {key?: string}).key : undefined;
+function createElement(type: string | ComponentFun, props: object | null, ...children: Return[]): VElement {
+    const key = props === null ? undefined : (props as {key?: string}).key;
     if (typeof type === 'string') {
-        const vdomNode: VDomNode = {
-            id: genId(),
-            children: children,
-            key: key,
-            kind: domKind,
-            props: createPropsFromObj(props),
-            type: type,
-        };
-        return vdomNode;
+        return createDomVNode(type, props, key, children);
+    } else if (typeof type === 'function') {
+        return createComponentVNode(type, props, key, children);
     } else {
-        let componentProps;
-        if (props === null) {
-            componentProps = {children};
-        } else {
-            componentProps = props;
-            (componentProps as {children: Return}).children = children;
-        }
-        const vComponentNode: VComponentNode = {
-            id: undefined!,
-            children: undefined!,
-            key: key,
-            kind: componentKind,
-            props: componentProps,
-            type: type,
-        };
-        return vComponentNode;
+        throw new Error('Component type is empty: ' + type);
     }
 }
 
-function render(node: VComponentNode | VDomNode, htmlId: string) {
+function render(node: VElement, htmlId: string) {
     const id = (htmlId as unknown) as ID;
     const oldNode = roots.get(id);
     if (oldNode !== undefined) {

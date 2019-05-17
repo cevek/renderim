@@ -3,7 +3,10 @@ type VNode = VComponentNode | VDomNode | VTextNode | VPortalNode | VArrayNode;
 
 type Return = undefined | null | boolean | string | number | VNode | {[key: number]: Return};
 
+type ComponentFun = (props: object) => Return;
+
 type VChildrenNode = VDomNode | VArrayNode | VPortalNode;
+type VElement = VComponentNode | VDomNode;
 type VComponentNode = {
     id: ID;
     kind: typeof componentKind;

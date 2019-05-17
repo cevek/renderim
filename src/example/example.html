@@ -1,0 +1,25 @@
+<body>
+    <script>
+        var worker = new Worker('../dist/worker.js');
+    </script>
+    <script src="../dist/main.js"></script>
+    <div style="width: 100px; height: 100px; background: burlywood;" id="SomeElementYouWantToAnimate"></div>
+    <script>
+        // var start = null;
+        // var element = document.getElementById('SomeElementYouWantToAnimate');
+
+        // let i = 0;
+        // for (let i = 0; i < 1000; i++) {
+        //     worker.postMessage(i);
+        // }
+        // worker.onmessage = e => {
+        //     dowork();
+        // };
+        // function dowork() {
+        //     element.style.transform = 'translateX(' + i++ + 'px)';
+        // }
+        // function step(timestamp) {}
+
+        // window.requestAnimationFrame(step);
+    </script>
+</body>

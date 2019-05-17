@@ -6,17 +6,6 @@ function genId() {
     return (id++ as unknown) as ID;
 }
 
-function createVTextNode(text: string): VTextNode {
-    return {
-        id: genId(),
-        children: text,
-        key: undefined,
-        kind: textKind,
-        props: undefined,
-        type: undefined,
-    };
-}
-
 function norm(node: Return): VNode {
     if (node === null || node === undefined) {
         return createVTextNode('');
