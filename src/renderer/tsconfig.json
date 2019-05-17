@@ -1,0 +1,10 @@
+{
+    "extends": "../../tsconfig.json",
+    "compilerOptions": {
+        "target": "esnext",
+        "outFile": "../../dist/renderer.js",
+        "declaration": true,
+        "composite": true
+    },
+    "include": ["renderer.ts"]
+}

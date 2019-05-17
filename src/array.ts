@@ -50,7 +50,7 @@ function updateArray(node: VArrayNode, oldNode: VArrayNode, parentId: ID): VArra
         for (let i = skipHead; i < oldEnd; i++) {
             if (oldUsed[i] === undefined) {
                 const oldChild = oldList[i];
-                removeVNode(oldChild);
+                removeVNode(oldChild, true);
             }
         }
     }

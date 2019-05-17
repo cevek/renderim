@@ -16,14 +16,14 @@ function render(node: VElement, htmlId: string) {
         updateVNode(node, oldNode, id);
     } else {
         roots.set(id, node);
-        createVNode(node, id, null);
+        mountVNode(node, id, null);
     }
 }
 
 function unmount(htmlId: string) {
     const node = roots.get((htmlId as unknown) as ID);
     if (node !== undefined) {
-        removeVNode(node);
+        removeVNode(node, true);
     }
 }
 

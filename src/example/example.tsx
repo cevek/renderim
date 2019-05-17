@@ -2,7 +2,7 @@ render(
     <div class="header">
         Hello
         <span class="selected">
-            My name is <b>Alex</b>
+            My name is <b>{'Alex'}</b>
         </span>
         {[0, 1, 2, 3, 4, 5].map(n => (
             <Fragment key={n}>
@@ -42,5 +42,7 @@ render(
 //         worker.postMessage(getCommandList());
 //     }
 // };
-// // unmount('root');
+
+// unmount('root');
+renderCommands(getCommandList());
 console.log(getCommandList());

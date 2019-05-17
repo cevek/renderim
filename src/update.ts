@@ -48,7 +48,7 @@ function updateDom(node: VDomNode, oldNode: VDomNode, parentId: ID) {
     }
     for (let i = len; i < oldNode.children.length; i++) {
         const oldChild = oldNode.children[i] as VNode;
-        removeVNode(oldChild);
+        removeVNode(oldChild, true);
     }
     return node;
 }
@@ -75,7 +75,7 @@ function updateChild(parent: VChildrenNode, index: number, childNode: VNode, old
 }
 
 function replaceVNode(node: VNode, oldNode: VNode, parentId: ID) {
-    const newNode = createVNode(node, parentId, findChildVDom(oldNode).id);
-    removeVNode(oldNode);
+    const newNode = mountVNode(node, parentId, findChildVDom(oldNode).id);
+    removeVNode(oldNode, true);
     return newNode;
 }

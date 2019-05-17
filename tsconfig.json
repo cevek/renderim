@@ -7,5 +7,10 @@
         "module": "amd",
         "strict": true
     },
+    "references": [
+        {
+            "path": "src/renderer"
+        }
+    ],
     "include": ["src/index.ts"]
 }
