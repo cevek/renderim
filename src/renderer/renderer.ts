@@ -16,8 +16,7 @@ function renderCommands(commands: Command[]) {
 
 function renderCommand(command: Command) {
     switch (command.type) {
-        case 'createDom':
-        case 'createDomWithText': {
+        case 'createDom': {
             const node = document.createElement(command.tag);
             setNode(command.id, node);
             insert(node, command.parentId, command.beforeId);
@@ -25,11 +24,6 @@ function renderCommand(command: Command) {
                 const prop = command.props[i] as string;
                 const value = command.props[i + 1];
                 node.setAttribute(prop, String(value));
-            }
-            if (command.type === 'createDomWithText') {
-                node.textContent = command.text;
-                const textNode = node.firstChild!;
-                setNode(command.textId, textNode);
             }
             break;
         }

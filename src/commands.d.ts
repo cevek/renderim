@@ -2,7 +2,6 @@ type ID = {id: 'ID'} & number;
 
 type Command =
     | CreateDomCommand
-    | CreateDomWithTextCommand
     | UpdateDomCommand
     | MoveDomCommand
     | RemoveDomCommand
@@ -17,16 +16,7 @@ type CreateDomCommand = {
     tag: string;
     props: (string | number)[];
 };
-type CreateDomWithTextCommand = {
-    type: 'createDomWithText';
-    id: ID;
-    textId: ID;
-    parentId: ID | string;
-    beforeId: ID | null;
-    tag: string;
-    props: (string | number)[];
-    text: string;
-};
+
 type UpdateDomCommand = {
     type: 'updateDom';
     id: ID;

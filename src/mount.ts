@@ -24,23 +24,6 @@ function mountVNode(node: VNode, parentId: ID, beforeId: ID | null) {
 }
 
 function mountVDom(node: VDomNode, parentId: ID, beforeId: ID | null) {
-    if (node.children.length === 1) {
-        const child = norm(node.children[0]);
-        node.children[0] = child;
-        if (child.kind === textKind && child.children !== '') {
-            commandList.push({
-                type: 'createDomWithText',
-                parentId,
-                beforeId,
-                id: node.id,
-                textId: child.id,
-                text: child.children,
-                props: node.props,
-                tag: node.type,
-            });
-            return node;
-        }
-    }
     commandList.push({
         type: 'createDom',
         parentId,
