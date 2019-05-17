@@ -1,6 +1,30 @@
 /// <reference path="../commands.d.ts" />
 
 const nodeMap: Node[] = [];
+const svgNS = 'http://www.w3.org/2000/svg';
+const xlinkNS = 'http://www.w3.org/1999/xlink';
+
+function isSvg(tag: string, node: Node) {
+    return (
+        tag === 'svg' ||
+        (tag !== 'div' &&
+            tag !== 'span' &&
+            tag !== 'td' &&
+            tag !== 'tr' &&
+            tag !== 'li' &&
+            tag !== 'h1' &&
+            tag !== 'h2' &&
+            tag !== 'h3' &&
+            tag !== 'i' &&
+            tag !== 'u' &&
+            tag !== 'b' &&
+            tag !== 'strong' &&
+            tag !== 'em' &&
+            tag !== 'img' &&
+            node.namespaceURI === svgNS)
+    );
+}
+
 function setNode(id: ID, node: Node) {
     if (nodeMap.length <= id) {
         for (let i = nodeMap.length; i <= id; i++) nodeMap.push(undefined!);
@@ -17,20 +41,26 @@ function renderCommands(commands: Command[]) {
 function renderCommand(command: Command) {
     switch (command.type) {
         case 'createDom': {
-            const node = document.createElement(command.tag);
+            const parentNode = getParentNode(command.parentId);
+            const nodeIsSVG = isSvg(command.tag, parentNode);
+            const node = nodeIsSVG ? document.createElementNS(svgNS, command.tag) : document.createElement(command.tag);
+            parentNode.insertBefore(node, getBeforeNode(command.beforeId));
             setNode(command.id, node);
-            insert(node, command.parentId, command.beforeId);
             for (let i = 0; i < command.props.length; i += 2) {
                 const prop = command.props[i] as string;
                 const value = command.props[i + 1];
-                node.setAttribute(prop, String(value));
+                if (prop === 'xlinkHref') {
+                    node.setAttributeNS(xlinkNS, 'xlink:href', String(value));
+                } else {
+                    node.setAttribute(prop, String(value));
+                }
             }
             break;
         }
         case 'createText': {
             const node = document.createTextNode(command.text);
             setNode(command.id, node);
-            insert(node, command.parentId, command.beforeId);
+            getParentNode(command.parentId).insertBefore(node, getBeforeNode(command.beforeId));
             break;
         }
         case 'moveDom': {
@@ -74,10 +104,11 @@ function renderCommand(command: Command) {
         }
     }
 
-    function insert(node: Node, parentId: string | ID, beforeId: ID | null) {
-        const parentNode = typeof parentId === 'string' ? document.getElementById(parentId)! : nodeMap[parentId];
-        const beforeNode = beforeId === null ? null : nodeMap[beforeId];
-        parentNode.insertBefore(node, beforeNode);
+    function getParentNode(id: string | ID) {
+        return typeof id === 'string' ? document.getElementById(id)! : nodeMap[id];
+    }
+    function getBeforeNode(id: ID | null) {
+        return id === null ? null : nodeMap[id];
     }
 }
 
