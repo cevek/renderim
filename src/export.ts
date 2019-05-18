@@ -12,11 +12,19 @@ function createElement(type: string | ComponentFun, props: object | null, ...chi
 function render(node: VElement, htmlId: string) {
     const id = (htmlId as unknown) as ID;
     const oldNode = roots.get(id);
-    if (oldNode !== undefined) {
-        updateVNode(node, oldNode, id);
-    } else {
-        roots.set(id, node);
-        mountVNode(node, id, null);
+    const commandListEnd = commandList.length;
+    try {
+        if (oldNode !== undefined) {
+            updateVNode(node, oldNode, id);
+        } else {
+            roots.set(id, node);
+            mountVNode(node, id, null);
+        }
+    } catch (err) {
+        clearCommandsUntil(commandListEnd);
+        if (oldNode !== undefined) {
+            unmount(htmlId);
+        }
     }
 }
 

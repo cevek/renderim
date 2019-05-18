@@ -46,3 +46,11 @@ function findChildVDom(node: VNode): VDomNode | VTextNode {
     if (node.kind === portalKind) return findChildVDom(node.children[0] as VNode);
     return never(node);
 }
+
+function clearCommandsUntil(until: number) {
+    while (commandList.length > until) commandList.pop();
+}
+
+function assert(val: boolean) {
+
+}

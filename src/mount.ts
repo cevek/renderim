@@ -1,9 +1,6 @@
 function mountVNode(node: VNode, parentId: ID, beforeId: ID | null) {
     if (node.kind === componentKind) {
-        runComponent(node);
-        node.id = parentId;
-        mountVNode(node.children, parentId, beforeId);
-        return node;
+        return mountComponent(node, parentId, beforeId);
     }
     if (node.kind === domKind) {
         return mountVDom(node, parentId, beforeId);
@@ -23,6 +20,21 @@ function mountVNode(node: VNode, parentId: ID, beforeId: ID | null) {
     throw never(node);
 }
 
+function mountComponent(node: VComponentNode, parentId: ID, beforeId: ID | null): VNode {
+    runComponent(node);
+    node.id = parentId;
+    if (node.type === ErrorBoundary) {
+        const commandListEnd = commandList.length;
+        try {
+            return mountVNode(node.children, parentId, beforeId);
+        } catch (err) {
+            clearCommandsUntil(commandListEnd);
+            return mountComponent(createFallback(node, err), parentId, beforeId);
+        }
+    }
+    return mountVNode(node.children, parentId, beforeId);
+}
+
 function mountVDom(node: VDomNode, parentId: ID, beforeId: ID | null) {
     commandList.push({
         type: 'createDom',
@@ -38,11 +50,11 @@ function mountVDom(node: VDomNode, parentId: ID, beforeId: ID | null) {
 
 function mountChildren(node: VChildrenNode, parentId: ID, beforeId: ID | null) {
     for (let i = 0; i < node.children.length; i++) {
-        createChild(node, i, norm(node.children[i]), parentId, beforeId);
+        mountChild(node, i, norm(node.children[i]), parentId, beforeId);
     }
 }
 
-function createChild(parent: VChildrenNode, index: number, node: VNode, parentId: ID, beforeId: ID | null) {
+function mountChild(parent: VChildrenNode, index: number, node: VNode, parentId: ID, beforeId: ID | null) {
     const newNode = mountVNode(node, parentId, beforeId);
     parent.children[index] = newNode;
     return newNode;

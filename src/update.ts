@@ -20,11 +20,20 @@ function updateVNode(node: VNode, oldNode: VNode, parentId: ID): VNode {
     throw never(node);
 }
 
-function updateComponent(node: VComponentNode, oldNode: VComponentNode, parentId: ID) {
+function updateComponent(node: VComponentNode, oldNode: VComponentNode, parentId: ID): VNode {
     runComponent(node);
     node.id = parentId;
     if (node.type !== oldNode.type) {
         return replaceVNode(node, oldNode, parentId);
+    }
+    if (node.type === ErrorBoundary) {
+        const commandListEnd = commandList.length;
+        try {
+            return updateVNode(node.children, oldNode.children, parentId);
+        } catch (err) {
+            clearCommandsUntil(commandListEnd);
+            return updateComponent(createFallback(node, err), oldNode, parentId);
+        }
     }
     return updateVNode(node.children, oldNode.children, parentId);
 }
@@ -44,7 +53,7 @@ function updateDom(node: VDomNode, oldNode: VDomNode, parentId: ID) {
         updateChild(node, i, norm(node.children[i]), oldChild, node.id);
     }
     for (let i = len; i < node.children.length; i++) {
-        createChild(node, i, norm(node.children[i]), node.id, null);
+        mountChild(node, i, norm(node.children[i]), node.id, null);
     }
     for (let i = len; i < oldNode.children.length; i++) {
         const oldChild = oldNode.children[i] as VNode;

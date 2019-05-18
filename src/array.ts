@@ -43,7 +43,7 @@ function updateArray(node: VArrayNode, oldNode: VArrayNode, parentId: ID): VArra
                 beforeVNode = updateChild(node, i, child, oldChild, parentId);
                 moveChild(child, beforeId);
             } else {
-                beforeVNode = createChild(node, i, child, parentId, beforeId);
+                beforeVNode = mountChild(node, i, child, parentId, beforeId);
             }
         }
         // console.log({beforeVNode, newEnd, skipHead, oldEnd, map, oldUsed});

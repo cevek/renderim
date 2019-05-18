@@ -1,6 +1,6 @@
 /// <reference path="../commands.d.ts" />
 
-const nodeMap: Node[] = [];
+const domMap: Node[] = [];
 const svgNS = 'http://www.w3.org/2000/svg';
 const xlinkNS = 'http://www.w3.org/1999/xlink';
 
@@ -26,10 +26,10 @@ function isSvg(tag: string, node: Node) {
 }
 
 function setNode(id: ID, node: Node) {
-    if (nodeMap.length <= id) {
-        for (let i = nodeMap.length; i <= id; i++) nodeMap.push(undefined!);
+    if (domMap.length <= id) {
+        for (let i = domMap.length; i <= id; i++) domMap.push(undefined!);
     }
-    nodeMap[id] = node;
+    domMap[id] = node;
 }
 
 function renderCommands(commands: Command[]) {
@@ -64,13 +64,13 @@ function renderCommand(command: Command) {
             break;
         }
         case 'moveDom': {
-            const node = nodeMap[command.id];
-            const beforeNode = command.beforeId === null ? null : nodeMap[command.beforeId];
+            const node = domMap[command.id];
+            const beforeNode = command.beforeId === null ? null : domMap[command.beforeId];
             node.parentNode!.insertBefore(node, beforeNode);
             break;
         }
         case 'updateDom': {
-            const node = nodeMap[command.id] as Element;
+            const node = domMap[command.id] as Element;
             for (let i = 0; i < command.props.length; i += 2) {
                 const prop = command.props[i] as string;
                 const value = command.props[i + 1];
@@ -83,20 +83,20 @@ function renderCommand(command: Command) {
             break;
         }
         case 'setText': {
-            const node = nodeMap[command.id];
+            const node = domMap[command.id];
             node.nodeValue = command.text;
             break;
         }
         case 'removeDom': {
-            const node = nodeMap[command.id];
+            const node = domMap[command.id];
             node.parentNode!.removeChild(node);
-            nodeMap[command.id] = undefined!;
+            domMap[command.id] = undefined!;
             break;
         }
         case 'removeText': {
-            const node = nodeMap[command.id];
+            const node = domMap[command.id];
             node.parentNode!.removeChild(node);
-            nodeMap[command.id] = undefined!;
+            domMap[command.id] = undefined!;
             break;
         }
         default: {
@@ -105,10 +105,10 @@ function renderCommand(command: Command) {
     }
 
     function getParentNode(id: string | ID) {
-        return typeof id === 'string' ? document.getElementById(id)! : nodeMap[id];
+        return typeof id === 'string' ? document.getElementById(id)! : domMap[id];
     }
     function getBeforeNode(id: ID | null) {
-        return id === null ? null : nodeMap[id];
+        return id === null ? null : domMap[id];
     }
 }
 
