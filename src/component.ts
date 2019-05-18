@@ -9,6 +9,7 @@ function runComponent(node: VComponentNode) {
     try {
         node.children = norm(node.type(node.props));
     } catch (err) {
+        node.children = norm(undefined);
         if (err instanceof Promise) {
             suspensePromises.push(err);
         } else {
@@ -22,28 +23,7 @@ function runComponent(node: VComponentNode) {
     }
 }
 
-function restartComponent(node: VComponentNode) {
-    updateComponent(node, node, node.id);
-}
 
-function catchComponentError(
-    node: VComponentNode,
-    error: Error,
-    commandListEnd: number,
-    parentComponent: VComponentNode,
-) {
-    while (commandList.length > commandListEnd) commandList.pop();
-    if (node.type === ErrorBoundary) {
-        currentComponent = createComponentVNode(
-            (node.props as ErrorBoundaryProps).fallback as ComponentFun,
-            {error},
-            undefined,
-            [],
-        );
-        node.children = norm(currentComponent.type(currentComponent.props));
-    }
-    currentComponent = parentComponent;
-}
 
 function Fragment(props: {children: Return}) {
     return props.children as VComponentNode;
@@ -96,9 +76,7 @@ function handleErrorBoundary(node: VErrorBoundaryNode, handleChild: (child: VNod
     } catch (err) {
         clearArrayUntil(commandList, commandListEnd);
         clearArrayUntil(suspensePromises, suspensePromisesEnd);
-        node.children = handleChild(
-            createComponentVNode(node.props.fallback as ComponentFun, {error: err}, undefined, []),
-        );
+        node.children = handleChild(createComponentVNode(node.props.fallback, {error: err}));
     }
     return node;
 }

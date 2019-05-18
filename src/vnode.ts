@@ -22,26 +22,18 @@ function createDomVNode(type: string, props: object | null, key: string | undefi
     };
 }
 
-function createComponentVNode(
-    type: ComponentFun,
-    props: object | null,
-    key: string | undefined,
-    children: Return[],
+function createComponentVNode<Props extends object>(
+    type: (props: Props) => Return,
+    props: Props,
+    key?: string,
 ): VComponentNode {
-    let componentProps;
-    if (props === null) {
-        componentProps = {children};
-    } else {
-        componentProps = props;
-        (componentProps as {children: Return}).children = children;
-    }
     return {
         id: undefined!,
         children: undefined!,
         key: key,
         kind: componentKind,
-        props: componentProps,
-        type: type,
+        props,
+        type: type as ComponentFun,
         extra: undefined,
     };
 }

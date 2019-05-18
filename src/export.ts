@@ -3,37 +3,41 @@ function createElement(type: string | ComponentFun, props: object | null, ...chi
     if (typeof type === 'string') {
         return createDomVNode(type, props, key, children);
     } else if (typeof type === 'function') {
-        return createComponentVNode(type, props, key, children);
+        if (props === null) props = {children};
+        else (props as {children?: Return}).children = children;
+        return createComponentVNode(type, props, key);
     } else {
         throw new Error('Component type is empty: ' + type);
     }
 }
 
 function render(node: VNode, htmlId: string) {
+    const rootNode = createComponentVNode(ErrorBoundary, {
+        children: createComponentVNode(Suspense, {
+            fallback: undefined,
+            timeout: 0,
+            children: node,
+        }),
+        fallback: (props: {error: Error}) => {
+            console.error(props.error);
+            return undefined;
+        },
+    });
     const id = (htmlId as unknown) as ID;
     const oldNode = roots.get(id);
-    const commandListEnd = commandList.length;
+    assert(commandList.length === 0);
     assert(suspensePromises.length === 0);
-    try {
-        if (oldNode !== undefined) {
-            updateVNode(node, oldNode, id);
-        } else {
-            roots.set(id, mountVNode(node, id, null));
-        }
-        if (suspensePromises.length > 0) {
-            clearArrayUntil(commandList, commandListEnd);
-            roots.set(id, mountVNode(norm(undefined), id, null));
-            Promise.all(suspensePromises).then(() => render(node, htmlId), () => render(node, htmlId));
-            clearArrayUntil(suspensePromises, 0);
-            console.warn('Throws promise without root Suspense wrapper');
-        }
-    } catch (err) {
-        clearArrayUntil(commandList, commandListEnd);
-        suspensePromises = [];
-        if (oldNode !== undefined) {
-            unmount(htmlId);
-        }
-    }
+    roots.set(id, oldNode === undefined ? mountVNode(rootNode, id, null) : updateVNode(rootNode, oldNode, id));
+    renderCommands(commandList);
+    clearArrayUntil(commandList, 0);
+}
+
+function restartComponent(node: VComponentNode) {
+    assert(commandList.length === 0);
+    assert(suspensePromises.length === 0);
+    updateComponent(node, node, node.id);
+    renderCommands(commandList);
+    clearArrayUntil(commandList, 0);
 }
 
 function unmount(htmlId: string) {
