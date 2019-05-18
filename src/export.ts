@@ -9,19 +9,27 @@ function createElement(type: string | ComponentFun, props: object | null, ...chi
     }
 }
 
-function render(node: VElement, htmlId: string) {
+function render(node: VNode, htmlId: string) {
     const id = (htmlId as unknown) as ID;
     const oldNode = roots.get(id);
     const commandListEnd = commandList.length;
+    assert(suspensePromises.length === 0);
     try {
         if (oldNode !== undefined) {
             updateVNode(node, oldNode, id);
         } else {
-            roots.set(id, node);
-            mountVNode(node, id, null);
+            roots.set(id, mountVNode(node, id, null));
+        }
+        if (suspensePromises.length > 0) {
+            clearArrayUntil(commandList, commandListEnd);
+            roots.set(id, mountVNode(norm(undefined), id, null));
+            Promise.all(suspensePromises).then(() => render(node, htmlId), () => render(node, htmlId));
+            clearArrayUntil(suspensePromises, 0);
+            console.warn('Throws promise without root Suspense wrapper');
         }
     } catch (err) {
-        clearCommandsUntil(commandListEnd);
+        clearArrayUntil(commandList, commandListEnd);
+        suspensePromises = [];
         if (oldNode !== undefined) {
             unmount(htmlId);
         }

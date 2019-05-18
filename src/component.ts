@@ -13,7 +13,7 @@ function runComponent(node: VComponentNode) {
             suspensePromises.push(err);
         } else {
             new Promise(() => {
-                node.children = norm(node.type(node.props));
+                node.type(node.props);
             });
             throw err;
         }
@@ -23,13 +23,7 @@ function runComponent(node: VComponentNode) {
 }
 
 function restartComponent(node: VComponentNode) {
-    const oldChildren = node.children;
-    runComponent(node);
-    updateVNode(node.children, oldChildren, node.id);
-}
-
-function createFallback(node: VComponentNode, error: Error) {
-    return createComponentVNode((node.props as ErrorBoundaryProps).fallback as ComponentFun, {error}, node.key, []);
+    updateComponent(node, node, node.id);
 }
 
 function catchComponentError(
@@ -60,6 +54,51 @@ function ErrorBoundary(props: ErrorBoundaryProps) {
     return props.children as VComponentNode;
 }
 
-function Suspense(props: {children: Return; fallback: Return}) {
+type SuspenseExtra = {timeoutAt: number};
+type SuspenseProps = {children: Return; timeout: number; fallback: Return};
+function Suspense(props: SuspenseProps) {
     return props.children as VComponentNode;
+}
+
+function handleSuspense(node: VSuspenseNode, handleChild: (child: VNode) => VNode) {
+    const parentPromises = suspensePromises;
+    suspensePromises = [];
+    if (node.extra === undefined) {
+        node.extra = {timeoutAt: Date.now() + node.props.timeout};
+    }
+    try {
+        const commandListEnd = commandList.length;
+        node.children = handleChild(node.children);
+        if (suspensePromises.length > 0) {
+            clearArrayUntil(commandList, commandListEnd);
+            const restart = restartComponent.bind(undefined, node);
+            if (node.extra.timeoutAt <= Date.now()) {
+                // can throws
+                node.children = handleChild(norm(node.props.fallback));
+                Promise.all(suspensePromises).then(restart, restart);
+            } else {
+                parentPromises.push(
+                    Promise.race([Promise.all(suspensePromises), sleep(node.extra.timeoutAt - Date.now() + 1)]),
+                );
+            }
+        }
+    } finally {
+        suspensePromises = parentPromises;
+    }
+    return node;
+}
+
+function handleErrorBoundary(node: VErrorBoundaryNode, handleChild: (child: VNode) => VNode) {
+    const commandListEnd = commandList.length;
+    const suspensePromisesEnd = suspensePromises.length;
+    try {
+        node.children = handleChild(node.children);
+    } catch (err) {
+        clearArrayUntil(commandList, commandListEnd);
+        clearArrayUntil(suspensePromises, suspensePromisesEnd);
+        node.children = handleChild(
+            createComponentVNode(node.props.fallback as ComponentFun, {error: err}, undefined, []),
+        );
+    }
+    return node;
 }

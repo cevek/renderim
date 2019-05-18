@@ -20,19 +20,17 @@ function mountVNode(node: VNode, parentId: ID, beforeId: ID | null) {
     throw never(node);
 }
 
-function mountComponent(node: VComponentNode, parentId: ID, beforeId: ID | null): VNode {
+function mountComponent(node: VComponentNode, parentId: ID, beforeId: ID | null): VComponentNode {
     runComponent(node);
     node.id = parentId;
     if (node.type === ErrorBoundary) {
-        const commandListEnd = commandList.length;
-        try {
-            return mountVNode(node.children, parentId, beforeId);
-        } catch (err) {
-            clearCommandsUntil(commandListEnd);
-            return mountComponent(createFallback(node, err), parentId, beforeId);
-        }
+        return handleErrorBoundary(node as VErrorBoundaryNode, child => mountVNode(child, parentId, beforeId));
     }
-    return mountVNode(node.children, parentId, beforeId);
+    if (node.type === Suspense) {
+        return handleSuspense(node as VSuspenseNode, child => mountVNode(child, parentId, beforeId));
+    }
+    node.children = mountVNode(node.children, parentId, beforeId);
+    return node;
 }
 
 function mountVDom(node: VDomNode, parentId: ID, beforeId: ID | null) {

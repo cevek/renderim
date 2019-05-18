@@ -6,6 +6,7 @@ function createVTextNode(text: string): VTextNode {
         kind: textKind,
         props: undefined,
         type: undefined,
+        extra: undefined,
     };
 }
 
@@ -17,6 +18,7 @@ function createDomVNode(type: string, props: object | null, key: string | undefi
         kind: domKind,
         props: createPropsFromObj(props),
         type: type,
+        extra: undefined,
     };
 }
 
@@ -40,5 +42,6 @@ function createComponentVNode(
         kind: componentKind,
         props: componentProps,
         type: type,
+        extra: undefined,
     };
 }

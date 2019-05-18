@@ -20,22 +20,23 @@ function updateVNode(node: VNode, oldNode: VNode, parentId: ID): VNode {
     throw never(node);
 }
 
-function updateComponent(node: VComponentNode, oldNode: VComponentNode, parentId: ID): VNode {
+function updateComponent(node: VComponentNode, oldNode: VComponentNode, parentId: ID): VComponentNode {
+    const oldChild = oldNode.children;
     runComponent(node);
     node.id = parentId;
     if (node.type !== oldNode.type) {
-        return replaceVNode(node, oldNode, parentId);
+        return replaceVNode(node, oldNode, parentId) as VComponentNode;
     }
     if (node.type === ErrorBoundary) {
-        const commandListEnd = commandList.length;
-        try {
-            return updateVNode(node.children, oldNode.children, parentId);
-        } catch (err) {
-            clearCommandsUntil(commandListEnd);
-            return updateComponent(createFallback(node, err), oldNode, parentId);
-        }
+        return handleErrorBoundary(node as VErrorBoundaryNode, child => updateVNode(child, oldChild, parentId));
     }
-    return updateVNode(node.children, oldNode.children, parentId);
+    if (node.type === Suspense) {
+        node.extra = oldNode.extra;
+        return handleSuspense(node as VSuspenseNode, child => updateVNode(child, oldChild, parentId));
+    }
+
+    node.children = updateVNode(node.children, oldChild, parentId);
+    return node;
 }
 
 function updateDom(node: VDomNode, oldNode: VDomNode, parentId: ID) {

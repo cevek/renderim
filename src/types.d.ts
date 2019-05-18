@@ -6,13 +6,16 @@ type ComponentFun = (props: object) => Return;
 
 type VChildrenNode = VDomNode | VArrayNode | VPortalNode;
 type VElement = VComponentNode | VDomNode;
+type VSuspenseNode = VComponentNode & {props: SuspenseProps; extra: SuspenseExtra};
+type VErrorBoundaryNode = VComponentNode & {props: ErrorBoundaryProps};
 type VComponentNode = {
     id: ID;
     kind: 'component';
-    type: (props: object) => Return;
+    type: ComponentFun;
     props: object;
     key: string | undefined;
     children: VNode;
+    extra: unknown;
 };
 type VDomNode = {
     id: ID;
@@ -21,6 +24,7 @@ type VDomNode = {
     props: string[];
     key: string | undefined;
     children: Return[];
+    extra: undefined;
 };
 type VTextNode = {
     id: ID;
@@ -29,6 +33,7 @@ type VTextNode = {
     props: undefined;
     key: undefined;
     children: string;
+    extra: undefined;
 };
 type VArrayNode = {
     id: undefined;
@@ -37,6 +42,7 @@ type VArrayNode = {
     props: undefined;
     key: undefined;
     children: Return[];
+    extra: undefined;
 };
 type VPortalNode = {
     id: undefined;
@@ -45,4 +51,5 @@ type VPortalNode = {
     props: undefined;
     key: undefined;
     children: Return[];
+    extra: undefined;
 };

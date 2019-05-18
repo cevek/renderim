@@ -18,6 +18,7 @@ function norm(node: Return): VNode {
             key: undefined,
             props: undefined,
             type: undefined,
+            extra: undefined,
         };
         return arrayVNode;
     }
@@ -47,10 +48,14 @@ function findChildVDom(node: VNode): VDomNode | VTextNode {
     return never(node);
 }
 
-function clearCommandsUntil(until: number) {
-    while (commandList.length > until) commandList.pop();
+function clearArrayUntil(array: unknown[], until: number) {
+    while (array.length > until) array.pop();
 }
 
 function assert(val: boolean) {
 
+}
+
+function sleep(ms: number) {
+    return new Promise(res => setTimeout(res, ms));
 }
