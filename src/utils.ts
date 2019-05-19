@@ -12,6 +12,8 @@ function norm(node: Return): VNode {
     }
     if (Array.isArray(node)) {
         const arrayVNode: VArrayNode = {
+            _id: _id++,
+            status: 'created',
             kind: arrayKind,
             id: undefined!,
             children: node,
@@ -53,9 +55,31 @@ function clearArrayUntil(array: unknown[], until: number) {
 }
 
 function assert(val: boolean) {
-
+    if (typeof val !== 'boolean') throw new Error('Not Boolean');
+    if (!val) {
+        debugger;
+        throw new Error('Assert!');
+    }
+}
+function nonNull<T>(val: T | undefined): T {
+    if (val === undefined) throw new Error('No possible undefined value');
+    return val;
 }
 
 function sleep(ms: number) {
     return new Promise(res => setTimeout(res, ms));
+}
+
+function noop() {}
+
+function addCommand(command: Command) {
+    commandList.push(command);
+}
+
+
+function skipCommands(arr: Command[]) {
+    for (let i = 0; i < arr.length; i++) {
+        const command = arr[i];
+        command.skip = true;
+    }
 }

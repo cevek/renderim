@@ -1,9 +1,12 @@
 function updateVNode(node: VNode, oldNode: VNode, parentId: ID): VNode {
+    if (node === oldNode) return node;
+    assert(node.status === 'created');
+    assert(oldNode.status === 'active');
     if (node.kind !== oldNode.kind) {
         return replaceVNode(node, oldNode, parentId);
     }
     if (node.kind === componentKind) {
-        return updateComponent(node, oldNode as VComponentNode, parentId);
+        return updateComponent(node, oldNode as VComponentNode, parentId, false);
     }
     if (node.kind === domKind) {
         return updateDom(node, oldNode as VDomNode, parentId);
@@ -20,7 +23,14 @@ function updateVNode(node: VNode, oldNode: VNode, parentId: ID): VNode {
     throw never(node);
 }
 
-function updateComponent(node: VComponentNode, oldNode: VComponentNode, parentId: ID): VComponentNode {
+function updateComponent(
+    node: VComponentNode,
+    oldNode: VComponentNode,
+    parentId: ID,
+    fromRestart: boolean,
+): VComponentNode {
+    assert(node.status === 'created');
+    assert(oldNode.status === 'active');
     const oldChild = oldNode.children;
     runComponent(node);
     node.id = parentId;
@@ -28,14 +38,19 @@ function updateComponent(node: VComponentNode, oldNode: VComponentNode, parentId
         return replaceVNode(node, oldNode, parentId) as VComponentNode;
     }
     if (node.type === ErrorBoundary) {
+        node.extra = oldNode.extra;
+        // allErrorBoundaries.delete(oldNode as VErrorBoundaryNode);
         return handleErrorBoundary(node as VErrorBoundaryNode, child => updateVNode(child, oldChild, parentId));
     }
     if (node.type === Suspense) {
+        // allSuspenses.delete(oldNode as VSuspenseNode);
         node.extra = oldNode.extra;
-        return handleSuspense(node as VSuspenseNode, child => updateVNode(child, oldChild, parentId));
+        return handleSuspense(node as VSuspenseNode, fromRestart ? 'fromRestart' : 'update', oldChild, parentId, null);
     }
 
     node.children = updateVNode(node.children, oldChild, parentId);
+    node.status = 'active';
+    oldNode.status = 'stalled';
     return node;
 }
 
@@ -47,7 +62,7 @@ function updateDom(node: VDomNode, oldNode: VDomNode, parentId: ID) {
     const len = Math.min(node.children.length, oldNode.children.length);
     const diffProps = updateProps(node.props, oldNode.props);
     if (diffProps.length > 0) {
-        commandList.push({type: 'updateDom', id: node.id, props: diffProps});
+        addCommand({type: 'updateDom', id: node.id, props: diffProps});
     }
     for (let i = 0; i < len; i++) {
         const oldChild = oldNode.children[i] as VNode;
@@ -60,14 +75,18 @@ function updateDom(node: VDomNode, oldNode: VDomNode, parentId: ID) {
         const oldChild = oldNode.children[i] as VNode;
         removeVNode(oldChild, true);
     }
+    node.status = 'active';
+    oldNode.status = 'stalled';
     return node;
 }
 
 function updateText(node: VTextNode, oldNode: VTextNode) {
     node.id = oldNode.id;
     if (node.children !== oldNode.children) {
-        commandList.push({type: 'setText', id: node.id, text: node.children});
+        addCommand({type: 'setText', id: node.id, text: node.children});
     }
+    node.status = 'active';
+    oldNode.status = 'stalled';
     return node;
 }
 
@@ -75,6 +94,8 @@ function updatePortal(node: VPortalNode, oldNode: VPortalNode, parentId: ID) {
     if (node.type !== oldNode.type) {
         return replaceVNode(node, oldNode, parentId);
     }
+    node.status = 'active';
+    oldNode.status = 'stalled';
     return node;
 }
 

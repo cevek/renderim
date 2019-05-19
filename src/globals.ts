@@ -1,7 +1,9 @@
 let id = 0;
-const defaultProps = {};
+let _id = 0;
 const commandList: Command[] = [];
-let currentComponent: VComponentNode;
 const roots = new Map<ID, VNode>();
-// let lastComponentError:Error | undefined;
-let suspensePromises: Promise<unknown>[] = [];
+let currentComponent: VComponentNode | undefined;
+let currentSuspense: VSuspenseNode | undefined;
+let currentErrorBoundary: VErrorBoundaryNode | undefined;
+let updatedComponents: {new: VComponentNode; old: VComponentNode}[] = [];
+

@@ -54,6 +54,8 @@ function updateArray(node: VArrayNode, oldNode: VArrayNode, parentId: ID): VArra
             }
         }
     }
+    node.status = 'active';
+    oldNode.status = 'stalled';
     return node;
 }
 
@@ -88,7 +90,7 @@ function updateTail(node: VArrayNode, oldNode: VArrayNode, skipHead: number, par
 
 function moveChild(node: VNode, beforeId: ID | null): ID | null {
     if (node.kind === domKind || node.kind === textKind) {
-        commandList.push({type: 'moveDom', id: node.id, beforeId});
+        addCommand({type: 'moveDom', id: node.id, beforeId});
         return node.id;
     }
     if (node.kind === componentKind) {

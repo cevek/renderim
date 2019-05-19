@@ -12,32 +12,27 @@ function createElement(type: string | ComponentFun, props: object | null, ...chi
 }
 
 function render(node: VNode, htmlId: string) {
+    const rootSuspenseNode = createComponentVNode(Suspense, {
+        fallback: 'Root Loading...',
+        timeout: 0,
+        children: node,
+    });
+    rootSuspenseNode.suspense = Object.freeze({}) as VSuspenseNode;
     const rootNode = createComponentVNode(ErrorBoundary, {
-        children: createComponentVNode(Suspense, {
-            fallback: undefined,
-            timeout: 0,
-            children: node,
-        }),
-        fallback: (props: {error: Error}) => {
-            console.error(props.error);
-            return undefined;
+        children: rootSuspenseNode,
+        fallback: (props: {errors: Error[]}) => {
+            console.error(props.errors);
+            return 'Something went wrong';
         },
     });
+    rootNode.errorBoundary = Object.freeze({}) as VErrorBoundaryNode;
+    rootNode.suspense = Object.freeze({}) as VSuspenseNode;
+
     const id = (htmlId as unknown) as ID;
     const oldNode = roots.get(id);
     assert(commandList.length === 0);
-    assert(suspensePromises.length === 0);
     roots.set(id, oldNode === undefined ? mountVNode(rootNode, id, null) : updateVNode(rootNode, oldNode, id));
-    renderCommands(commandList);
-    clearArrayUntil(commandList, 0);
-}
-
-function restartComponent(node: VComponentNode) {
-    assert(commandList.length === 0);
-    assert(suspensePromises.length === 0);
-    updateComponent(node, node, node.id);
-    renderCommands(commandList);
-    clearArrayUntil(commandList, 0);
+    commitUpdating();
 }
 
 function unmount(htmlId: string) {
@@ -45,8 +40,4 @@ function unmount(htmlId: string) {
     if (node !== undefined) {
         removeVNode(node, true);
     }
-}
-
-function getCommandList() {
-    return commandList;
 }

@@ -1,19 +1,30 @@
 function removeVNode(node: VNode, realRemove: boolean) {
+    assert(node.status === 'active');
     if (node.kind === componentKind) {
+        if (node.type === ErrorBoundary) {
+            // allErrorBoundaries.delete(node as VErrorBoundaryNode);
+        }
+        if (node.type === Suspense) {
+            // allSuspenses.delete(node as VSuspenseNode);
+        }
         removeVNode(node.children, realRemove);
+        node.status = 'removed';
     } else if (node.kind === domKind) {
         if (realRemove) {
-            commandList.push({type: 'removeDom', id: node.id});
+            addCommand({type: 'removeDom', id: node.id});
         }
         removeChildren(node, false);
     } else if (node.kind === textKind) {
         if (realRemove) {
-            commandList.push({type: 'removeText', id: node.id});
+            addCommand({type: 'removeText', id: node.id});
         }
+        node.status = 'removed';
     } else if (node.kind === arrayKind) {
         removeChildren(node, realRemove);
+        node.status = 'removed';
     } else if (node.kind === portalKind) {
         removeChildren(node, realRemove);
+        node.status = 'removed';
     }
 }
 
