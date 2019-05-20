@@ -59,6 +59,7 @@ render(
     </Suspense>,
     'root',
 );
+debugger;
 
 // declare var worker: Worker;
 // let k = 0;

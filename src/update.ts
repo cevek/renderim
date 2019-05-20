@@ -1,4 +1,13 @@
+function mountOrUpdate(node: VNode, oldNode: VNode | undefined, parentId: ID, beforeId: ID | null) {
+    if (oldNode === undefined) {
+        return mountVNode(node, parentId, beforeId);
+    }
+    return updateVNode(node, oldNode, parentId);
+}
 function updateVNode(node: VNode, oldNode: VNode, parentId: ID): VNode {
+    if (node.status === 'active') {
+        node = cloneVNode(node);
+    }
     if (node === oldNode) return node;
     assert(node.status === 'created');
     assert(oldNode.status === 'active');
@@ -45,7 +54,7 @@ function updateComponent(
     if (node.type === Suspense) {
         // allSuspenses.delete(oldNode as VSuspenseNode);
         node.extra = oldNode.extra;
-        return handleSuspense(node as VSuspenseNode, fromRestart ? 'fromRestart' : 'update', oldChild, parentId, null);
+        return handleSuspense(node as VSuspenseNode, fromRestart, oldChild, parentId, null);
     }
 
     node.children = updateVNode(node.children, oldChild, parentId);

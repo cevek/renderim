@@ -7,14 +7,9 @@ function runComponent(node: VComponentNode) {
     assert(node.status === 'created');
     const prev = currentComponent;
     currentComponent = node;
-    if (currentSuspense !== undefined) {
-        node.suspense = currentSuspense;
-    }
-    if (currentErrorBoundary !== undefined) {
-        node.errorBoundary = currentErrorBoundary;
-    }
-    assert(node.errorBoundary !== undefined);
-    assert(node.suspense !== undefined);
+    node.suspense = currentSuspense;
+    node.errorBoundary = currentErrorBoundary;
+
     const commandListEnd = commandList.length;
     try {
         node.children = norm(node.type(node.props));
@@ -27,7 +22,7 @@ function runComponent(node: VComponentNode) {
                 node.type(node.props);
             });
             node.errorBoundary.extra.errors.push(err);
-            skipCommands(node.errorBoundary.extra.commands);
+            skipAndClearCommands(node.errorBoundary.extra.commands);
         }
     }
     for (let i = commandListEnd; i < commandList.length; i++) {
@@ -68,11 +63,17 @@ function Suspense(props: SuspenseProps) {
 function restartComponent(node: VComponentNode) {
     if (node.status === 'removed') return;
     assert(node.status === 'active');
-    const newNodeFresh = createComponentVNode(node.type, node.props, node.key);
-    newNodeFresh.suspense = node.suspense;
-    newNodeFresh.errorBoundary = node.errorBoundary;
-    const newNode = updateComponent(newNodeFresh, node, node.id, true);
+
+    const prevErrorBoundary = currentErrorBoundary;
+    const prevSuspense = currentSuspense;
+
+    currentErrorBoundary = node.errorBoundary;
+    currentSuspense = node.suspense;
+    const newNode = updateComponent(createComponentVNode(node.type, node.props, node.key), node, node.id, true);
     restartedComponents.push({new: newNode, old: node});
+
+    currentErrorBoundary = prevErrorBoundary;
+    currentSuspense = prevSuspense;
 }
 
 function commitUpdating() {
@@ -84,8 +85,12 @@ function commitUpdating() {
             //todo: suspense?, errorBoundary?
         }
     }
+    restartedComponents = [];
     renderCommands(commandList.filter(command => command.skip === undefined));
     clearArrayUntil(commandList, 0);
+
+    assert(currentSuspense === rootSuspense);
+    assert(currentErrorBoundary === rootErrorBoundary);
 }
 
 function handleErrorBoundary(node: VErrorBoundaryNode, handleChild: (child: VNode) => VNode) {
@@ -105,31 +110,31 @@ function handleErrorBoundary(node: VErrorBoundaryNode, handleChild: (child: VNod
 
 function handleSuspense(
     node: VSuspenseNode,
-    type: 'mount' | 'update' | 'fromRestart',
+    fromRestart: boolean,
     oldChild: VNode | undefined,
     parentId: ID,
     beforeId: ID | null,
 ) {
     assert(node.status === 'created');
+    assert(node.extra.components.length === node.extra.promises.length);
     const parentSuspense = currentSuspense;
     currentSuspense = node;
-    if (type === 'mount') {
-        node.children = mountVNode(node.children, parentId, beforeId);
-    } else if (type === 'update') {
-        node.children = updateVNode(node.children, nonNull(oldChild), parentId);
-    } else {
+    node.children = mountOrUpdate(node.children, oldChild, parentId, beforeId);
+
+    if (fromRestart) {
+        const prevPromisesCount = node.extra.promises.length;
         for (const component of node.extra.components) {
             restartComponent(component);
         }
+        if (prevPromisesCount === node.extra.promises.length) {
+            node.extra.promises = [];
+            node.extra.components = [];
+        }
     }
     if (node.extra.promises.length > 0) {
-        skipCommands(node.extra.commands);
+        skipAndClearCommands(node.extra.commands);
         if (node.extra.timeoutAt <= Date.now()) {
-            if (type === 'mount') {
-                node.children = mountVNode(norm(node.props.fallback), parentId, beforeId);
-            } else if (type === 'update' || type === 'fromRestart') {
-                node.children = updateVNode(norm(node.props.fallback), nonNull(oldChild), parentId);
-            }
+            node.children = mountOrUpdate(norm(node.props.fallback), oldChild, parentId, beforeId);
         } else {
             addPromiseToParentSuspense(
                 node,
@@ -146,7 +151,7 @@ function addPromiseToParentSuspense(component: VComponentNode, promise: Promise<
     const suspense = component.suspense;
     assert(suspense.status === 'active' || suspense.status === 'created');
     assert(component.status === 'created');
-    skipCommands(suspense.extra.commands);
+    skipAndClearCommands(suspense.extra.commands);
     if (suspense.extra.promises.length === 0) {
         suspense.extra.timeoutAt = Date.now() + suspense.props.timeout;
     }
@@ -155,6 +160,7 @@ function addPromiseToParentSuspense(component: VComponentNode, promise: Promise<
     const currentPromises = suspense.extra.promises;
     Promise.all(currentPromises).then(() => {
         // todo: check actual id
+        console.log(123123);
         restartComponent(suspense);
         commitUpdating();
         if (currentPromises.length === suspense.extra.promises.length) {

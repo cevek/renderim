@@ -94,8 +94,10 @@ function visitEachNode(node: VNode, cb: (node: VNode) => void): void {
 
 function staleOldVNodeDeep(node: VNode): void {
     visitEachNode(node, n => {
-        assert(n.status === 'active');
-        n.status = 'stalled';
+        assert(n.status === 'active' || n.status === 'removed');
+        if (n.status === 'active') {
+            n.status = 'stalled';
+        }
         staleNodes.add(node);
     });
 }
@@ -103,4 +105,56 @@ function validateStatusDeep(node: VNode, status: VNodeStatus): void {
     visitEachNode(node, n => {
         assert(n.status === status);
     });
+}
+
+function createVArrayNode(arr: Return[]): VArrayNode {
+    return {
+        _id: _id++,
+        status: 'created',
+        kind: arrayKind,
+        id: undefined!,
+        children: arr,
+        key: undefined,
+        props: undefined,
+        type: undefined,
+        extra: undefined,
+    };
+}
+function createVPortalNode(arr: Return[]): VPortalNode {
+    throw new Error('Unimplemeted');
+}
+
+function norm(node: Return): VNode {
+    if (node === null || node === undefined) {
+        return createVTextNode('');
+    }
+    if (Array.isArray(node)) {
+        return createVArrayNode(node);
+    }
+    if (typeof node === 'object' && ((node as VNode).kind as unknown) instanceof Kind) {
+        return node as VNode;
+    }
+    if (typeof node === 'string' || typeof node === 'number') {
+        return createVTextNode(String(node));
+    }
+    return createVTextNode('');
+}
+
+function cloneVNode(node: VNode) {
+    if (node.kind === componentKind) {
+        return createComponentVNode(node.type, node.props, node.key);
+    }
+    if (node.kind === domKind) {
+        return createDomVNode(node.type, node.props, node.key, node.children);
+    }
+    if (node.kind === arrayKind) {
+        return createVArrayNode(node.children);
+    }
+    if (node.kind === portalKind) {
+        return createVPortalNode(node.children);
+    }
+    if (node.kind === textKind) {
+        return createVTextNode(node.children);
+    }
+    return never(node);
 }

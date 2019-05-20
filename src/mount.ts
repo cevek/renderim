@@ -1,4 +1,7 @@
 function mountVNode(node: VNode, parentId: ID, beforeId: ID | null) {
+    if (node.status === 'active') {
+        node = cloneVNode(node);
+    }
     assert(node.status === 'created');
     if (node.kind === componentKind) {
         return mountComponent(node, parentId, beforeId);
@@ -31,7 +34,7 @@ function mountComponent(node: VComponentNode, parentId: ID, beforeId: ID | null)
         return handleErrorBoundary(node as VErrorBoundaryNode, child => mountVNode(child, parentId, beforeId));
     }
     if (node.type === Suspense) {
-        return handleSuspense(node as VSuspenseNode, 'mount', undefined, parentId, beforeId);
+        return handleSuspense(node as VSuspenseNode, false, undefined, parentId, beforeId);
     }
     node.children = mountVNode(node.children, parentId, beforeId);
     node.status = 'active';

@@ -6,32 +6,6 @@ function genId() {
     return (id++ as unknown) as ID;
 }
 
-function norm(node: Return): VNode {
-    if (node === null || node === undefined) {
-        return createVTextNode('');
-    }
-    if (Array.isArray(node)) {
-        const arrayVNode: VArrayNode = {
-            _id: _id++,
-            status: 'created',
-            kind: arrayKind,
-            id: undefined!,
-            children: node,
-            key: undefined,
-            props: undefined,
-            type: undefined,
-            extra: undefined,
-        };
-        return arrayVNode;
-    }
-    if (typeof node === 'object' && ((node as VNode).kind as unknown) instanceof Kind) {
-        return node as VNode;
-    }
-    if (typeof node === 'string' || typeof node === 'number') {
-        return createVTextNode(String(node));
-    }
-    return createVTextNode('');
-}
 
 // function normChild(parent: VDomNode | VArrayNode | VPortalNode, i: number): VNode {
 //     const child = parent.children[i];
@@ -77,9 +51,10 @@ function addCommand(command: Command) {
 }
 
 
-function skipCommands(arr: Command[]) {
+function skipAndClearCommands(arr: Command[]) {
     for (let i = 0; i < arr.length; i++) {
         const command = arr[i];
         command.skip = true;
     }
+    clearArrayUntil(arr, 0);
 }

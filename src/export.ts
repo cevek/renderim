@@ -12,6 +12,9 @@ function createElement(type: string | ComponentFun, props: object | null, ...chi
 }
 
 function render(node: VNode, htmlId: string) {
+    currentSuspense = rootSuspense;
+    currentErrorBoundary = rootErrorBoundary;
+
     const rootSuspenseNode = createComponentVNode(Suspense, {
         fallback: 'Root Loading...',
         timeout: 0,
@@ -25,8 +28,6 @@ function render(node: VNode, htmlId: string) {
             return 'Something went wrong';
         },
     });
-    rootNode.errorBoundary = Object.freeze({}) as VErrorBoundaryNode;
-    rootNode.suspense = Object.freeze({}) as VSuspenseNode;
 
     const id = (htmlId as unknown) as ID;
     const oldNode = roots.get(id);
