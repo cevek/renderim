@@ -56,7 +56,6 @@ function ErrorBoundary(props: ErrorBoundaryProps) {
 type SuspenseExtra = {
     timeoutAt: number;
     commands: Command[];
-    canShow: boolean;
     promises: Promise<unknown>[];
     components: VComponentNode[];
 };
@@ -67,18 +66,19 @@ function Suspense(props: SuspenseProps) {
 }
 
 function restartComponent(node: VComponentNode) {
-    if (node.status === 'stalled' || node.status === 'removed') return;
+    if (node.status === 'removed') return;
     assert(node.status === 'active');
     const newNodeFresh = createComponentVNode(node.type, node.props, node.key);
     newNodeFresh.suspense = node.suspense;
     newNodeFresh.errorBoundary = node.errorBoundary;
     const newNode = updateComponent(newNodeFresh, node, node.id, true);
-    updatedComponents.push({new: newNode, old: node});
+    restartedComponents.push({new: newNode, old: node});
 }
 
 function commitUpdating() {
-    for (const cmp of updatedComponents) {
+    for (const cmp of restartedComponents) {
         if (cmp.old.suspense.extra.promises.length === 0) {
+            staleOldVNodeDeep(cmp.old.children);
             cmp.old.children = cmp.new.children;
             cmp.old.status = cmp.new.status;
             //todo: suspense?, errorBoundary?
@@ -128,7 +128,7 @@ function handleSuspense(
             if (type === 'mount') {
                 node.children = mountVNode(norm(node.props.fallback), parentId, beforeId);
             } else if (type === 'update' || type === 'fromRestart') {
-                node.children = updateVNode(norm(node.props.fallback), node.children, parentId);
+                node.children = updateVNode(norm(node.props.fallback), nonNull(oldChild), parentId);
             }
         } else {
             addPromiseToParentSuspense(
@@ -154,7 +154,7 @@ function addPromiseToParentSuspense(component: VComponentNode, promise: Promise<
     suspense.extra.components.push(component);
     const currentPromises = suspense.extra.promises;
     Promise.all(currentPromises).then(() => {
-        // check actual id
+        // todo: check actual id
         restartComponent(suspense);
         commitUpdating();
         if (currentPromises.length === suspense.extra.promises.length) {

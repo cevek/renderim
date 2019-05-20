@@ -1,4 +1,5 @@
 function removeVNode(node: VNode, realRemove: boolean) {
+    removedNodes.add(node);
     assert(node.status === 'active');
     if (node.kind === componentKind) {
         if (node.type === ErrorBoundary) {

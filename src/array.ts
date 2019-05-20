@@ -55,7 +55,6 @@ function updateArray(node: VArrayNode, oldNode: VArrayNode, parentId: ID): VArra
         }
     }
     node.status = 'active';
-    oldNode.status = 'stalled';
     return node;
 }
 

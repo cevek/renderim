@@ -33,6 +33,10 @@ function render(node: VNode, htmlId: string) {
     assert(commandList.length === 0);
     roots.set(id, oldNode === undefined ? mountVNode(rootNode, id, null) : updateVNode(rootNode, oldNode, id));
     commitUpdating();
+    validateStatusDeep(roots.get(id)!, 'active');
+    if (oldNode !== undefined) {
+        staleOldVNodeDeep(oldNode);
+    }
 }
 
 function unmount(htmlId: string) {

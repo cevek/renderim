@@ -45,7 +45,6 @@ function createComponentVNode<Props extends object>(
             commands: [],
             components: [],
             promises: [],
-            canShow: false,
         };
         extra = val;
     }
@@ -62,4 +61,46 @@ function createComponentVNode<Props extends object>(
         suspense: undefined!,
         errorBoundary: undefined!,
     };
+}
+
+function visitEachNode(node: VNode, cb: (node: VNode) => void): void {
+    cb(node);
+    if (node.kind === componentKind) {
+        return visitEachNode(node.children, cb);
+    }
+    if (node.kind === domKind) {
+        for (const child of node.children) {
+            visitEachNode(child as VNode, cb);
+        }
+        return;
+    }
+    if (node.kind === arrayKind) {
+        for (const child of node.children) {
+            visitEachNode(child as VNode, cb);
+        }
+        return;
+    }
+    if (node.kind === portalKind) {
+        for (const child of node.children) {
+            visitEachNode(child as VNode, cb);
+        }
+        return;
+    }
+    if (node.kind === textKind) {
+        return;
+    }
+    return never(node);
+}
+
+function staleOldVNodeDeep(node: VNode): void {
+    visitEachNode(node, n => {
+        assert(n.status === 'active');
+        n.status = 'stalled';
+        staleNodes.add(node);
+    });
+}
+function validateStatusDeep(node: VNode, status: VNodeStatus): void {
+    visitEachNode(node, n => {
+        assert(n.status === status);
+    });
 }

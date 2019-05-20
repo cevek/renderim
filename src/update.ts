@@ -50,7 +50,6 @@ function updateComponent(
 
     node.children = updateVNode(node.children, oldChild, parentId);
     node.status = 'active';
-    oldNode.status = 'stalled';
     return node;
 }
 
@@ -76,7 +75,6 @@ function updateDom(node: VDomNode, oldNode: VDomNode, parentId: ID) {
         removeVNode(oldChild, true);
     }
     node.status = 'active';
-    oldNode.status = 'stalled';
     return node;
 }
 
@@ -86,7 +84,6 @@ function updateText(node: VTextNode, oldNode: VTextNode) {
         addCommand({type: 'setText', id: node.id, text: node.children});
     }
     node.status = 'active';
-    oldNode.status = 'stalled';
     return node;
 }
 
@@ -95,7 +92,6 @@ function updatePortal(node: VPortalNode, oldNode: VPortalNode, parentId: ID) {
         return replaceVNode(node, oldNode, parentId);
     }
     node.status = 'active';
-    oldNode.status = 'stalled';
     return node;
 }
 
