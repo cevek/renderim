@@ -32,7 +32,7 @@ function render(node: VNode, htmlId: string) {
     const id = (htmlId as unknown) as ID;
     const oldNode = roots.get(id);
     assert(commandList.length === 0);
-    const newNode = oldNode === undefined ? mountVNode(rootNode, id, null) : updateVNode(rootNode, oldNode, id);
+    const newNode = oldNode === undefined ? mountVNode(rootNode, id, null) : updateVNode(rootNode, oldNode, id, false);
     roots.set(id, newNode);
     commitUpdating();
     console.log(JSON.stringify(toJSON(newNode), null, 2));
@@ -67,6 +67,7 @@ function commitUpdating() {
             // GCVNodes.cancelledComponents.add(newNode);
         }
     }
+    console.log({maybeRemoved, maybeObsolete, maybeCancelled});
     for (const node of maybeRemoved) {
         assert(node.status === 'active');
         if (!shouldCancel(node)) {
@@ -100,10 +101,9 @@ function commitUpdating() {
         return !skip;
     });
     commandList = [];
-    setTimeout(() => {
-        filteredCommands;
+    // setTimeout(() => {
         renderCommands(filteredCommands);
-    });
+    // });
 
     assert(currentSuspense === rootSuspense);
     assert(currentErrorBoundary === rootErrorBoundary);

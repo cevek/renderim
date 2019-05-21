@@ -2,12 +2,13 @@ function mountOrUpdate(node: VNode, oldNode: VNode | undefined, parentId: ID, be
     if (oldNode === undefined) {
         return mountVNode(node, parentId, beforeId);
     }
-    return updateVNode(node, oldNode, parentId);
+    return updateVNode(node, oldNode, parentId, false);
 }
-function updateVNode(node: VNode, oldNode: VNode, parentId: ID): VNode {
+function updateVNode(node: VNode, oldNode: VNode, parentId: ID, fromRestart: boolean): VNode {
     if (node.status === 'active') {
         node = cloneVNode(node);
     }
+    // todo: clone?
     if (node === oldNode) return node;
     assert(node.status === 'created');
     assert(oldNode.status === 'active');
@@ -17,7 +18,7 @@ function updateVNode(node: VNode, oldNode: VNode, parentId: ID): VNode {
         return replaceVNode(node, oldNode, parentId);
     }
     if (node.kind === componentKind) {
-        return updateComponent(node, oldNode as VComponentNode, parentId, false);
+        return updateComponent(node, oldNode as VComponentNode, parentId, fromRestart);
     }
     if (node.kind === domKind) {
         return updateDom(node, oldNode as VDomNode, parentId);
@@ -51,16 +52,17 @@ function updateComponent(
     if (node.type === ErrorBoundary) {
         node.extra = oldNode.extra;
         // allErrorBoundaries.delete(oldNode as VErrorBoundaryNode);
-        node = handleErrorBoundary(node as VErrorBoundaryNode, child => updateVNode(child, oldChild, parentId));
+        node = handleErrorBoundary(node as VErrorBoundaryNode, child => updateVNode(child, oldChild, parentId, false));
     } else if (node.type === Suspense) {
         // allSuspenses.delete(oldNode as VSuspenseNode);
         node.extra = oldNode.extra;
         node = handleSuspense(node as VSuspenseNode, fromRestart, oldChild, parentId, null);
     } else {
-        node.children = updateVNode(node.children, oldChild, parentId);
+        node.children = updateVNode(node.children, oldChild, parentId, false);
     }
     node.status = 'active';
     maybeObsolete.push(oldNode);
+    maybeCancelled.push(node);
     return node;
 }
 
@@ -87,6 +89,7 @@ function updateDom(node: VDomNode, oldNode: VDomNode, parentId: ID) {
     }
     node.status = 'active';
     maybeObsolete.push(oldNode);
+    maybeCancelled.push(node);
     return node;
 }
 
@@ -97,6 +100,7 @@ function updateText(node: VTextNode, oldNode: VTextNode) {
     }
     node.status = 'active';
     maybeObsolete.push(oldNode);
+    maybeCancelled.push(node);
     return node;
 }
 
@@ -106,11 +110,12 @@ function updatePortal(node: VPortalNode, oldNode: VPortalNode, parentId: ID) {
     }
     node.status = 'active';
     maybeObsolete.push(oldNode);
+    maybeCancelled.push(node);
     return node;
 }
 
 function updateChild(parent: VChildrenNode, index: number, childNode: VNode, oldChildNode: VNode, parentId: ID) {
-    const newNode = updateVNode(childNode, oldChildNode, parentId);
+    const newNode = updateVNode(childNode, oldChildNode, parentId, false);
     parent.children[index] = newNode;
     return newNode;
 }

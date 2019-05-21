@@ -56,6 +56,7 @@ function updateArray(node: VArrayNode, oldNode: VArrayNode, parentId: ID): VArra
     }
     node.status = 'active';
     maybeObsolete.push(oldNode);
+    maybeCancelled.push(node);
     return node;
 }
 

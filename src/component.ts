@@ -54,9 +54,18 @@ function restartComponent(node: VComponentNode) {
     const prevErrorBoundary = currentErrorBoundary;
     const prevSuspense = currentSuspense;
 
+    assert(node.errorBoundary !== undefined);
+    assert(node.suspense !== undefined);
+
     currentErrorBoundary = node.errorBoundary;
     currentSuspense = node.suspense;
-    const newNode = updateComponent(createComponentVNode(node.type, node.props, node.key), node, node.id, true);
+    const newNode = updateVNode(
+        createComponentVNode(node.type, node.props, node.key),
+        node,
+        node.id,
+        true,
+    ) as VComponentNode;
+    assert(newNode.kind === componentKind);
     maybeRestarted.push({newNode: newNode, oldNode: node});
 
     currentErrorBoundary = prevErrorBoundary;
@@ -89,8 +98,6 @@ function handleSuspense(
     assert(node.extra.components.length === node.extra.promises.length);
     const parentSuspense = currentSuspense;
     currentSuspense = node;
-    node.children = mountOrUpdate(node.children, oldChild, parentId, beforeId);
-
     if (fromRestart) {
         const prevPromisesCount = node.extra.promises.length;
         for (const component of node.extra.components) {
@@ -100,12 +107,17 @@ function handleSuspense(
             node.extra.promises = [];
             node.extra.components = [];
         }
+    } else {
+        node.children = mountOrUpdate(node.children, oldChild, parentId, beforeId);
     }
     currentSuspense = parentSuspense;
     if (node.extra.promises.length > 0) {
         if (node.extra.timeoutAt <= Date.now()) {
             // removeInsideSuspenseOrBoundary(node.children);
             // node.children = mountOrUpdate(norm(node.props.fallback), oldChild, parentId, beforeId);
+            if (oldChild !== undefined) {
+                node.children = oldChild;
+            }
         } else {
             addPromiseToParentSuspense(
                 node,
