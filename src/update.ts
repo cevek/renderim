@@ -2,14 +2,10 @@ function mountOrUpdate(node: VNode, oldNode: VNode | undefined, parentId: ID, be
     if (oldNode === undefined) {
         return mountVNode(node, parentId, beforeId);
     }
-    return updateVNode(node, oldNode, parentId, false);
+    return updateVNode(node, oldNode, parentId);
 }
-function updateVNode(node: VNode, oldNode: VNode, parentId: ID, fromRestart: boolean): VNode {
-    if (node.status === 'active') {
-        node = cloneVNode(node);
-    }
-    // todo: clone?
-    if (node === oldNode) return node;
+function updateVNode(node: VNode, oldNode: VNode, parentId: ID): VNode {
+    assert(node !== oldNode);
     assert(node.status === 'created');
     assert(oldNode.status === 'active');
     node.errorBoundary = currentErrorBoundary;
@@ -18,7 +14,7 @@ function updateVNode(node: VNode, oldNode: VNode, parentId: ID, fromRestart: boo
         return replaceVNode(node, oldNode, parentId);
     }
     if (node.kind === componentKind) {
-        return updateComponent(node, oldNode as VComponentNode, parentId, fromRestart);
+        return updateComponent(node, oldNode as VComponentNode, parentId);
     }
     if (node.kind === domKind) {
         return updateDom(node, oldNode as VDomNode, parentId);
@@ -39,7 +35,6 @@ function updateComponent(
     node: VComponentNode,
     oldNode: VComponentNode,
     parentId: ID,
-    fromRestart: boolean,
 ): VComponentNode {
     assert(node.status === 'created');
     assert(oldNode.status === 'active');
@@ -52,13 +47,13 @@ function updateComponent(
     if (node.type === ErrorBoundary) {
         node.extra = oldNode.extra;
         // allErrorBoundaries.delete(oldNode as VErrorBoundaryNode);
-        node = handleErrorBoundary(node as VErrorBoundaryNode, child => updateVNode(child, oldChild, parentId, false));
+        node = handleErrorBoundary(node as VErrorBoundaryNode, child => updateVNode(child, oldChild, parentId));
     } else if (node.type === Suspense) {
         // allSuspenses.delete(oldNode as VSuspenseNode);
         node.extra = oldNode.extra;
-        node = handleSuspense(node as VSuspenseNode, fromRestart, oldChild, parentId, null);
+        node = handleSuspense(node as VSuspenseNode, oldChild, parentId, null);
     } else {
-        node.children = updateVNode(node.children, oldChild, parentId, false);
+        node.children = updateVNode(node.children, oldChild, parentId);
     }
     node.status = 'active';
     maybeObsolete.push(oldNode);
@@ -115,7 +110,7 @@ function updatePortal(node: VPortalNode, oldNode: VPortalNode, parentId: ID) {
 }
 
 function updateChild(parent: VChildrenNode, index: number, childNode: VNode, oldChildNode: VNode, parentId: ID) {
-    const newNode = updateVNode(childNode, oldChildNode, parentId, false);
+    const newNode = updateVNode(childNode, oldChildNode, parentId);
     parent.children[index] = newNode;
     return newNode;
 }

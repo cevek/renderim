@@ -14,7 +14,7 @@ function createVTextNode(text: string): VTextNode {
     };
 }
 
-function createDomVNode(type: string, props: object | null, key: string | undefined, children: Return[]): VDomNode {
+function createDomVNode(type: string, props: string[], key: string | undefined, children: Return[]): VDomNode {
     return {
         _id: _id++,
         status: 'created',
@@ -22,7 +22,7 @@ function createDomVNode(type: string, props: object | null, key: string | undefi
         children: children,
         key: key,
         kind: domKind,
-        props: createPropsFromObj(props),
+        props: props,
         type: type,
         extra: undefined,
         errorBoundary: undefined!,
@@ -121,7 +121,11 @@ function norm(node: Return): VNode {
         return createVArrayNode(node);
     }
     if (typeof node === 'object' && ((node as VNode).kind as unknown) instanceof Kind) {
-        return node as VNode;
+        const vnode = node as VNode;
+        if (vnode.status !== 'created') {
+            return cloneVNode(vnode);
+        }
+        return vnode;
     }
     if (typeof node === 'string' || typeof node === 'number') {
         return createVTextNode(String(node));
@@ -129,18 +133,18 @@ function norm(node: Return): VNode {
     return createVTextNode('');
 }
 
-function cloneVNode(node: VNode) {
+function cloneVNode(node: VNode): VNode {
     if (node.kind === componentKind) {
         return createComponentVNode(node.type, node.props, node.key);
     }
     if (node.kind === domKind) {
-        return createDomVNode(node.type, node.props, node.key, node.children);
+        return createDomVNode(node.type, node.props, node.key, node.children.map(node => cloneVNode(node as VNode)));
     }
     if (node.kind === arrayKind) {
-        return createVArrayNode(node.children);
+        return createVArrayNode(node.children.map(node => cloneVNode(node as VNode)));
     }
     if (node.kind === portalKind) {
-        return createVPortalNode(node.children);
+        return createVPortalNode(node.children.map(node => cloneVNode(node as VNode)));
     }
     if (node.kind === textKind) {
         return createVTextNode(node.children);

@@ -1,7 +1,7 @@
 function createElement(type: string | ComponentFun, props: object | null, ...children: Return[]): VElement {
     const key = props === null ? undefined : (props as {key?: string}).key;
     if (typeof type === 'string') {
-        return createDomVNode(type, props, key, children);
+        return createDomVNode(type, createPropsFromObj(props), key, children);
     } else if (typeof type === 'function') {
         if (props === null) props = {children};
         else (props as {children?: Return}).children = children;
@@ -32,7 +32,7 @@ function render(node: VNode, htmlId: string) {
     const id = (htmlId as unknown) as ID;
     const oldNode = roots.get(id);
     assert(commandList.length === 0);
-    const newNode = oldNode === undefined ? mountVNode(rootNode, id, null) : updateVNode(rootNode, oldNode, id, false);
+    const newNode = oldNode === undefined ? mountVNode(rootNode, id, null) : updateVNode(rootNode, oldNode, id);
     roots.set(id, newNode);
     commitUpdating();
     console.log(JSON.stringify(toJSON(newNode), null, 2));
@@ -101,9 +101,9 @@ function commitUpdating() {
         return !skip;
     });
     commandList = [];
-    // setTimeout(() => {
+    setTimeout(() => {
         renderCommands(filteredCommands);
-    // });
+    });
 
     assert(currentSuspense === rootSuspense);
     assert(currentErrorBoundary === rootErrorBoundary);

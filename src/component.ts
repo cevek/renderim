@@ -59,12 +59,7 @@ function restartComponent(node: VComponentNode) {
 
     currentErrorBoundary = node.errorBoundary;
     currentSuspense = node.suspense;
-    const newNode = updateVNode(
-        createComponentVNode(node.type, node.props, node.key),
-        node,
-        node.id,
-        true,
-    ) as VComponentNode;
+    const newNode = updateVNode(createComponentVNode(node.type, node.props, node.key), node, node.id) as VComponentNode;
     assert(newNode.kind === componentKind);
     maybeRestarted.push({newNode: newNode, oldNode: node});
 
@@ -87,29 +82,20 @@ function handleErrorBoundary(node: VErrorBoundaryNode, handleChild: (child: VNod
     return node;
 }
 
-function handleSuspense(
-    node: VSuspenseNode,
-    fromRestart: boolean,
-    oldChild: VNode | undefined,
-    parentId: ID,
-    beforeId: ID | null,
-) {
+function handleSuspense(node: VSuspenseNode, oldChild: VNode | undefined, parentId: ID, beforeId: ID | null) {
     assert(node.status === 'created');
     assert(node.extra.components.length === node.extra.promises.length);
     const parentSuspense = currentSuspense;
     currentSuspense = node;
-    if (fromRestart) {
-        const prevPromisesCount = node.extra.promises.length;
-        for (const component of node.extra.components) {
-            restartComponent(component);
-        }
-        if (prevPromisesCount === node.extra.promises.length) {
-            node.extra.promises = [];
-            node.extra.components = [];
-        }
-    } else {
-        node.children = mountOrUpdate(node.children, oldChild, parentId, beforeId);
+    const prevPromisesCount = node.extra.promises.length;
+    for (const component of node.extra.components) {
+        restartComponent(component);
     }
+    if (prevPromisesCount === node.extra.promises.length) {
+        node.extra.promises = [];
+        node.extra.components = [];
+    }
+    node.children = mountOrUpdate(node.children, oldChild, parentId, beforeId);
     currentSuspense = parentSuspense;
     if (node.extra.promises.length > 0) {
         if (node.extra.timeoutAt <= Date.now()) {
@@ -123,6 +109,8 @@ function handleSuspense(
                 node,
                 Promise.race([Promise.all(node.extra.promises), sleep(node.extra.timeoutAt - Date.now() + 1)]),
             );
+            // node.extra.promises = [];
+            // node.extra.components = [];
         }
     }
     return node;
@@ -156,8 +144,9 @@ function addPromiseToParentSuspense(component: VComponentNode, promise: Promise<
         console.log(123123);
         restartComponent(suspense);
         commitUpdating();
-        if (currentPromises.length === suspense.extra.promises.length) {
-            suspense.extra.promises = [];
-        }
+        // if (currentPromises.length === suspense.extra.promises.length) {
+        //     suspense.extra.promises = [];
+        //     suspense.extra.components = [];
+        // }
     });
 }
