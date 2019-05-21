@@ -3,7 +3,7 @@ type VNode = VComponentNode | VDomNode | VTextNode | VPortalNode | VArrayNode;
 type Return = undefined | null | boolean | string | number | VNode | {[key: number]: Return};
 
 type ComponentFun = (props: object) => Return;
-type VNodeStatus = 'created' | 'active' | 'stalled' | 'removed';
+type VNodeStatus = 'created' | 'active' | 'obsolete' | 'removed' | 'cancelled';
 type VChildrenNode = VDomNode | VArrayNode | VPortalNode;
 type VElement = VComponentNode | VDomNode;
 type VComponentNode = {
@@ -29,6 +29,8 @@ type VDomNode = {
     key: string | undefined;
     children: Return[];
     extra: undefined;
+    suspense: VSuspenseNode;
+    errorBoundary: VErrorBoundaryNode;
 };
 type VTextNode = {
     _id: number;
@@ -40,6 +42,8 @@ type VTextNode = {
     key: undefined;
     children: string;
     extra: undefined;
+    suspense: VSuspenseNode;
+    errorBoundary: VErrorBoundaryNode;
 };
 type VArrayNode = {
     _id: number;
@@ -51,6 +55,8 @@ type VArrayNode = {
     key: undefined;
     children: Return[];
     extra: undefined;
+    suspense: VSuspenseNode;
+    errorBoundary: VErrorBoundaryNode;
 };
 type VPortalNode = {
     _id: number;
@@ -62,4 +68,6 @@ type VPortalNode = {
     key: undefined;
     children: Return[];
     extra: undefined;
+    suspense: VSuspenseNode;
+    errorBoundary: VErrorBoundaryNode;
 };

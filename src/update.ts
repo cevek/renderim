@@ -11,6 +11,8 @@ function updateVNode(node: VNode, oldNode: VNode, parentId: ID): VNode {
     if (node === oldNode) return node;
     assert(node.status === 'created');
     assert(oldNode.status === 'active');
+    node.errorBoundary = currentErrorBoundary;
+    node.suspense = currentSuspense;
     if (node.kind !== oldNode.kind) {
         return replaceVNode(node, oldNode, parentId);
     }
@@ -49,16 +51,16 @@ function updateComponent(
     if (node.type === ErrorBoundary) {
         node.extra = oldNode.extra;
         // allErrorBoundaries.delete(oldNode as VErrorBoundaryNode);
-        return handleErrorBoundary(node as VErrorBoundaryNode, child => updateVNode(child, oldChild, parentId));
-    }
-    if (node.type === Suspense) {
+        node = handleErrorBoundary(node as VErrorBoundaryNode, child => updateVNode(child, oldChild, parentId));
+    } else if (node.type === Suspense) {
         // allSuspenses.delete(oldNode as VSuspenseNode);
         node.extra = oldNode.extra;
-        return handleSuspense(node as VSuspenseNode, fromRestart, oldChild, parentId, null);
+        node = handleSuspense(node as VSuspenseNode, fromRestart, oldChild, parentId, null);
+    } else {
+        node.children = updateVNode(node.children, oldChild, parentId);
     }
-
-    node.children = updateVNode(node.children, oldChild, parentId);
     node.status = 'active';
+    maybeObsolete.push(oldNode);
     return node;
 }
 
@@ -70,7 +72,7 @@ function updateDom(node: VDomNode, oldNode: VDomNode, parentId: ID) {
     const len = Math.min(node.children.length, oldNode.children.length);
     const diffProps = updateProps(node.props, oldNode.props);
     if (diffProps.length > 0) {
-        addCommand({type: 'updateDom', id: node.id, props: diffProps});
+        addCommand(node, {type: 'updateDom', id: node.id, props: diffProps});
     }
     for (let i = 0; i < len; i++) {
         const oldChild = oldNode.children[i] as VNode;
@@ -84,15 +86,17 @@ function updateDom(node: VDomNode, oldNode: VDomNode, parentId: ID) {
         removeVNode(oldChild, true);
     }
     node.status = 'active';
+    maybeObsolete.push(oldNode);
     return node;
 }
 
 function updateText(node: VTextNode, oldNode: VTextNode) {
     node.id = oldNode.id;
     if (node.children !== oldNode.children) {
-        addCommand({type: 'setText', id: node.id, text: node.children});
+        addCommand(node, {type: 'setText', id: node.id, text: node.children});
     }
     node.status = 'active';
+    maybeObsolete.push(oldNode);
     return node;
 }
 
@@ -101,6 +105,7 @@ function updatePortal(node: VPortalNode, oldNode: VPortalNode, parentId: ID) {
         return replaceVNode(node, oldNode, parentId);
     }
     node.status = 'active';
+    maybeObsolete.push(oldNode);
     return node;
 }
 

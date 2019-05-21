@@ -34,9 +34,10 @@ function render(node: VNode, htmlId: string) {
     assert(commandList.length === 0);
     roots.set(id, oldNode === undefined ? mountVNode(rootNode, id, null) : updateVNode(rootNode, oldNode, id));
     commitUpdating();
-    validateStatusDeep(roots.get(id)!, 'active');
+    visitEachNode(roots.get(id)!, n => assert(n.status === 'active'));
     if (oldNode !== undefined) {
-        staleOldVNodeDeep(oldNode);
+        //todo:
+        // visitEachNode(node, n => assert(n.status === 'obsolete' || n.status === 'removed'));
     }
 }
 
@@ -45,4 +46,57 @@ function unmount(htmlId: string) {
     if (node !== undefined) {
         removeVNode(node, true);
     }
+}
+
+function shouldCancel(node: VNode) {
+    return node.suspense.extra.promises.length > 0 || node.errorBoundary.extra.errors.length > 0;
+}
+function commitUpdating() {
+    for (const {oldNode, newNode} of maybeRestarted) {
+        assert(oldNode.status === 'active');
+        assert(newNode.status === 'active');
+        if (!shouldCancel(oldNode)) {
+            oldNode.children = newNode.children;
+            oldNode.suspense = newNode.suspense;
+            oldNode.errorBoundary = newNode.errorBoundary;
+        } else {
+            GCVNodes.cancelledComponents.add(newNode);
+        }
+    }
+    for (const node of maybeRemoved) {
+        assert(node.status === 'active');
+        if (!shouldCancel(node)) {
+            node.status = 'removed';
+            GCVNodes.removed.add(node);
+        }
+    }
+    for (const node of maybeObsolete) {
+        assert(node.status === 'active' || node.status === 'removed');
+        if (!shouldCancel(node)) {
+            node.status = 'obsolete';
+            GCVNodes.obsolete.add(node);
+        }
+    }
+    for (const node of maybeCancelled) {
+        assert(node.status === 'active');
+        if (shouldCancel(node)) {
+            node.status = 'cancelled';
+            GCVNodes.cancelled.add(node);
+        }
+    }
+    maybeRestarted = [];
+    maybeObsolete = [];
+    maybeRemoved = [];
+    maybeCancelled = [];
+    renderCommands(
+        (commandList as CommandWithParentVNode[]).filter(command => {
+            const skip = command.vNode.status === 'cancelled';
+            command.vNode = undefined!;
+            return !skip;
+        }),
+    );
+    clearArrayUntil(commandList, 0);
+
+    assert(currentSuspense === rootSuspense);
+    assert(currentErrorBoundary === rootErrorBoundary);
 }

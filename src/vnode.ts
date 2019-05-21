@@ -9,6 +9,8 @@ function createVTextNode(text: string): VTextNode {
         props: undefined,
         type: undefined,
         extra: undefined,
+        errorBoundary: undefined!,
+        suspense: undefined!,
     };
 }
 
@@ -23,6 +25,8 @@ function createDomVNode(type: string, props: object | null, key: string | undefi
         props: createPropsFromObj(props),
         type: type,
         extra: undefined,
+        errorBoundary: undefined!,
+        suspense: undefined!,
     };
 }
 
@@ -34,7 +38,6 @@ function createComponentVNode<Props extends object>(
     let extra = undefined;
     if (type === ErrorBoundary) {
         const val: ErrorBoundaryExtra = {
-            commands: [],
             errors: [],
         };
         extra = val;
@@ -42,7 +45,6 @@ function createComponentVNode<Props extends object>(
     if (type === Suspense) {
         const val: SuspenseExtra = {
             timeoutAt: 0,
-            commands: [],
             components: [],
             promises: [],
         };
@@ -58,8 +60,8 @@ function createComponentVNode<Props extends object>(
         props,
         type: type as ComponentFun,
         extra: extra,
-        suspense: undefined!,
         errorBoundary: undefined!,
+        suspense: undefined!,
     };
 }
 
@@ -92,21 +94,6 @@ function visitEachNode(node: VNode, cb: (node: VNode) => void): void {
     return never(node);
 }
 
-function staleOldVNodeDeep(node: VNode): void {
-    visitEachNode(node, n => {
-        assert(n.status === 'active' || n.status === 'removed');
-        if (n.status === 'active') {
-            n.status = 'stalled';
-        }
-        staleNodes.add(node);
-    });
-}
-function validateStatusDeep(node: VNode, status: VNodeStatus): void {
-    visitEachNode(node, n => {
-        assert(n.status === status);
-    });
-}
-
 function createVArrayNode(arr: Return[]): VArrayNode {
     return {
         _id: _id++,
@@ -118,6 +105,8 @@ function createVArrayNode(arr: Return[]): VArrayNode {
         props: undefined,
         type: undefined,
         extra: undefined,
+        errorBoundary: undefined!,
+        suspense: undefined!,
     };
 }
 function createVPortalNode(arr: Return[]): VPortalNode {

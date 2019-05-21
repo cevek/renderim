@@ -6,7 +6,6 @@ function genId() {
     return (id++ as unknown) as ID;
 }
 
-
 // function normChild(parent: VDomNode | VArrayNode | VPortalNode, i: number): VNode {
 //     const child = parent.children[i];
 //     const newChild = norm(child);
@@ -46,15 +45,8 @@ function sleep(ms: number) {
 
 function noop() {}
 
-function addCommand(command: Command) {
+function addCommand(node: VNode, command: Command) {
+    const comandWithVNode = command as CommandWithParentVNode;
+    comandWithVNode.vNode = node;
     commandList.push(command);
-}
-
-
-function skipAndClearCommands(arr: Command[]) {
-    for (let i = 0; i < arr.length; i++) {
-        const command = arr[i];
-        command.skip = true;
-    }
-    clearArrayUntil(arr, 0);
 }

@@ -5,10 +5,18 @@ const roots = new Map<ID, VNode>();
 let currentComponent: VComponentNode;
 let currentSuspense: VSuspenseNode;
 let currentErrorBoundary: VErrorBoundaryNode;
-let restartedComponents: {new: VComponentNode; old: VComponentNode}[] = [];
 
-const staleNodes = new WeakSet<VNode>();
-const removedNodes = new WeakSet<VNode>();
+let maybeCancelled: VNode[] = [];
+let maybeRemoved: VNode[] = [];
+let maybeObsolete: VNode[] = [];
+let maybeRestarted: ({newNode: VComponentNode; oldNode: VComponentNode})[] = [];
+
+const GCVNodes = {
+    cancelled: new WeakSet<VNode>(),
+    obsolete: new WeakSet<VNode>(),
+    removed: new WeakSet<VNode>(),
+    cancelledComponents: new WeakSet<VComponentNode>(),
+};
 
 const rootSuspense = Object.freeze({extra: {promises: []}}) as VSuspenseNode;
-const rootErrorBoundary = (undefined as unknown) as VErrorBoundaryNode;
+const rootErrorBoundary = Object.freeze({extra: {errors: []}}) as VErrorBoundaryNode;
