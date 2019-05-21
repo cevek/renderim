@@ -32,7 +32,7 @@ function Data() {
 
 debugger;
 render(
-    <Suspense timeout={5000} fallback={<div>Loading...</div>}>
+    <Suspense timeout={500000} fallback={<div>Loading...</div>}>
         <div class="body" title="hello">
             Hello
             <span class="selected">

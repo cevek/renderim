@@ -32,9 +32,11 @@ function render(node: VNode, htmlId: string) {
     const id = (htmlId as unknown) as ID;
     const oldNode = roots.get(id);
     assert(commandList.length === 0);
-    roots.set(id, oldNode === undefined ? mountVNode(rootNode, id, null) : updateVNode(rootNode, oldNode, id));
+    const newNode = oldNode === undefined ? mountVNode(rootNode, id, null) : updateVNode(rootNode, oldNode, id);
+    roots.set(id, newNode);
     commitUpdating();
-    visitEachNode(roots.get(id)!, n => assert(n.status === 'active'));
+    console.log(JSON.stringify(toJSON(newNode), null, 2));
+    visitEachNode(newNode, n => assert(n.status === 'active'));
     if (oldNode !== undefined) {
         //todo:
         // visitEachNode(node, n => assert(n.status === 'obsolete' || n.status === 'removed'));
@@ -59,8 +61,10 @@ function commitUpdating() {
             oldNode.children = newNode.children;
             oldNode.suspense = newNode.suspense;
             oldNode.errorBoundary = newNode.errorBoundary;
+            // oldNode.status = 'obsolete';
         } else {
-            GCVNodes.cancelledComponents.add(newNode);
+            // newNode.status = 'cancelled';
+            // GCVNodes.cancelledComponents.add(newNode);
         }
     }
     for (const node of maybeRemoved) {
@@ -78,7 +82,8 @@ function commitUpdating() {
         }
     }
     for (const node of maybeCancelled) {
-        assert(node.status === 'active');
+        // todo: removed???
+        assert(node.status === 'active' || node.status === 'removed');
         if (shouldCancel(node)) {
             node.status = 'cancelled';
             GCVNodes.cancelled.add(node);
@@ -88,14 +93,17 @@ function commitUpdating() {
     maybeObsolete = [];
     maybeRemoved = [];
     maybeCancelled = [];
-    renderCommands(
-        (commandList as CommandWithParentVNode[]).filter(command => {
-            const skip = command.vNode.status === 'cancelled';
-            command.vNode = undefined!;
-            return !skip;
-        }),
-    );
-    clearArrayUntil(commandList, 0);
+    console.log(commandList);
+    const filteredCommands = (commandList as CommandWithParentVNode[]).filter(command => {
+        const skip = command.vNode.status === 'cancelled';
+        command.vNode = undefined!;
+        return !skip;
+    });
+    commandList = [];
+    setTimeout(() => {
+        filteredCommands;
+        renderCommands(filteredCommands);
+    });
 
     assert(currentSuspense === rootSuspense);
     assert(currentErrorBoundary === rootErrorBoundary);

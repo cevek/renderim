@@ -1,6 +1,6 @@
 let id = 0;
 let _id = 0;
-const commandList: Command[] = [];
+let commandList: Command[] = [];
 const roots = new Map<ID, VNode>();
 let currentComponent: VComponentNode;
 let currentSuspense: VSuspenseNode;

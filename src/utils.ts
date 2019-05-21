@@ -23,9 +23,9 @@ function findChildVDom(node: VNode): VDomNode | VTextNode {
     return never(node);
 }
 
-function clearArrayUntil(array: unknown[], until: number) {
-    while (array.length > until) array.pop();
-}
+// function clearArrayUntil(array: unknown[], until: number) {
+//     while (array.length > until) array.pop();
+// }
 
 function assert(val: boolean) {
     if (typeof val !== 'boolean') throw new Error('Not Boolean');
@@ -49,4 +49,18 @@ function addCommand(node: VNode, command: Command) {
     const comandWithVNode = command as CommandWithParentVNode;
     comandWithVNode.vNode = node;
     commandList.push(command);
+}
+
+function toJSON(node: VNode): unknown {
+    const {key, suspense, errorBoundary, extra, kind, type, props, id, ...other} = node as any;
+    other.kind = kind.constructor.name;
+    if (type) {
+        other.type = typeof type === 'string' ? type : type.name;
+    }
+    if (Array.isArray(node.children)) {
+        other.children = node.children.map(val => toJSON(val as VNode));
+    } else if (typeof node.children !== 'string') {
+        other.children = toJSON(node.children);
+    }
+    return other;
 }

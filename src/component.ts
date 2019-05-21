@@ -49,6 +49,7 @@ function Suspense(props: SuspenseProps) {
 function restartComponent(node: VComponentNode) {
     if (node.status === 'removed' || node.status === 'cancelled') return;
     assert(node.status === 'active');
+    visitEachNode(node, n => assert(n.status === 'active'));
 
     const prevErrorBoundary = currentErrorBoundary;
     const prevSuspense = currentSuspense;
@@ -71,7 +72,8 @@ function handleErrorBoundary(node: VErrorBoundaryNode, handleChild: (child: VNod
         currentErrorBoundary = prevErrorBoundary;
     }
     if (node.extra.errors.length > 0) {
-        node.children = handleChild(createComponentVNode(node.props.fallback, {errors: node.extra.errors}));
+        // removeInsideSuspenseOrBoundary(node.children);
+        // node.children = handleChild(createComponentVNode(node.props.fallback, {errors: node.extra.errors}));
     }
     return node;
 }
@@ -102,7 +104,8 @@ function handleSuspense(
     currentSuspense = parentSuspense;
     if (node.extra.promises.length > 0) {
         if (node.extra.timeoutAt <= Date.now()) {
-            node.children = mountOrUpdate(norm(node.props.fallback), oldChild, parentId, beforeId);
+            // removeInsideSuspenseOrBoundary(node.children);
+            // node.children = mountOrUpdate(norm(node.props.fallback), oldChild, parentId, beforeId);
         } else {
             addPromiseToParentSuspense(
                 node,
@@ -111,6 +114,16 @@ function handleSuspense(
         }
     }
     return node;
+}
+
+function removeInsideSuspenseOrBoundary(node: VNode) {
+    removeVNode(node, true);
+    visitEachNode(node, n => {
+        // if (node.status === '')
+        // node.status = 'cancelled';
+        n.errorBoundary = rootErrorBoundary;
+        n.suspense = rootSuspense;
+    });
 }
 
 function addPromiseToParentSuspense(component: VComponentNode, promise: Promise<unknown>) {
@@ -123,6 +136,9 @@ function addPromiseToParentSuspense(component: VComponentNode, promise: Promise<
     suspense.extra.promises.push(promise.catch(noop));
     suspense.extra.components.push(component);
     const currentPromises = suspense.extra.promises;
+    console.log('add promise to suspense', suspense);
+    debugger;
+    // visitEachNode(suspense, n => console.log(n.status));
     Promise.all(currentPromises).then(() => {
         // todo: check actual id
         console.log(123123);
