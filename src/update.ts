@@ -40,7 +40,6 @@ function updateVNode(node: VNode, oldNode: VNode, parentId: ID): VNode {
 function updateComponent(node: VComponentNode, oldNode: VComponentNode, parentId: ID): VComponentNode {
     assert(node.status === 'created');
     assert(oldNode.status === 'active');
-    const oldChild = oldNode.children;
     runComponent(node);
     node.id = parentId;
     if (node.type !== oldNode.type) {
@@ -49,13 +48,13 @@ function updateComponent(node: VComponentNode, oldNode: VComponentNode, parentId
     if (node.type === ErrorBoundary) {
         node.extra = oldNode.extra;
         // allErrorBoundaries.delete(oldNode as VErrorBoundaryNode);
-        node = handleErrorBoundary(node as VErrorBoundaryNode, child => updateVNode(child, oldChild, parentId));
+        node = handleErrorBoundary(node as VErrorBoundaryNode, oldNode.children, parentId, null);
     } else if (node.type === Suspense) {
         // allSuspenses.delete(oldNode as VSuspenseNode);
         node.extra = oldNode.extra;
-        node = handleSuspense(node as VSuspenseNode, oldChild, parentId, null);
+        node = handleSuspense(node as VSuspenseNode, oldNode.children, parentId, null);
     } else {
-        node.children = updateVNode(node.children, oldChild, parentId);
+        node.children = updateVNode(node.children, oldNode.children, parentId);
     }
     node.status = 'active';
     maybeObsolete.push(oldNode);

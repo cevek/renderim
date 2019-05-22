@@ -36,7 +36,7 @@ function mountComponent(node: VComponentNode, parentId: ID, beforeId: ID | null)
     runComponent(node);
     node.id = parentId;
     if (node.type === ErrorBoundary) {
-        node = handleErrorBoundary(node as VErrorBoundaryNode, child => mountVNode(child, parentId, beforeId));
+        node = handleErrorBoundary(node as VErrorBoundaryNode, undefined, parentId, beforeId);
     } else if (node.type === Suspense) {
         node = handleSuspense(node as VSuspenseNode, undefined, parentId, beforeId);
     } else {

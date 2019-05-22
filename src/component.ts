@@ -71,12 +71,12 @@ function restartComponent(node: VComponentNode) {
     currentSuspense = prevSuspense;
 }
 
-function handleErrorBoundary(node: VErrorBoundaryNode, handleChild: (child: VNode) => VNode) {
+function handleErrorBoundary(node: VErrorBoundaryNode,  oldChild: VNode | undefined, parentId: ID, beforeId: ID | null) {
     assert(node.status === 'created');
     if (node.extra.errors.length === 0) {
         const prevErrorBoundary = currentErrorBoundary;
         currentErrorBoundary = node;
-        node.children = handleChild(node.children);
+        node.children = mountOrUpdate(node.children, oldChild, parentId, beforeId);
         currentErrorBoundary = prevErrorBoundary;
     }
     if (node.extra.errors.length > 0) {
