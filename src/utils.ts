@@ -27,16 +27,17 @@ function findChildVDom(node: VNode): VDomNode | VTextNode {
 //     while (array.length > until) array.pop();
 // }
 
+class AssertError extends Error {}
 function assert(val: boolean) {
-    if (typeof val !== 'boolean') throw new Error('Not Boolean');
+    if (typeof val !== 'boolean') throw new AssertError('Not Boolean');
     if (!val) {
         debugger;
-        throw new Error('Assert!');
+        throw new AssertError('Assert!');
     }
 }
 function nonNull<T>(val: T | undefined): T {
-    if (val === undefined) throw new Error('No possible undefined value');
-    return val;
+    assert(val !== undefined);
+    return val!;
 }
 
 function sleep(ms: number) {

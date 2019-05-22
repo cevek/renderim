@@ -1,4 +1,7 @@
 function mountVNode(node: VNode, parentId: ID, beforeId: ID | null) {
+    if (node.status === 'active') {
+        node = cloneVNode(node);
+    }
     assert(node.status === 'created');
     node.errorBoundary = currentErrorBoundary;
     node.suspense = currentSuspense;

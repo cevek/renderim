@@ -14,6 +14,8 @@ function runComponent(node: VComponentNode) {
         node.children = norm(undefined);
         if (err instanceof Promise) {
             addPromiseToParentSuspense(node, err);
+        } else if (err instanceof AssertError) {
+            throw err;
         } else {
             new Promise(() => {
                 node.type(node.props);

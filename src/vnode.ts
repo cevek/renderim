@@ -123,9 +123,10 @@ function norm(node: Return): VNode {
     }
     if (typeof node === 'object' && ((node as VNode).kind as unknown) instanceof Kind) {
         const vnode = node as VNode;
-        if (vnode.status !== 'created') {
+        if (vnode.status === 'cancelled') {
             return cloneVNode(vnode);
         }
+        assert(vnode.status === 'created' || vnode.status === 'active');
         return vnode;
     }
     if (typeof node === 'string' || typeof node === 'number') {
