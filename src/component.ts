@@ -38,6 +38,7 @@ function ErrorBoundary(props: ErrorBoundaryProps) {
 type SuspenseExtra = {
     timeoutAt: number;
     promises: Promise<unknown>[];
+    resolvedPromises: number;
     components: VComponentNode[];
 };
 type SuspenseProps = {children: Return; timeout: number; fallback: Return};
@@ -48,6 +49,7 @@ function Suspense(props: SuspenseProps) {
 
 function restartComponent(node: VComponentNode) {
     if (node.status === 'removed' || node.status === 'cancelled') return;
+    console.log('restart', node);
     assert(node.status === 'active');
     visitEachNode(node, n => assert(n.status === 'active'));
 
@@ -87,13 +89,15 @@ function handleSuspense(node: VSuspenseNode, oldChild: VNode | undefined, parent
     assert(node.extra.components.length === node.extra.promises.length);
     const parentSuspense = currentSuspense;
     currentSuspense = node;
-    const prevPromisesCount = node.extra.promises.length;
-    for (const component of node.extra.components) {
-        restartComponent(component);
-    }
-    if (prevPromisesCount === node.extra.promises.length) {
-        node.extra.promises = [];
-        node.extra.components = [];
+    if (node.extra.promises.length > 0) {
+        for (const component of node.extra.components) {
+            restartComponent(component);
+        }
+        if (node.extra.resolvedPromises === node.extra.promises.length) {
+            node.extra.promises = [];
+            node.extra.components = [];
+            node.extra.resolvedPromises = 0;
+        }
     }
     node.children = mountOrUpdate(node.children, oldChild, parentId, beforeId);
     currentSuspense = parentSuspense;
@@ -141,7 +145,7 @@ function addPromiseToParentSuspense(component: VComponentNode, promise: Promise<
     // visitEachNode(suspense, n => console.log(n.status));
     Promise.all(currentPromises).then(() => {
         // todo: check actual id
-        console.log(123123);
+        suspense.extra.resolvedPromises = currentPromises.length;
         restartComponent(suspense);
         commitUpdating();
         // if (currentPromises.length === suspense.extra.promises.length) {

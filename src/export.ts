@@ -35,7 +35,8 @@ function render(node: VNode, htmlId: string) {
     const newNode = oldNode === undefined ? mountVNode(rootNode, id, null) : updateVNode(rootNode, oldNode, id);
     roots.set(id, newNode);
     commitUpdating();
-    console.log(JSON.stringify(toJSON(newNode), null, 2));
+    console.log('after render state', toJSON(newNode));
+    // console.log(JSON.stringify(toJSON(newNode), null, 2));
     visitEachNode(newNode, n => assert(n.status === 'active'));
     if (oldNode !== undefined) {
         //todo:
@@ -94,7 +95,6 @@ function commitUpdating() {
     maybeObsolete = [];
     maybeRemoved = [];
     maybeCancelled = [];
-    console.log(commandList);
     const filteredCommands = (commandList as CommandWithParentVNode[]).filter(command => {
         const skip = command.vNode.status === 'cancelled';
         command.vNode = undefined!;

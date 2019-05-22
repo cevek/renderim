@@ -47,6 +47,7 @@ function createComponentVNode<Props extends object>(
             timeoutAt: 0,
             components: [],
             promises: [],
+            resolvedPromises: 0,
         };
         extra = val;
     }
