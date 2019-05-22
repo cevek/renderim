@@ -1,6 +1,7 @@
 type VNode = VComponentNode | VDomNode | VTextNode | VPortalNode | VArrayNode;
 
 type Return = undefined | null | boolean | string | number | VElement | {[key: number]: Return};
+type CommandWithParentVNode = Command & {vNode: VNode};
 
 type ComponentFun = (props: object) => Return;
 type VNodeStatus = 'created' | 'active' | 'obsolete' | 'removed' | 'cancelled';
@@ -37,7 +38,7 @@ type VDomNode = {
     id: ID;
     kind: 'dom';
     type: string;
-    props: string[];
+    props: Props;
     key: string | undefined;
     children: Return[];
     extra: undefined;

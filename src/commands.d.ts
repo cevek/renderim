@@ -1,6 +1,6 @@
 type ID = {id: 'ID'} & number;
+type Props = [string, string | null | undefined | {[key: string]: string}, ...unknown[]];
 
-type CommandWithParentVNode = Command & {vNode: VNode};
 type Command =
     | CreateDomCommand
     | UpdateDomCommand
@@ -15,13 +15,13 @@ type CreateDomCommand = {
     parentId: ID | string;
     beforeId: ID | null;
     tag: string;
-    props: (string | number)[];
+    props: Props;
 };
 
 type UpdateDomCommand = {
     type: 'updateDom';
     id: ID;
-    props: (string | null)[];
+    props: Props;
 };
 type MoveDomCommand = {
     type: 'moveDom';

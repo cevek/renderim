@@ -2,7 +2,7 @@ render(
     <Suspense timeout={5000} fallback={<div>Loading...</div>}>
         <div class="header">
             Hello
-            <span class="selected">
+            <span class="selected" style={{color: 'red', margin: '10px'}}>
                 My name is <b>{'Alex'}</b>
             </span>
             {[0, 1, 2, 3, 4, 5].map(n => (
@@ -35,7 +35,7 @@ render(
     <Suspense timeout={500000} fallback={<div>Loading...</div>}>
         <div class="body" title="hello">
             Hello
-            <span class="selected">
+            <span class="selected" style={{color: 'blue', padding: '10px', display: 'block'}}>
                 My name is <b>Brian</b>
             </span>
             {[0, 4, 3, 2, 1, 5].map(n => (

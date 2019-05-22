@@ -48,8 +48,13 @@ function renderCommand(command: Command) {
             setNode(command.id, node);
             for (let i = 0; i < command.props.length; i += 2) {
                 const prop = command.props[i] as string;
-                const value = command.props[i + 1];
-                if (prop === 'xlinkHref') {
+                const value = command.props[i + 1] as unknown;
+                if (prop === 'style') {
+                    const style = value as CSSStyleDeclaration;
+                    for (const styleProp in style) {
+                        node.style[styleProp] = style[styleProp];
+                    }
+                } else if (prop === 'xlinkHref') {
                     node.setAttributeNS(xlinkNS, 'xlink:href', String(value));
                 } else {
                     node.setAttribute(prop, String(value));
@@ -70,14 +75,19 @@ function renderCommand(command: Command) {
             break;
         }
         case 'updateDom': {
-            const node = domMap[command.id] as Element;
+            const node = domMap[command.id] as HTMLElement;
             for (let i = 0; i < command.props.length; i += 2) {
                 const prop = command.props[i] as string;
-                const value = command.props[i + 1];
-                if (value === null) {
+                const value = command.props[i + 1] as unknown;
+                if (prop === 'style') {
+                    const style = value as CSSStyleDeclaration;
+                    for (const styleProp in style) {
+                        node.style[styleProp] = style[styleProp];
+                    }
+                } else if (value === null) {
                     node.removeAttribute(prop);
                 } else {
-                    node.setAttribute(prop, value);
+                    node.setAttribute(prop, value as string);
                 }
             }
             break;
