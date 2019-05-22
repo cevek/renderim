@@ -1,11 +1,23 @@
 type VNode = VComponentNode | VDomNode | VTextNode | VPortalNode | VArrayNode;
 
-type Return = undefined | null | boolean | string | number | VNode | {[key: number]: Return};
+type Return = undefined | null | boolean | string | number | VElement | {[key: number]: Return};
 
 type ComponentFun = (props: object) => Return;
 type VNodeStatus = 'created' | 'active' | 'obsolete' | 'removed' | 'cancelled';
 type VChildrenNode = VDomNode | VArrayNode | VPortalNode;
-type VElement = VComponentNode | VDomNode;
+type VElement = {
+    _id: number;
+    status: string;
+    id: ID;
+    kind: string;
+    type: unknown;
+    props: unknown;
+    key: unknown;
+    children: unknown;
+    extra: unknown;
+    suspense: VSuspenseNode;
+    errorBoundary: VErrorBoundaryNode;
+};
 type VComponentNode = {
     _id: number;
     status: VNodeStatus;

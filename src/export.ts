@@ -11,7 +11,7 @@ function createElement(type: string | ComponentFun, props: object | null, ...chi
     }
 }
 
-function render(node: VNode, htmlId: string) {
+function render(node: VElement, htmlId: string) {
     currentSuspense = rootSuspense;
     currentErrorBoundary = rootErrorBoundary;
 
@@ -52,12 +52,17 @@ function unmount(htmlId: string) {
 }
 
 function shouldCancel(node: VNode) {
-    return node.suspense.extra.promises.length > 0 || node.errorBoundary.extra.errors.length > 0;
+    return node.suspense.extra.promises.length > 0// || node.errorBoundary.extra.errors.length > 0;
 }
 function commitUpdating() {
+    // const errorredBoundaries = new Set<VErrorBoundaryNode>();
+    // function findErrorredBoundaries(node: VNode) {
+    //     if (node.errorBoundary.extra.errors.length > 0) errorredBoundaries.add(node.errorBoundary);
+    // }
     for (const {oldNode, newNode} of maybeRestarted) {
         assert(oldNode.status === 'active');
         assert(newNode.status === 'active');
+        // findErrorredBoundaries(oldNode);
         if (!shouldCancel(oldNode)) {
             oldNode.children = newNode.children;
             oldNode.suspense = newNode.suspense;
@@ -71,6 +76,7 @@ function commitUpdating() {
     console.log({maybeRemoved, maybeObsolete, maybeCancelled});
     for (const node of maybeRemoved) {
         assert(node.status === 'active');
+        // findErrorredBoundaries(node);
         if (!shouldCancel(node)) {
             node.status = 'removed';
             GCVNodes.removed.add(node);
@@ -78,6 +84,7 @@ function commitUpdating() {
     }
     for (const node of maybeObsolete) {
         assert(node.status === 'active' || node.status === 'removed');
+        // findErrorredBoundaries(node);
         if (!shouldCancel(node)) {
             node.status = 'obsolete';
             GCVNodes.obsolete.add(node);
@@ -86,6 +93,7 @@ function commitUpdating() {
     for (const node of maybeCancelled) {
         // todo: removed???
         assert(node.status === 'active' || node.status === 'removed');
+        // findErrorredBoundaries(node);
         if (shouldCancel(node)) {
             node.status = 'cancelled';
             GCVNodes.cancelled.add(node);
@@ -107,4 +115,12 @@ function commitUpdating() {
 
     assert(currentSuspense === rootSuspense);
     assert(currentErrorBoundary === rootErrorBoundary);
+
+    // let shouldCommit = false;
+    // for (const node of errorredBoundaries) {
+    //     if (restartComponent(node)) shouldCommit = true;
+    // }
+    // if (shouldCommit) {
+        // commitUpdating();
+    // }
 }

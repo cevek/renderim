@@ -6,10 +6,12 @@ function mountOrUpdate(node: VNode, oldNode: VNode | undefined, parentId: ID, be
 }
 function updateVNode(node: VNode, oldNode: VNode, parentId: ID): VNode {
     assert(oldNode.status === 'active');
-    assert(oldNode.suspense.extra === currentSuspense.extra);
-    assert(oldNode.errorBoundary.extra === currentErrorBoundary.extra);
-    // oldNode saves old errorBoundary and suspense
-    if (oldNode === node) return node;
+    if (oldNode === node) {
+        // oldNode saves old errorBoundary and suspense
+        assert(oldNode.suspense.extra === currentSuspense.extra);
+        assert(oldNode.errorBoundary.extra === currentErrorBoundary.extra);
+        return node;
+    }
     if (node.status === 'active') {
         node = cloneVNode(node);
     }

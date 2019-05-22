@@ -48,6 +48,13 @@ render(
             Hello
             <Data />
             Everybody
+            <ErrorBoundary fallback={props => props.errors.map(err => <div>{err.message}</div>)}>
+                1
+                <Value value={2} />
+                <Errored />
+                <Value value={3} />4
+                <Errored />
+            </ErrorBoundary>
             {/* </Suspense> */}
             <svg width="100" height="100">
                 <symbol id="my-icon" viewBox="0 0 100 100">
@@ -60,6 +67,13 @@ render(
     'root',
 );
 debugger;
+
+function Value(props: {value: number}) {
+    return <span>{props.value}</span>;
+}
+function Errored(props: {}): VElement {
+    throw new Error('Some error');
+}
 
 // declare var worker: Worker;
 // let k = 0;
