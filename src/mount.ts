@@ -23,10 +23,10 @@ function mountVNode(node: VNode, parentId: ID, beforeId: ID | null) {
 }
 
 function mountComponent(node: VComponentNode, parentId: ID, beforeId: ID | null): VComponentNode {
-    runComponent(node);
     const parentComponent = currentComponent;
     currentComponent = node;
     (node as NoReadonly<VComponentNode>).id = parentId;
+    runComponent(node);
     if (node.type === ErrorBoundary) {
         node = handleErrorBoundary(node as VErrorBoundaryNode, undefined, parentId, beforeId);
     } else if (node.type === Suspense) {
