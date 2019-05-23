@@ -1,19 +1,19 @@
 function createContext<T>(defaultValue: T) {
-    function ContextProvider(props: {value: T; children: Return}) {
+    function ContextProvider(props: {value: T; children: VElement}) {
         return props.children;
     }
     return {
         Provider: ContextProvider,
-        Consumer: function ContextConsumer(props: {children: (value: T) => Return}) {
-            let vnode = currentComponent.parentComponent;
-            while (vnode !== undefined) {
-                if (vnode.type === ContextProvider) {
-                    const value = (vnode.props as {value: T}).value;
-                    return props.children(value);
+        Consumer: function ContextConsumer(props: {children: (value: T) => Return}): VElement {
+            let n = currentComponent.parentComponent;
+            while (n !== undefined) {
+                if (n.type === ContextProvider) {
+                    const value = (n.props as {value: T}).value;
+                    return props.children(value) as VElement;
                 }
-                vnode = vnode.parentComponent;
+                n = n.parentComponent;
             }
-            return props.children(defaultValue);
+            return props.children(defaultValue) as VElement;
         },
     };
 }

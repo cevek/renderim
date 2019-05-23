@@ -141,8 +141,7 @@ function addErrorToParentBoundary(component: VComponentNode, error: Error) {
 }
 
 function findSuspense(node: VNode) {
-    let n;
-    n = node.parentComponent;
+    let n = node.parentComponent;
     while (n !== undefined) {
         if (n.type === Suspense) return n as VSuspenseNode;
         n = n.parentComponent;
@@ -151,8 +150,7 @@ function findSuspense(node: VNode) {
 }
 
 function findErrorBoundary(node: VNode) {
-    let n;
-    n = node.parentComponent;
+    let n = node.parentComponent;
     while (n !== undefined) {
         if (n.type === ErrorBoundary) return n as VErrorBoundaryNode;
         n = n.parentComponent;

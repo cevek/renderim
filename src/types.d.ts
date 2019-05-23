@@ -3,7 +3,7 @@ type VNode = VComponentNode | VDomNode | VTextNode | VPortalNode | VArrayNode;
 type Return = undefined | null | boolean | string | number | VElement | {[key: number]: Return};
 type CommandWithParentVNode = Command & {vNode: VNode};
 
-type ComponentFun = (props: object) => Return;
+type ComponentFun = (props: object) => VElement;
 type VNodeStatus = 'created' | 'active' | 'obsolete' | 'removed' | 'cancelled';
 type VChildrenNode = VDomNode | VArrayNode | VPortalNode;
 type NoReadonly<T> = {-readonly [P in keyof T]: T[P]};
