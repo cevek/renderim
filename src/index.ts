@@ -7,6 +7,7 @@
 /// <reference path="./mount.ts" />
 /// <reference path="./update.ts" />
 /// <reference path="./component.ts" />
+/// <reference path="./context.ts" />
 /// <reference path="./array.ts" />
 /// <reference path="./remove.ts" />
 /// <reference path="./utils.ts" />

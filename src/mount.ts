@@ -3,37 +3,29 @@ function mountVNode(node: VNode, parentId: ID, beforeId: ID | null) {
         node = cloneVNode(node);
     }
     assert(node.status === 'created');
-    node.errorBoundary = currentErrorBoundary;
-    node.suspense = currentSuspense;
+    node.parentComponent = currentComponent;
     if (node.kind === componentKind) {
-        return mountComponent(node, parentId, beforeId);
-    }
-    if (node.kind === domKind) {
-        return mountVDom(node, parentId, beforeId);
-    }
-    if (node.kind === textKind) {
+        node = mountComponent(node, parentId, beforeId);
+    } else if (node.kind === domKind) {
+        node = mountVDom(node, parentId, beforeId);
+    } else if (node.kind === textKind) {
         addCommand(node, {type: 'createText', parentId, beforeId, id: node.id, text: node.children});
-        node.status = 'active';
-        maybeCancelled.push(node);
-        return node;
-    }
-    if (node.kind === arrayKind) {
+    } else if (node.kind === arrayKind) {
         mountChildren(node, parentId, beforeId);
-        node.status = 'active';
-        maybeCancelled.push(node);
-        return node;
-    }
-    if (node.kind === portalKind) {
+    } else if (node.kind === portalKind) {
         mountChildren(node, node.type, null);
-        node.status = 'active';
-        maybeCancelled.push(node);
-        return node;
+    } else {
+        throw never(node);
     }
-    throw never(node);
+    node.status = 'active';
+    maybeCancelled.push(node);
+    return node;
 }
 
 function mountComponent(node: VComponentNode, parentId: ID, beforeId: ID | null): VComponentNode {
     runComponent(node);
+    const parentComponent = currentComponent;
+    currentComponent = node;
     node.id = parentId;
     if (node.type === ErrorBoundary) {
         node = handleErrorBoundary(node as VErrorBoundaryNode, undefined, parentId, beforeId);
@@ -42,8 +34,7 @@ function mountComponent(node: VComponentNode, parentId: ID, beforeId: ID | null)
     } else {
         node.children = mountVNode(node.children, parentId, beforeId);
     }
-    node.status = 'active';
-    maybeCancelled.push(node);
+    currentComponent = parentComponent;
     return node;
 }
 
@@ -57,8 +48,6 @@ function mountVDom(node: VDomNode, parentId: ID, beforeId: ID | null) {
         tag: node.type,
     });
     mountChildren(node, node.id, null);
-    node.status = 'active';
-    maybeCancelled.push(node);
     return node;
 }
 

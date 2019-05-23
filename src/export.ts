@@ -12,15 +12,13 @@ function createElement(type: string | ComponentFun, props: object | null, ...chi
 }
 
 function render(node: VElement, htmlId: string) {
-    currentSuspense = rootSuspense;
-    currentErrorBoundary = rootErrorBoundary;
+    currentComponent = rootSuspense;
 
     const rootSuspenseNode = createComponentVNode(Suspense, {
         fallback: 'Root Loading...',
         timeout: 0,
         children: node,
     });
-    rootSuspenseNode.suspense = Object.freeze({}) as VSuspenseNode;
     const rootNode = createComponentVNode(ErrorBoundary, {
         children: rootSuspenseNode,
         fallback: (props: {errors: Error[]}) => {
@@ -52,31 +50,20 @@ function unmount(htmlId: string) {
 }
 
 function shouldCancel(node: VNode) {
-    return node.suspense.extra.promises.length > 0// || node.errorBoundary.extra.errors.length > 0;
+    return findSuspense(node).extra.promises.length > 0; // || node.errorBoundary.extra.errors.length > 0;
 }
 function commitUpdating() {
-    // const errorredBoundaries = new Set<VErrorBoundaryNode>();
-    // function findErrorredBoundaries(node: VNode) {
-    //     if (node.errorBoundary.extra.errors.length > 0) errorredBoundaries.add(node.errorBoundary);
-    // }
     for (const {oldNode, newNode} of maybeRestarted) {
         assert(oldNode.status === 'active');
         assert(newNode.status === 'active');
-        // findErrorredBoundaries(oldNode);
         if (!shouldCancel(oldNode)) {
             oldNode.children = newNode.children;
-            oldNode.suspense = newNode.suspense;
-            oldNode.errorBoundary = newNode.errorBoundary;
-            // oldNode.status = 'obsolete';
         } else {
-            // newNode.status = 'cancelled';
-            // GCVNodes.cancelledComponents.add(newNode);
         }
     }
     console.log({maybeRemoved, maybeObsolete, maybeCancelled});
     for (const node of maybeRemoved) {
         assert(node.status === 'active');
-        // findErrorredBoundaries(node);
         if (!shouldCancel(node)) {
             node.status = 'removed';
             GCVNodes.removed.add(node);
@@ -84,43 +71,41 @@ function commitUpdating() {
     }
     for (const node of maybeObsolete) {
         assert(node.status === 'active' || node.status === 'removed');
-        // findErrorredBoundaries(node);
         if (!shouldCancel(node)) {
             node.status = 'obsolete';
             GCVNodes.obsolete.add(node);
         }
     }
     for (const node of maybeCancelled) {
-        // todo: removed???
-        assert(node.status === 'active' || node.status === 'removed');
-        // findErrorredBoundaries(node);
+        assert(node.status === 'active');
         if (shouldCancel(node)) {
             node.status = 'cancelled';
             GCVNodes.cancelled.add(node);
+        }
+    }
+    for (const {newParent, node} of maybeUpdatedParent) {
+        assert(node.status === 'active');
+        if (!shouldCancel(node)) {
+            node.parentComponent = newParent;
         }
     }
     maybeRestarted = [];
     maybeObsolete = [];
     maybeRemoved = [];
     maybeCancelled = [];
+    maybeUpdatedParent = [];
     const filteredCommands = (commandList as CommandWithParentVNode[]).filter(command => {
         const skip = command.vNode.status === 'cancelled';
         command.vNode = undefined!;
         return !skip;
     });
     commandList = [];
-    setTimeout(() => {
-        renderCommands(filteredCommands);
-    });
+    renderCommands(filteredCommands);
 
-    assert(currentSuspense === rootSuspense);
-    assert(currentErrorBoundary === rootErrorBoundary);
+    assert(currentComponent === rootSuspense);
+}
 
-    // let shouldCommit = false;
-    // for (const node of errorredBoundaries) {
-    //     if (restartComponent(node)) shouldCommit = true;
-    // }
-    // if (shouldCommit) {
-        // commitUpdating();
-    // }
+function getCurrentComponentNode() {
+    if (currentComponent === undefined) throw new Error('No current component');
+    return currentComponent;
 }

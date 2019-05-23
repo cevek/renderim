@@ -1,13 +1,5 @@
-function getCurrentComponentNode() {
-    if (currentComponent === undefined) throw new Error('No current component');
-    return currentComponent;
-}
-
 function runComponent(node: VComponentNode) {
     assert(node.status === 'created');
-    const prev = currentComponent;
-    currentComponent = node;
-
     try {
         node.children = norm(node.type(node.props));
     } catch (err) {
@@ -23,7 +15,6 @@ function runComponent(node: VComponentNode) {
             addErrorToParentBoundary(node, err);
         }
     }
-    currentComponent = prev;
 }
 
 function Fragment(props: {children: Return}) {
@@ -31,7 +22,7 @@ function Fragment(props: {children: Return}) {
 }
 
 type ErrorBoundaryProps = {children: Return; fallback: (props: {errors: Error[]}) => Return};
-type ErrorBoundaryExtra = {errors: Error[]; };
+type ErrorBoundaryExtra = {errors: Error[]};
 type VErrorBoundaryNode = VComponentNode & {props: ErrorBoundaryProps; extra: ErrorBoundaryExtra};
 function ErrorBoundary(props: ErrorBoundaryProps) {
     return props.children as VComponentNode;
@@ -55,40 +46,31 @@ function restartComponent(node: VComponentNode): boolean {
     assert(node.status === 'active');
     visitEachNode(node, n => assert(n.status === 'active'));
 
-    const prevErrorBoundary = currentErrorBoundary;
-    const prevSuspense = currentSuspense;
+    const prevCurrentComponent = currentComponent;
+    currentComponent = nonNull(node.parentComponent);
 
-    assert(node.errorBoundary !== undefined);
-    assert(node.suspense !== undefined);
-
-    currentErrorBoundary = node.errorBoundary;
-    currentSuspense = node.suspense;
     const newNode = updateVNode(createComponentVNode(node.type, node.props, node.key), node, node.id) as VComponentNode;
     assert(newNode.kind === componentKind);
     maybeRestarted.push({newNode: newNode, oldNode: node});
 
-    currentErrorBoundary = prevErrorBoundary;
-    currentSuspense = prevSuspense;
-
+    currentComponent = prevCurrentComponent;
     return true;
 }
 
 function handleErrorBoundary(node: VErrorBoundaryNode, oldChild: VNode | undefined, parentId: ID, beforeId: ID | null) {
     assert(node.status === 'created');
-    assert(node !== currentErrorBoundary);
     if (node.extra.errors.length > 0) {
+        currentComponent = nonNull(node.parentComponent);
         node.children = mountOrUpdate(
             createComponentVNode(node.props.fallback, {errors: node.extra.errors}),
             oldChild,
             parentId,
             beforeId,
         );
+        currentComponent = node;
     }
     if (node.extra.errors.length === 0) {
-        const prevErrorBoundary = currentErrorBoundary;
-        currentErrorBoundary = node;
         node.children = mountOrUpdate(node.children, oldChild, parentId, beforeId);
-        currentErrorBoundary = prevErrorBoundary;
     }
     return node;
 }
@@ -96,8 +78,6 @@ function handleErrorBoundary(node: VErrorBoundaryNode, oldChild: VNode | undefin
 function handleSuspense(node: VSuspenseNode, oldChild: VNode | undefined, parentId: ID, beforeId: ID | null) {
     assert(node.status === 'created');
     assert(node.extra.components.length === node.extra.promises.length);
-    const parentSuspense = currentSuspense;
-    currentSuspense = node;
     if (node.extra.promises.length > 0) {
         for (const component of node.extra.components) {
             restartComponent(component);
@@ -109,11 +89,8 @@ function handleSuspense(node: VSuspenseNode, oldChild: VNode | undefined, parent
         }
     }
     node.children = mountOrUpdate(node.children, oldChild, parentId, beforeId);
-    currentSuspense = parentSuspense;
     if (node.extra.promises.length > 0) {
         if (node.extra.timeoutAt <= Date.now()) {
-            // removeInsideSuspenseOrBoundary(node.children);
-            // node.children = mountOrUpdate(norm(node.props.fallback), oldChild, parentId, beforeId);
             if (oldChild !== undefined) {
                 node.children = oldChild;
             }
@@ -122,25 +99,13 @@ function handleSuspense(node: VSuspenseNode, oldChild: VNode | undefined, parent
                 node,
                 Promise.race([Promise.all(node.extra.promises), sleep(node.extra.timeoutAt - Date.now() + 1)]),
             );
-            // node.extra.promises = [];
-            // node.extra.components = [];
         }
     }
     return node;
 }
 
-// function removeInsideSuspenseOrBoundary(node: VNode) {
-//     removeVNode(node, true);
-//     visitEachNode(node, n => {
-//         // if (node.status === '')
-//         // node.status = 'cancelled';
-//         n.errorBoundary = rootErrorBoundary;
-//         n.suspense = rootSuspense;
-//     });
-// }
-
 function addPromiseToParentSuspense(component: VComponentNode, promise: Promise<unknown>) {
-    const suspense = component.suspense;
+    const suspense = findSuspense(component);
     assert(suspense.status === 'active' || suspense.status === 'created');
     assert(component.status === 'created');
     if (suspense.extra.promises.length === 0) {
@@ -159,15 +124,11 @@ function addPromiseToParentSuspense(component: VComponentNode, promise: Promise<
         if (restarted) {
             commitUpdating();
         }
-        // if (currentPromises.length === suspense.extra.promises.length) {
-        //     suspense.extra.promises = [];
-        //     suspense.extra.components = [];
-        // }
     });
 }
 
 function addErrorToParentBoundary(component: VComponentNode, error: Error) {
-    const errorBoundary = component.errorBoundary;
+    const errorBoundary = findErrorBoundary(component);
     errorBoundary.extra.errors.push(error);
     assert(errorBoundary.status === 'active' || errorBoundary.status === 'created');
     assert(component.status === 'created');
@@ -177,4 +138,24 @@ function addErrorToParentBoundary(component: VComponentNode, error: Error) {
             commitUpdating();
         }
     });
+}
+
+function findSuspense(node: VNode) {
+    let n;
+    n = node.parentComponent;
+    while (n !== undefined) {
+        if (n.type === Suspense) return n as VSuspenseNode;
+        n = n.parentComponent;
+    }
+    return never();
+}
+
+function findErrorBoundary(node: VNode) {
+    let n;
+    n = node.parentComponent;
+    while (n !== undefined) {
+        if (n.type === ErrorBoundary) return n as VErrorBoundaryNode;
+        n = n.parentComponent;
+    }
+    return never();
 }

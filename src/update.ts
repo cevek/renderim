@@ -7,41 +7,42 @@ function mountOrUpdate(node: VNode, oldNode: VNode | undefined, parentId: ID, be
 function updateVNode(node: VNode, oldNode: VNode, parentId: ID): VNode {
     assert(oldNode.status === 'active');
     if (oldNode === node) {
-        // oldNode saves old errorBoundary and suspense
-        assert(oldNode.suspense.extra === currentSuspense.extra);
-        assert(oldNode.errorBoundary.extra === currentErrorBoundary.extra);
+        maybeUpdatedParent.push({newParent: currentComponent, node: node});
         return node;
     }
     if (node.status === 'active') {
         node = cloneVNode(node);
     }
     assert(node.status === 'created');
-    node.errorBoundary = currentErrorBoundary;
-    node.suspense = currentSuspense;
+    node.parentComponent = currentComponent;
     if (node.kind !== oldNode.kind) {
         return replaceVNode(node, oldNode, parentId);
     }
     if (node.kind === componentKind) {
-        return updateComponent(node, oldNode as VComponentNode, parentId);
+        node = updateComponent(node, oldNode as VComponentNode, parentId);
+    } else if (node.kind === domKind) {
+        node = updateDom(node, oldNode as VDomNode, parentId);
+    } else if (node.kind === textKind) {
+        node = updateText(node, oldNode as VTextNode);
+    } else if (node.kind === arrayKind) {
+        node = updateArray(node, oldNode as VArrayNode, parentId);
+    } else if (node.kind === portalKind) {
+        node = updatePortal(node, oldNode as VPortalNode, parentId);
+    } else {
+        throw never(node);
     }
-    if (node.kind === domKind) {
-        return updateDom(node, oldNode as VDomNode, parentId);
-    }
-    if (node.kind === textKind) {
-        return updateText(node, oldNode as VTextNode);
-    }
-    if (node.kind === arrayKind) {
-        return updateArray(node, oldNode as VArrayNode, parentId);
-    }
-    if (node.kind === portalKind) {
-        return updatePortal(node, oldNode as VPortalNode, parentId);
-    }
-    throw never(node);
+
+    node.status = 'active';
+    maybeObsolete.push(oldNode);
+    maybeCancelled.push(node);
+    return node;
 }
 
 function updateComponent(node: VComponentNode, oldNode: VComponentNode, parentId: ID): VComponentNode {
     assert(node.status === 'created');
     assert(oldNode.status === 'active');
+    const parentComponent = currentComponent;
+    currentComponent = node;
     runComponent(node);
     node.id = parentId;
     if (node.type !== oldNode.type) {
@@ -49,18 +50,14 @@ function updateComponent(node: VComponentNode, oldNode: VComponentNode, parentId
     }
     if (node.type === ErrorBoundary) {
         node.extra = oldNode.extra;
-        // allErrorBoundaries.delete(oldNode as VErrorBoundaryNode);
         node = handleErrorBoundary(node as VErrorBoundaryNode, oldNode.children, parentId, null);
     } else if (node.type === Suspense) {
-        // allSuspenses.delete(oldNode as VSuspenseNode);
         node.extra = oldNode.extra;
         node = handleSuspense(node as VSuspenseNode, oldNode.children, parentId, null);
     } else {
         node.children = updateVNode(node.children, oldNode.children, parentId);
     }
-    node.status = 'active';
-    maybeObsolete.push(oldNode);
-    maybeCancelled.push(node);
+    currentComponent = parentComponent;
     return node;
 }
 
@@ -85,9 +82,6 @@ function updateDom(node: VDomNode, oldNode: VDomNode, parentId: ID) {
         const oldChild = oldNode.children[i] as VNode;
         removeVNode(oldChild, true);
     }
-    node.status = 'active';
-    maybeObsolete.push(oldNode);
-    maybeCancelled.push(node);
     return node;
 }
 
@@ -96,9 +90,6 @@ function updateText(node: VTextNode, oldNode: VTextNode) {
     if (node.children !== oldNode.children) {
         addCommand(node, {type: 'setText', id: node.id, text: node.children});
     }
-    node.status = 'active';
-    maybeObsolete.push(oldNode);
-    maybeCancelled.push(node);
     return node;
 }
 
@@ -106,9 +97,6 @@ function updatePortal(node: VPortalNode, oldNode: VPortalNode, parentId: ID) {
     if (node.type !== oldNode.type) {
         return replaceVNode(node, oldNode, parentId);
     }
-    node.status = 'active';
-    maybeObsolete.push(oldNode);
-    maybeCancelled.push(node);
     return node;
 }
 

@@ -1,19 +1,10 @@
 function never(val?: never): never {
-    throw new Error('Never possible: ' + val);
+    throw new AssertError('Never possible: ' + val);
 }
 
 function genId() {
     return (id++ as unknown) as ID;
 }
-
-// function normChild(parent: VDomNode | VArrayNode | VPortalNode, i: number): VNode {
-//     const child = parent.children[i];
-//     const newChild = norm(child);
-//     if (child !== newChild) {
-//         parent.children[i] = newChild;
-//     }
-//     return newChild;
-// }
 
 function findChildVDom(node: VNode): VDomNode | VTextNode {
     if (node.kind === domKind || node.kind === textKind) return node;
@@ -22,10 +13,6 @@ function findChildVDom(node: VNode): VDomNode | VTextNode {
     if (node.kind === portalKind) return findChildVDom(node.children[0] as VNode);
     return never(node);
 }
-
-// function clearArrayUntil(array: unknown[], until: number) {
-//     while (array.length > until) array.pop();
-// }
 
 class AssertError extends Error {}
 function assert(val: boolean) {
@@ -64,4 +51,8 @@ function toJSON(node: VNode): unknown {
         other.children = toJSON(node.children);
     }
     return other;
+}
+
+function freeze<T>(val: T) {
+    return Object.freeze(val) as T;
 }

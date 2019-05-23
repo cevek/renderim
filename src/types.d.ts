@@ -9,15 +9,14 @@ type VChildrenNode = VDomNode | VArrayNode | VPortalNode;
 type VElement = {
     _id: number;
     status: string;
-    id: ID;
+    id: unknown;
     kind: string;
     type: unknown;
     props: unknown;
     key: unknown;
     children: unknown;
     extra: unknown;
-    suspense: VSuspenseNode;
-    errorBoundary: VErrorBoundaryNode;
+    parentComponent: VElement | undefined;
 };
 type VComponentNode = {
     _id: number;
@@ -29,8 +28,7 @@ type VComponentNode = {
     key: string | undefined;
     children: VNode;
     extra: unknown;
-    suspense: VSuspenseNode;
-    errorBoundary: VErrorBoundaryNode;
+    parentComponent: VComponentNode | undefined;
 };
 type VDomNode = {
     _id: number;
@@ -42,8 +40,7 @@ type VDomNode = {
     key: string | undefined;
     children: Return[];
     extra: undefined;
-    suspense: VSuspenseNode;
-    errorBoundary: VErrorBoundaryNode;
+    parentComponent: VComponentNode | undefined;
 };
 type VTextNode = {
     _id: number;
@@ -55,8 +52,7 @@ type VTextNode = {
     key: undefined;
     children: string;
     extra: undefined;
-    suspense: VSuspenseNode;
-    errorBoundary: VErrorBoundaryNode;
+    parentComponent: VComponentNode | undefined;
 };
 type VArrayNode = {
     _id: number;
@@ -68,8 +64,7 @@ type VArrayNode = {
     key: undefined;
     children: Return[];
     extra: undefined;
-    suspense: VSuspenseNode;
-    errorBoundary: VErrorBoundaryNode;
+    parentComponent: VComponentNode | undefined;
 };
 type VPortalNode = {
     _id: number;
@@ -81,6 +76,5 @@ type VPortalNode = {
     key: undefined;
     children: Return[];
     extra: undefined;
-    suspense: VSuspenseNode;
-    errorBoundary: VErrorBoundaryNode;
+    parentComponent: VComponentNode | undefined;
 };

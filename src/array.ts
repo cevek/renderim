@@ -18,20 +18,6 @@ function updateArray(node: VArrayNode, oldNode: VArrayNode, parentId: ID): VArra
                 map[oldChild.key!] = i;
             }
         }
-        // for (let i = skipHead; i < newEnd; i++) {
-        //     const child = norm(node.children[i]);
-        //     const oldChildIdx = map[child.key!];
-        //     if (oldChildIdx !== undefined && oldUsed[oldChildIdx] === undefined) {
-        //         oldUsed[oldChildIdx] = true;
-        //         const oldChild = oldList[oldChildIdx];
-        //         // renderOrder.push(oldChildIdx);
-        //         // todo: move
-        //         updateChild(node, i, child, oldChild, parentId);
-        //     } else {
-        //         // renderOrder.push(-1);
-        //         createChild(node, i, child, parentId, 1);
-        //     }
-        // }
         let beforeVNode = newEnd < node.children.length ? (node.children[newEnd] as VNode) : undefined;
         for (let i = newEnd - 1; i >= skipHead; i--) {
             const child = norm(node.children[i]);
@@ -46,7 +32,6 @@ function updateArray(node: VArrayNode, oldNode: VArrayNode, parentId: ID): VArra
                 beforeVNode = mountChild(node, i, child, parentId, beforeId);
             }
         }
-        // console.log({beforeVNode, newEnd, skipHead, oldEnd, map, oldUsed});
         for (let i = skipHead; i < oldEnd; i++) {
             if (oldUsed[i] === undefined) {
                 const oldChild = oldList[i];
@@ -54,9 +39,6 @@ function updateArray(node: VArrayNode, oldNode: VArrayNode, parentId: ID): VArra
             }
         }
     }
-    node.status = 'active';
-    maybeObsolete.push(oldNode);
-    maybeCancelled.push(node);
     return node;
 }
 

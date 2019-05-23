@@ -9,8 +9,7 @@ function createVTextNode(text: string): VTextNode {
         props: undefined,
         type: undefined,
         extra: undefined,
-        errorBoundary: undefined!,
-        suspense: undefined!,
+        parentComponent: undefined,
     };
 }
 
@@ -25,8 +24,7 @@ function createDomVNode(type: string, props: Props, key: string | undefined, chi
         props: props,
         type: type,
         extra: undefined,
-        errorBoundary: undefined!,
-        suspense: undefined!,
+        parentComponent: undefined,
     };
 }
 
@@ -61,8 +59,7 @@ function createComponentVNode<Props extends object>(
         props,
         type: type as ComponentFun,
         extra: extra,
-        errorBoundary: undefined!,
-        suspense: undefined!,
+        parentComponent: undefined,
     };
 }
 
@@ -106,12 +103,11 @@ function createVArrayNode(arr: Return[]): VArrayNode {
         props: undefined,
         type: undefined,
         extra: undefined,
-        errorBoundary: undefined!,
-        suspense: undefined!,
+        parentComponent: undefined,
     };
 }
 function createVPortalNode(arr: Return[]): VPortalNode {
-    throw new Error('Unimplemeted');
+    throw new AssertError('Unimplemeted');
 }
 
 function norm(node: Return): VNode {

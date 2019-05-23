@@ -33,7 +33,7 @@ function updateProps(props: Props, oldProps: Props) {
 function diffStyles(styles: Props[1], oldStyles: Props[1]) {
     const diff = {} as {[key: string]: string};
     if (typeof styles === 'string' || typeof oldStyles === 'string')
-        throw new Error('Styles as string are not supported');
+        throw new AssertError('Styles as string are not supported');
     if (styles !== undefined && styles !== null) {
         for (const key in styles) {
             const value = styles[key];
