@@ -3,6 +3,7 @@ function createElement(type: string | ComponentFun, props: object | null, ...chi
     if (typeof type === 'string') {
         return createDomVNode(type, createPropsFromObj(props), key, children);
     } else if (typeof type === 'function') {
+        if (children.length === 1) children = children[0] as Return[];
         if (props === null) props = {children};
         else (props as {children?: Return}).children = children;
         return createComponentVNode(type, props, key);
