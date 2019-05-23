@@ -1,3 +1,4 @@
+const MyContext = createContext('DefaultContext');
 render(
     <Suspense timeout={5000} fallback={<div>Loading...</div>}>
         <div class="header">
@@ -55,6 +56,10 @@ render(
                 <Value value={3} />4
                 <Errored />
             </ErrorBoundary>
+            <MyContext.Provider value="Context">
+                <MyContext.Consumer>{value => value}</MyContext.Consumer>
+            </MyContext.Provider>
+            <MyContext.Consumer>{value => value}</MyContext.Consumer>
             {/* </Suspense> */}
             <svg width="100" height="100">
                 <symbol id="my-icon" viewBox="0 0 100 100">
