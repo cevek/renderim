@@ -14,7 +14,7 @@ function updateVNode(node: VNode, oldNode: VNode, parentId: ID): VNode {
         node = cloneVNode(node);
     }
     assert(node.status === 'created');
-    node.parentComponent = currentComponent;
+    (node as NoReadonly<VNode>).parentComponent = currentComponent;
     if (node.kind !== oldNode.kind) {
         return replaceVNode(node, oldNode, parentId);
     }
@@ -32,7 +32,7 @@ function updateVNode(node: VNode, oldNode: VNode, parentId: ID): VNode {
         throw never(node);
     }
 
-    node.status = 'active';
+    (node as NoReadonly<VNode>).status = 'active';
     maybeObsolete.push(oldNode);
     maybeCancelled.push(node);
     return node;
@@ -44,18 +44,19 @@ function updateComponent(node: VComponentNode, oldNode: VComponentNode, parentId
     const parentComponent = currentComponent;
     currentComponent = node;
     runComponent(node);
-    node.id = parentId;
+    const noReadonlyNode = node as NoReadonly<VComponentNode>;
+    noReadonlyNode.id = parentId;
     if (node.type !== oldNode.type) {
         return replaceVNode(node, oldNode, parentId) as VComponentNode;
     }
     if (node.type === ErrorBoundary) {
-        node.extra = oldNode.extra;
+        noReadonlyNode.extra = oldNode.extra;
         node = handleErrorBoundary(node as VErrorBoundaryNode, oldNode.children, parentId, null);
     } else if (node.type === Suspense) {
-        node.extra = oldNode.extra;
+        noReadonlyNode.extra = oldNode.extra;
         node = handleSuspense(node as VSuspenseNode, oldNode.children, parentId, null);
     } else {
-        node.children = updateVNode(node.children, oldNode.children, parentId);
+        noReadonlyNode.children = updateVNode(node.children, oldNode.children, parentId);
     }
     currentComponent = parentComponent;
     return node;
@@ -65,7 +66,7 @@ function updateDom(node: VDomNode, oldNode: VDomNode, parentId: ID) {
     if (node.type !== oldNode.type) {
         return replaceVNode(node, oldNode, parentId);
     }
-    node.id = oldNode.id;
+    (node as NoReadonly<VDomNode>).id = oldNode.id;
     const len = Math.min(node.children.length, oldNode.children.length);
     const diffProps = updateProps(node.props, oldNode.props);
     if (diffProps.length > 0) {
@@ -86,7 +87,7 @@ function updateDom(node: VDomNode, oldNode: VDomNode, parentId: ID) {
 }
 
 function updateText(node: VTextNode, oldNode: VTextNode) {
-    node.id = oldNode.id;
+    (node as NoReadonly<VTextNode>).id = oldNode.id;
     if (node.children !== oldNode.children) {
         addCommand(node, {type: 'setText', id: node.id, text: node.children});
     }
@@ -102,7 +103,7 @@ function updatePortal(node: VPortalNode, oldNode: VPortalNode, parentId: ID) {
 
 function updateChild(parent: VChildrenNode, index: number, childNode: VNode, oldChildNode: VNode, parentId: ID) {
     const newNode = updateVNode(childNode, oldChildNode, parentId);
-    parent.children[index] = newNode;
+    (parent.children as NoReadonly<Return[]>)[index] = newNode;
     return newNode;
 }
 

@@ -48,7 +48,7 @@ function toJSON(node: VNode): unknown {
     if (Array.isArray(node.children)) {
         other.children = node.children.map(val => toJSON(val as VNode));
     } else if (typeof node.children !== 'string') {
-        other.children = toJSON(node.children);
+        other.children = toJSON(node.children as any);
     }
     return other;
 }

@@ -57,7 +57,7 @@ function commitUpdating() {
         assert(oldNode.status === 'active');
         assert(newNode.status === 'active');
         if (!shouldCancel(oldNode)) {
-            oldNode.children = newNode.children;
+            (oldNode as NoReadonly<VComponentNode>).children = newNode.children;
         } else {
         }
     }
@@ -65,28 +65,28 @@ function commitUpdating() {
     for (const node of maybeRemoved) {
         assert(node.status === 'active');
         if (!shouldCancel(node)) {
-            node.status = 'removed';
+            (node as NoReadonly<VNode>).status = 'removed';
             GCVNodes.removed.add(node);
         }
     }
     for (const node of maybeObsolete) {
         assert(node.status === 'active' || node.status === 'removed');
         if (!shouldCancel(node)) {
-            node.status = 'obsolete';
+            (node as NoReadonly<VNode>).status = 'obsolete';
             GCVNodes.obsolete.add(node);
         }
     }
     for (const node of maybeCancelled) {
         assert(node.status === 'active');
         if (shouldCancel(node)) {
-            node.status = 'cancelled';
+            (node as NoReadonly<VNode>).status = 'cancelled';
             GCVNodes.cancelled.add(node);
         }
     }
     for (const {newParent, node} of maybeUpdatedParent) {
         assert(node.status === 'active');
         if (!shouldCancel(node)) {
-            node.parentComponent = newParent;
+            (node as NoReadonly<VNode>).parentComponent = newParent;
         }
     }
     maybeRestarted = [];

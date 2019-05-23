@@ -1,9 +1,9 @@
 function runComponent(node: VComponentNode) {
     assert(node.status === 'created');
     try {
-        node.children = norm(node.type(node.props));
+        (node as NoReadonly<VComponentNode>).children = norm(node.type(node.props));
     } catch (err) {
-        node.children = norm(undefined);
+        (node as NoReadonly<VComponentNode>).children = norm(undefined);
         if (err instanceof Promise) {
             addPromiseToParentSuspense(node, err);
         } else if (err instanceof AssertError) {
@@ -61,7 +61,7 @@ function handleErrorBoundary(node: VErrorBoundaryNode, oldChild: VNode | undefin
     assert(node.status === 'created');
     if (node.extra.errors.length > 0) {
         currentComponent = nonNull(node.parentComponent);
-        node.children = mountOrUpdate(
+        (node as NoReadonly<VErrorBoundaryNode>).children = mountOrUpdate(
             createComponentVNode(node.props.fallback, {errors: node.extra.errors}),
             oldChild,
             parentId,
@@ -70,7 +70,7 @@ function handleErrorBoundary(node: VErrorBoundaryNode, oldChild: VNode | undefin
         currentComponent = node;
     }
     if (node.extra.errors.length === 0) {
-        node.children = mountOrUpdate(node.children, oldChild, parentId, beforeId);
+        (node as NoReadonly<VErrorBoundaryNode>).children = mountOrUpdate(node.children, oldChild, parentId, beforeId);
     }
     return node;
 }
@@ -88,11 +88,11 @@ function handleSuspense(node: VSuspenseNode, oldChild: VNode | undefined, parent
             node.extra.resolvedPromises = 0;
         }
     }
-    node.children = mountOrUpdate(node.children, oldChild, parentId, beforeId);
+    (node as NoReadonly<VSuspenseNode>).children = mountOrUpdate(node.children, oldChild, parentId, beforeId);
     if (node.extra.promises.length > 0) {
         if (node.extra.timeoutAt <= Date.now()) {
             if (oldChild !== undefined) {
-                node.children = oldChild;
+                (node as NoReadonly<VSuspenseNode>).children = oldChild;
             }
         } else {
             addPromiseToParentSuspense(
