@@ -74,10 +74,10 @@ function updateDom(node: VDomNode, oldNode: VDomNode, parentId: ID) {
     }
     for (let i = 0; i < len; i++) {
         const oldChild = oldNode.children[i] as VNode;
-        updateChild(node, i, norm(node.children[i]), oldChild, node.id);
+        (node.children as VNode[])[i] = updateVNode(norm(node.children[i]), oldChild, parentId);
     }
     for (let i = len; i < node.children.length; i++) {
-        mountChild(node, i, norm(node.children[i]), node.id, null);
+        (node.children as VNode[])[i] = mountVNode(norm(node.children[i]), node.id, null);
     }
     for (let i = len; i < oldNode.children.length; i++) {
         const oldChild = oldNode.children[i] as VNode;
@@ -99,12 +99,6 @@ function updatePortal(node: VPortalNode, oldNode: VPortalNode, parentId: ID) {
         return replaceVNode(node, oldNode, parentId);
     }
     return node;
-}
-
-function updateChild(parent: VChildrenNode, index: number, childNode: VNode, oldChildNode: VNode, parentId: ID) {
-    const newNode = updateVNode(childNode, oldChildNode, parentId);
-    (parent.children as NoReadonly<Return[]>)[index] = newNode;
-    return newNode;
 }
 
 function replaceVNode(node: VNode, oldNode: VNode, parentId: ID) {

@@ -53,12 +53,6 @@ function mountVDom(node: VDomNode, parentId: ID, beforeId: ID | null) {
 
 function mountChildren(node: VChildrenNode, parentId: ID, beforeId: ID | null) {
     for (let i = 0; i < node.children.length; i++) {
-        mountChild(node, i, norm(node.children[i]), parentId, beforeId);
+        (node.children as VNode[])[i] = mountVNode(norm(node.children[i]), parentId, beforeId);
     }
-}
-
-function mountChild(parent: VChildrenNode, index: number, node: VNode, parentId: ID, beforeId: ID | null) {
-    const newNode = mountVNode(node, parentId, beforeId);
-    (parent.children as NoReadonly<Return[]>)[index] = newNode;
-    return newNode;
 }
