@@ -37,7 +37,7 @@ type VDomNode = {
     readonly id: ID;
     readonly kind: 'dom';
     readonly type: string;
-    readonly props: Props;
+    readonly props: Attrs;
     readonly key: string | undefined;
     readonly children: readonly Return[];
     readonly extra: undefined;

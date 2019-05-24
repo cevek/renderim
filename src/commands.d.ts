@@ -1,5 +1,5 @@
 type ID = {id: 'ID'} & number;
-type Props = [string, string | null | undefined | {[key: string]: string}, ...unknown[]];
+type Attrs = [string, string | null | undefined | {[key: string]: string}, ...unknown[]];
 
 type Command =
     | CreateDomCommand
@@ -15,13 +15,13 @@ type CreateDomCommand = {
     parentId: ID | string;
     beforeId: ID | null;
     tag: string;
-    props: Props;
+    attrs: Attrs;
 };
 
 type UpdateDomCommand = {
     type: 'updateDom';
     id: ID;
-    props: Props;
+    attrs: Attrs;
 };
 type MoveDomCommand = {
     type: 'moveDom';

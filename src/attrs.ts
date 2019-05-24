@@ -1,5 +1,5 @@
-function updateProps(props: Props, oldProps: Props) {
-    const diff = ([] as unknown) as Props;
+function updateProps(props: Attrs, oldProps: Attrs) {
+    const diff = ([] as unknown) as Attrs;
     if (props.length === 2 && oldProps.length === 2 && props[0] === oldProps[0]) {
         if (props[1] !== oldProps[1]) {
             const key = props[0];
@@ -30,7 +30,7 @@ function updateProps(props: Props, oldProps: Props) {
     return diff;
 }
 
-function diffStyles(styles: Props[1], oldStyles: Props[1]) {
+function diffStyles(styles: Attrs[1], oldStyles: Attrs[1]) {
     const diff = {} as {[key: string]: string};
     if (typeof styles === 'string' || typeof oldStyles === 'string')
         throw new AssertError('Styles as string are not supported');
@@ -53,7 +53,7 @@ function diffStyles(styles: Props[1], oldStyles: Props[1]) {
 }
 
 function createPropsFromObj(props: object | undefined | null) {
-    const arr = ([] as unknown) as Props;
+    const arr = ([] as unknown) as Attrs;
     if (props === undefined || props === null) return arr;
     for (const prop in props) {
         const value = props[prop as never];
@@ -62,7 +62,7 @@ function createPropsFromObj(props: object | undefined | null) {
     return arr;
 }
 
-function findInProps(props: Props, prop: string) {
+function findInProps(props: Attrs, prop: string) {
     for (let i = 0; i < props.length; i += 2) {
         if (prop === props[i]) {
             return props[i + 1];

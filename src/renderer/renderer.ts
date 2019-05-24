@@ -54,80 +54,89 @@ function endHydrate() {
     }
 }
 
+function createDom(command: CreateDomCommand) {
+    const parentNode = getParentNode(command.parentId);
+    const nodeIsSVG = isSvg(command.tag, parentNode);
+    let node;
+    let beforeNode = getBeforeNode(command.beforeId);
+    if (hydrating) {
+        let nextNode = hydrateMap.get(parentNode);
+        if (nextNode === undefined) {
+            nextNode = parentNode.firstChild;
+            hydrateMap.set(parentNode, nextNode);
+        }
+        if (nextNode !== null) {
+            if (nextNode.nodeType === 8 && nextNode.nodeValue === 'n') {
+                hydrateMap.set(parentNode, nextNode.nextSibling);
+            } else if (nextNode.nodeType === 1 && (nextNode as HTMLElement).localName === command.tag) {
+                node = nextNode as HTMLElement;
+                hydrateMap.set(parentNode, nextNode.nextSibling);
+                const diff = createDiffFromRealDom(node, command.attrs);
+                setAttrs(node, diff);
+            }
+        }
+        if (node === undefined) {
+            beforeNode = nextNode;
+        }
+    }
+    if (node === undefined) {
+        node = nodeIsSVG
+            ? ((document.createElementNS(svgNS, command.tag) as Node) as HTMLElement)
+            : document.createElement(command.tag);
+        parentNode.insertBefore(node, beforeNode);
+        if (hydrating) {
+            hydrateMap.set(node, null);
+        }
+        setAttrs(node, command.attrs);
+    }
+    setNode(command.id, node);
+}
+
+function createText(command: CreateTextCommand) {
+    let node;
+    let beforeNode = getBeforeNode(command.beforeId);
+    const parentNode = getParentNode(command.parentId);
+    if (hydrating) {
+        let nextNode = hydrateMap.get(parentNode);
+        if (nextNode === undefined) {
+            nextNode = parentNode.firstChild;
+            hydrateMap.set(parentNode, nextNode);
+        }
+        if (nextNode !== null) {
+            if (nextNode.nodeType === 8 && nextNode.nodeValue === 'n') {
+                hydrateMap.set(parentNode, nextNode.nextSibling);
+            } else if (nextNode.nodeType === 3) {
+                if (nextNode.nodeValue !== command.text) {
+                    nextNode.nodeValue = command.text;
+                }
+                node = nextNode as HTMLElement;
+                const nextNextNode = node.nextSibling;
+                if (nextNextNode !== null && nextNextNode.nodeType === 8 && nextNextNode.nodeValue === '') {
+                    hydrateMap.set(parentNode, nextNextNode.nextSibling);
+                } else {
+                    hydrateMap.set(parentNode, nextNextNode);
+                }
+            }
+        }
+        if (node === undefined) {
+            beforeNode = nextNode;
+        }
+    }
+    if (node === undefined) {
+        node = document.createTextNode(command.text);
+        getParentNode(command.parentId).insertBefore(node, beforeNode);
+    }
+    setNode(command.id, node);
+}
+
 function renderCommand(command: Command) {
     switch (command.type) {
         case 'createDom': {
-            const parentNode = getParentNode(command.parentId);
-            const nodeIsSVG = isSvg(command.tag, parentNode);
-            let node;
-            let beforeNode = getBeforeNode(command.beforeId);
-            if (hydrating) {
-                const nextNode = hydrateMap.get(parentNode) || parentNode.firstChild;
-                if (nextNode !== null) {
-                    if (nextNode.nodeType === 8 && nextNode.nodeValue === 'n') {
-                        hydrateMap.set(parentNode, nextNode.nextSibling);
-                    } else if (nextNode.nodeType === 1 && (nextNode as HTMLElement).localName === command.tag) {
-                        node = nextNode as HTMLElement;
-                        hydrateMap.set(parentNode, nextNode.nextSibling);
-                    }
-                }
-                if (node === undefined) {
-                    beforeNode = nextNode;
-                }
-            }
-            if (node === undefined) {
-                node = nodeIsSVG ? document.createElementNS(svgNS, command.tag) : document.createElement(command.tag);
-                parentNode.insertBefore(node, beforeNode);
-            }
-            setNode(command.id, node);
-            // todo: hydrate props diff
-            for (let i = 0; i < command.props.length; i += 2) {
-                const prop = command.props[i] as string;
-                const value = command.props[i + 1] as unknown;
-                if (prop === 'style') {
-                    const style = value as CSSStyleDeclaration;
-                    for (const styleProp in style) {
-                        node.style[styleProp] = style[styleProp];
-                    }
-                } else if (prop === 'xlinkHref') {
-                    node.setAttributeNS(xlinkNS, 'xlink:href', String(value));
-                } else {
-                    node.setAttribute(prop, String(value));
-                }
-            }
+            createDom(command);
             break;
         }
         case 'createText': {
-            let node;
-            let beforeNode = getBeforeNode(command.beforeId);
-            const parentNode = getParentNode(command.parentId);
-            if (hydrating) {
-                const nextNode = hydrateMap.get(parentNode) || parentNode.firstChild;
-                if (nextNode !== null) {
-                    if (nextNode.nodeType === 8 && nextNode.nodeValue === 'n') {
-                        hydrateMap.set(parentNode, nextNode.nextSibling);
-                    } else if (nextNode.nodeType === 3) {
-                        if (nextNode.nodeValue !== command.text) {
-                            nextNode.nodeValue = command.text;
-                        }
-                        node = nextNode as HTMLElement;
-                        const nextNextNode = node.nextSibling;
-                        if (nextNextNode !== null && nextNextNode.nodeType === 8 && nextNextNode.nodeValue === '') {
-                            hydrateMap.set(parentNode, nextNextNode.nextSibling);
-                        } else {
-                            hydrateMap.set(parentNode, nextNextNode);
-                        }
-                    }
-                }
-                if (node === undefined) {
-                    beforeNode = nextNode;
-                }
-            }
-            if (node === undefined) {
-                node = document.createTextNode(command.text);
-                getParentNode(command.parentId).insertBefore(node, beforeNode);
-            }
-            setNode(command.id, node);
+            createText(command);
             break;
         }
         case 'moveDom': {
@@ -140,20 +149,7 @@ function renderCommand(command: Command) {
         case 'updateDom': {
             endHydrate();
             const node = domMap[command.id] as HTMLElement;
-            for (let i = 0; i < command.props.length; i += 2) {
-                const prop = command.props[i] as string;
-                const value = command.props[i + 1] as unknown;
-                if (prop === 'style') {
-                    const style = value as CSSStyleDeclaration;
-                    for (const styleProp in style) {
-                        node.style[styleProp] = style[styleProp];
-                    }
-                } else if (value === null) {
-                    node.removeAttribute(prop);
-                } else {
-                    node.setAttribute(prop, value as string);
-                }
-            }
+            setAttrs(node, command.attrs);
             break;
         }
         case 'setText': {
@@ -180,13 +176,13 @@ function renderCommand(command: Command) {
             never(command);
         }
     }
+}
 
-    function getParentNode(id: string | ID) {
-        return typeof id === 'string' ? document.getElementById(id)! : domMap[id];
-    }
-    function getBeforeNode(id: ID | null) {
-        return id === null ? null : domMap[id];
-    }
+function getParentNode(id: string | ID) {
+    return typeof id === 'string' ? document.getElementById(id)! : domMap[id];
+}
+function getBeforeNode(id: ID | null) {
+    return id === null ? null : domMap[id];
 }
 
 function never(val: never): never {

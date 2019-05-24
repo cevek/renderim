@@ -44,7 +44,7 @@ function mountVDom(node: VDomNode, parentId: ID, beforeId: ID | null) {
         parentId,
         beforeId,
         id: node.id,
-        props: node.props,
+        attrs: node.props,
         tag: node.type,
     });
     mountChildren(node, node.id, null);

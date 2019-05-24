@@ -11,6 +11,6 @@
 /// <reference path="./array.ts" />
 /// <reference path="./remove.ts" />
 /// <reference path="./utils.ts" />
-/// <reference path="./props.ts" />
+/// <reference path="./attrs.ts" />
 /// <reference path="./export.ts" />
 /// <reference path="./example/example.tsx" />
