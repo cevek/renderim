@@ -12,7 +12,7 @@ function createDiffFromStyles(node: HTMLElement, styles: Styles) {
         const domStyleName = domStylesNames.find(style => style.name === styleName);
         if (domStyleName !== undefined) {
             domStyleName.used = true;
-            if (styles[styleName] !== domStyle[styleName]) {
+            if (String(styles[styleName]) !== domStyle[styleName]) {
                 diff[styleName] = styles[styleName];
             }
         } else {
@@ -44,11 +44,15 @@ function createDiffFromRealDom(node: HTMLElement, attrs: Attrs, tagName: string)
                 const styleDiff = createDiffFromStyles(node, attrValue as Styles);
                 attrsDiff.push(attrName, styleDiff);
             } else {
-                if (domAttr.value !== attrValue) {
+                if (domAttr.value !== String(attrValue)) {
                     attrsDiff.push(attrName, attrValue);
                 }
             }
-        } else if (attrName === 'value' && tagName === 'select' && attrValue === (node as HTMLSelectElement).value) {
+        } else if (
+            attrName === 'value' &&
+            (tagName === 'select' || tagName === 'textarea') &&
+            String(attrValue) === (node as HTMLSelectElement).value
+        ) {
         } else {
             attrsDiff.push(attrName, attrValue);
         }
@@ -65,7 +69,7 @@ function setAttrs(node: HTMLElement, attrs: Attrs, tagName: string | undefined) 
     for (let i = 0; i < attrs.length; i += 2) {
         const attr = attrs[i] as string;
         const value = attrs[i + 1];
-        if (value === null) {
+        if (value === null || value === false) {
             if (attr === 'xlinkHref') {
                 node.removeAttributeNS(xlinkNS, 'xlink:href');
             } else {
@@ -77,12 +81,12 @@ function setAttrs(node: HTMLElement, attrs: Attrs, tagName: string | undefined) 
             node.setAttributeNS(xlinkNS, 'xlink:href', value as string);
         } else {
             if (attr === 'value') {
-                if (tagName === 'select') {
-                    (node as HTMLSelectElement).value = value as string;
+                if (tagName === 'select' || tagName === 'textarea') {
+                    (node as HTMLInputElement).value = value as string;
                     continue;
                 }
             }
-            node.setAttribute(attr, value as string);
+            node.setAttribute(attr, value === true ? '' : (value as string));
         }
     }
 }

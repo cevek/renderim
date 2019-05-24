@@ -6,6 +6,10 @@ render(
             <span class="selected" style={{color: 'red', margin: '10px'}}>
                 My name is <b>{'Alex'}</b>
             </span>
+            <input type="text" value="hello" />
+            <input type="checkbox" />
+            <input type="radio" />
+            <textarea value="text" />
             {[0, 1, 2, 3, 4, 5].map(n => (
                 <Fragment key={n}>
                     {n}
@@ -39,6 +43,10 @@ render(
             <span class="selected" style={{color: 'blue', padding: '10px', display: 'block'}}>
                 My name is <b>Brian</b>
             </span>
+            <input type="text" value="hello man" />
+            <input type="checkbox" checked />
+            <input type="radio" checked />
+            <textarea value="some text" />
             {[0, 4, 3, 2, 1, 5].map(n => (
                 <Fragment key={n}>
                     {n}
