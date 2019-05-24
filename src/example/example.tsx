@@ -68,8 +68,8 @@ render(
                 <use xlinkHref="#my-icon" x="10" y="10" />
             </svg>
             <select value="2">
-                <option>1</option>
-                <option>2</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
             </select>
         </div>
     </Suspense>,

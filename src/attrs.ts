@@ -69,3 +69,21 @@ function findInProps(props: Attrs, prop: string) {
         }
     }
 }
+
+function updateSelectValue(node: VDomNode) {
+    let value;
+    for (let i = 0; i < node.props.length; i += 2) {
+        if (node.props[i] === 'value') {
+            value = node.props[i + 1] as string;
+            break;
+        }
+    }
+    if (value !== undefined) {
+        addCommand(node, {
+            type: 'updateDom',
+            id: node.id,
+            attrs: ['value', value],
+            tag: node.type,
+        });
+    }
+}

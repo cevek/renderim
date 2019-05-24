@@ -48,6 +48,9 @@ function mountVDom(node: VDomNode, parentId: ID, beforeId: ID | null) {
         tag: node.type,
     });
     mountChildren(node, node.id, null);
+    if (node.type === 'select') {
+        updateSelectValue(node);
+    }
     return node;
 }
 

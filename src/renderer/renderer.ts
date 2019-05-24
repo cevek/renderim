@@ -3,7 +3,7 @@
 const domMap: Node[] = [];
 const svgNS = 'http://www.w3.org/2000/svg';
 const xlinkNS = 'http://www.w3.org/1999/xlink';
-let hydrating = true;
+let hydrating = false;
 const hydrateMap = new Map<Node, Node | null>();
 
 function isSvg(tag: string, node: Node) {
@@ -71,8 +71,8 @@ function createDom(command: CreateDomCommand) {
             } else if (nextNode.nodeType === 1 && (nextNode as HTMLElement).localName === command.tag) {
                 node = nextNode as HTMLElement;
                 hydrateMap.set(parentNode, nextNode.nextSibling);
-                const diff = createDiffFromRealDom(node, command.attrs);
-                setAttrs(node, diff);
+                const diff = createDiffFromRealDom(node, command.attrs, command.tag);
+                setAttrs(node, diff, command.tag);
             }
         }
         if (node === undefined) {
@@ -87,7 +87,7 @@ function createDom(command: CreateDomCommand) {
         if (hydrating) {
             hydrateMap.set(node, null);
         }
-        setAttrs(node, command.attrs);
+        setAttrs(node, command.attrs, command.tag);
     }
     setNode(command.id, node);
 }
@@ -140,36 +140,35 @@ function renderCommand(command: Command) {
             break;
         }
         case 'moveDom': {
-            endHydrate();
             const node = domMap[command.id];
             const beforeNode = command.beforeId === null ? null : domMap[command.beforeId];
             node.parentNode!.insertBefore(node, beforeNode);
             break;
         }
         case 'updateDom': {
-            endHydrate();
             const node = domMap[command.id] as HTMLElement;
-            setAttrs(node, command.attrs);
+            setAttrs(node, command.attrs, command.tag);
             break;
         }
         case 'setText': {
-            endHydrate();
             const node = domMap[command.id];
             node.nodeValue = command.text;
             break;
         }
         case 'removeDom': {
-            endHydrate();
             const node = domMap[command.id];
             node.parentNode!.removeChild(node);
             domMap[command.id] = undefined!;
             break;
         }
         case 'removeText': {
-            endHydrate();
             const node = domMap[command.id];
             node.parentNode!.removeChild(node);
             domMap[command.id] = undefined!;
+            break;
+        }
+        case 'mountDone': {
+            endHydrate();
             break;
         }
         default: {

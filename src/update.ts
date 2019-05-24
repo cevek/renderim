@@ -70,7 +70,7 @@ function updateDom(node: VDomNode, oldNode: VDomNode, parentId: ID) {
     const len = Math.min(node.children.length, oldNode.children.length);
     const diffProps = updateProps(node.props, oldNode.props);
     if (diffProps.length > 0) {
-        addCommand(node, {type: 'updateDom', id: node.id, attrs: diffProps});
+        addCommand(node, {type: 'updateDom', tag: node.type, id: node.id, attrs: diffProps});
     }
     for (let i = 0; i < len; i++) {
         const oldChild = oldNode.children[i] as VNode;
@@ -82,6 +82,9 @@ function updateDom(node: VDomNode, oldNode: VDomNode, parentId: ID) {
     for (let i = len; i < oldNode.children.length; i++) {
         const oldChild = oldNode.children[i] as VNode;
         removeVNode(oldChild, true);
+    }
+    if (diffProps.length > 0 && node.type === 'select') {
+        updateSelectValue(node);
     }
     return node;
 }

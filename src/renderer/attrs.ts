@@ -27,7 +27,7 @@ function createDiffFromStyles(node: HTMLElement, styles: Styles) {
     return diff;
 }
 
-function createDiffFromRealDom(node: HTMLElement, attrs: Attrs) {
+function createDiffFromRealDom(node: HTMLElement, attrs: Attrs, tagName: string) {
     const domAttrs = [...node.attributes].map(attr => ({
         name: attr.nodeName,
         value: attr.nodeValue,
@@ -48,6 +48,7 @@ function createDiffFromRealDom(node: HTMLElement, attrs: Attrs) {
                     attrsDiff.push(attrName, attrValue);
                 }
             }
+        } else if (attrName === 'value' && tagName === 'select' && attrValue === (node as HTMLSelectElement).value) {
         } else {
             attrsDiff.push(attrName, attrValue);
         }
@@ -60,7 +61,7 @@ function createDiffFromRealDom(node: HTMLElement, attrs: Attrs) {
     return attrsDiff;
 }
 
-function setAttrs(node: HTMLElement, attrs: Attrs) {
+function setAttrs(node: HTMLElement, attrs: Attrs, tagName: string | undefined) {
     for (let i = 0; i < attrs.length; i += 2) {
         const attr = attrs[i] as string;
         const value = attrs[i + 1];
@@ -71,24 +72,34 @@ function setAttrs(node: HTMLElement, attrs: Attrs) {
                 node.removeAttribute(attr);
             }
         } else if (attr === 'style') {
-            const diffStyles = value as Styles;
-            const domStyle = node.style;
-            for (const styleName in diffStyles) {
-                const value = diffStyles[styleName];
-                if (value === '') {
-                    domStyle[styleName as never] = '';
-                }
-            }
-            for (const styleName in diffStyles) {
-                const value = diffStyles[styleName];
-                if (value !== '') {
-                    domStyle[styleName as never] = value;
-                }
-            }
+            setStyles(node, value);
         } else if (attr === 'xlinkHref') {
             node.setAttributeNS(xlinkNS, 'xlink:href', value as string);
         } else {
+            if (attr === 'value') {
+                if (tagName === 'select') {
+                    (node as HTMLSelectElement).value = value as string;
+                    continue;
+                }
+            }
             node.setAttribute(attr, value as string);
+        }
+    }
+}
+
+function setStyles(node: HTMLElement, value: unknown) {
+    const diffStyles = value as Styles;
+    const domStyle = node.style;
+    for (const styleName in diffStyles) {
+        const value = diffStyles[styleName];
+        if (value === '') {
+            domStyle[styleName as never] = '';
+        }
+    }
+    for (const styleName in diffStyles) {
+        const value = diffStyles[styleName];
+        if (value !== '') {
+            domStyle[styleName as never] = value;
         }
     }
 }

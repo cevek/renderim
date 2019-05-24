@@ -8,7 +8,14 @@ type Command =
     | RemoveDomCommand
     | CreateTextCommand
     | SetTextCommand
-    | RemoveTextCommand;
+    | RemoveTextCommand
+    | MountDoneCommand;
+
+type MountDoneCommand = {
+    type: 'mountDone';
+    id: ID;
+};
+
 type CreateDomCommand = {
     type: 'createDom';
     id: ID;
@@ -21,6 +28,7 @@ type CreateDomCommand = {
 type UpdateDomCommand = {
     type: 'updateDom';
     id: ID;
+    tag: string;
     attrs: Attrs;
 };
 type MoveDomCommand = {
