@@ -31,7 +31,7 @@ function Data() {
     return data;
 }
 
-debugger;
+// debugger;
 render(
     <Suspense timeout={500000} fallback={<div>Loading...</div>}>
         <div class="body" title="hello">
@@ -75,7 +75,7 @@ render(
     </Suspense>,
     'root',
 );
-debugger;
+// debugger;
 
 function Value(props: {value: number}) {
     return <span>{props.value}</span>;

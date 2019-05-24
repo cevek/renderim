@@ -115,7 +115,7 @@ function addPromiseToParentSuspense(component: VComponentNode, promise: Promise<
     suspense.extra.components.push(component);
     const currentPromises = suspense.extra.promises;
     console.log('add promise to suspense', suspense);
-    debugger;
+    // debugger;
     // visitEachNode(suspense, n => console.log(n.status));
     Promise.all(currentPromises).then(() => {
         // todo: check actual id
