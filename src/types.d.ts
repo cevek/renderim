@@ -1,5 +1,4 @@
 type VNode = VComponentNode | VDomNode | VTextNode | VPortalNode | VArrayNode;
-
 type Return = undefined | null | boolean | string | number | VElement | {[key: number]: Return};
 type CommandWithParentVNode = Command & {vNode: VNode};
 
@@ -17,7 +16,7 @@ type VElement = {
     readonly key: unknown;
     readonly children: unknown;
     readonly extra: unknown;
-    readonly parentComponent: VElement | undefined;
+    readonly parentComponent: VElement | RootId;
 };
 type VComponentNode = {
     readonly _id: number;
@@ -29,7 +28,7 @@ type VComponentNode = {
     readonly key: string | undefined;
     readonly children: VNode;
     readonly extra: unknown;
-    readonly parentComponent: VComponentNode | undefined;
+    readonly parentComponent: VComponentNode | RootId;
 };
 type VDomNode = {
     readonly _id: number;
@@ -41,7 +40,7 @@ type VDomNode = {
     readonly key: string | undefined;
     readonly children: readonly Return[];
     readonly extra: undefined;
-    readonly parentComponent: VComponentNode | undefined;
+    readonly parentComponent: VComponentNode | RootId;
 };
 type VTextNode = {
     readonly _id: number;
@@ -53,7 +52,7 @@ type VTextNode = {
     readonly key: undefined;
     readonly children: string;
     readonly extra: undefined;
-    readonly parentComponent: VComponentNode | undefined;
+    readonly parentComponent: VComponentNode | RootId;
 };
 type VArrayNode = {
     readonly _id: number;
@@ -65,7 +64,7 @@ type VArrayNode = {
     readonly key: undefined;
     readonly children: readonly Return[];
     readonly extra: undefined;
-    readonly parentComponent: VComponentNode | undefined;
+    readonly parentComponent: VComponentNode | RootId;
 };
 type VPortalNode = {
     readonly _id: number;
@@ -77,5 +76,5 @@ type VPortalNode = {
     readonly key: undefined;
     readonly children: readonly Return[];
     readonly extra: undefined;
-    readonly parentComponent: VComponentNode | undefined;
+    readonly parentComponent: VComponentNode | RootId;
 };

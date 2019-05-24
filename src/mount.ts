@@ -9,7 +9,14 @@ function mountVNode(node: VNode, parentId: ID, beforeId: ID | null) {
     } else if (node.kind === domKind) {
         node = mountVDom(node, parentId, beforeId);
     } else if (node.kind === textKind) {
-        addCommand(node, {type: 'createText', parentId, beforeId, id: node.id, text: node.children});
+        addCommand(node, {
+            type: 'createText',
+            rootId: findRootId(node),
+            parentId,
+            beforeId,
+            id: node.id,
+            text: node.children,
+        });
     } else if (node.kind === arrayKind) {
         mountChildren(node, parentId, beforeId);
     } else if (node.kind === portalKind) {
@@ -43,6 +50,7 @@ function mountVDom(node: VDomNode, parentId: ID, beforeId: ID | null) {
         type: 'createDom',
         parentId,
         beforeId,
+        rootId: findRootId(node),
         id: node.id,
         attrs: node.props,
         tag: node.type,

@@ -1,3 +1,4 @@
+type RootId = 'RootId';
 type ID = {id: 'ID'} & number;
 type Attrs = [string, string | null | undefined | {[key: string]: string}, ...unknown[]];
 
@@ -9,17 +10,23 @@ type Command =
     | CreateTextCommand
     | SetTextCommand
     | RemoveTextCommand
-    | MountDoneCommand;
+    | MountStartCommand
+    | MountEndCommand;
 
-type MountDoneCommand = {
-    type: 'mountDone';
-    id: ID;
+type MountStartCommand = {
+    type: 'mountStart';
+    rootId: RootId;
+};
+type MountEndCommand = {
+    type: 'mountEnd';
+    rootId: RootId;
 };
 
 type CreateDomCommand = {
     type: 'createDom';
     id: ID;
-    parentId: ID | string;
+    rootId: RootId;
+    parentId: ID | RootId;
     beforeId: ID | null;
     tag: string;
     attrs: Attrs;
@@ -43,7 +50,8 @@ type RemoveDomCommand = {
 type CreateTextCommand = {
     type: 'createText';
     id: ID;
-    parentId: ID | string;
+    rootId: RootId;
+    parentId: ID | RootId;
     beforeId: ID | null;
     text: string;
 };

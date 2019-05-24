@@ -13,26 +13,41 @@ function createElement(type: string | ComponentFun, props: object | null, ...chi
 }
 
 function render(node: VElement, htmlId: string) {
-    currentComponent = rootSuspense;
+    const rootId = htmlId as RootId;
 
-    const rootSuspenseNode = createComponentVNode(Suspense, {
+    currentComponent = createComponentVNode(Suspense, {
         fallback: 'Root Loading...',
         timeout: 0,
         children: node,
     });
+    (currentComponent as NoReadonly<VComponentNode>).parentComponent = rootId;
+    freeze(currentComponent);
+
     const rootNode = createComponentVNode(ErrorBoundary, {
-        children: rootSuspenseNode,
+        children: createComponentVNode(Suspense, {
+            fallback: 'Root Loading...',
+            timeout: 0,
+            children: node,
+        }),
         fallback: (props: {errors: Error[]}) => {
             console.error(props.errors);
             return 'Something went wrong';
         },
     });
 
-    const id = (htmlId as unknown) as ID;
-    const oldNode = roots.get(id);
+    const oldNode = roots.get(rootId);
     assert(commandList.length === 0);
-    const newNode = oldNode === undefined ? mountVNode(rootNode, id, null) : updateVNode(rootNode, oldNode, id);
-    roots.set(id, newNode);
+    if (oldNode === undefined) {
+        addCommand(rootNode, {type: 'mountStart', rootId: rootId});
+    }
+    const newNode =
+        oldNode === undefined
+            ? mountVNode(rootNode, (rootId as unknown) as ID, null)
+            : updateVNode(rootNode, oldNode, (rootId as unknown) as ID);
+    roots.set(rootId, newNode);
+    if (oldNode === undefined) {
+        addCommand(newNode, {type: 'mountEnd', rootId: rootId});
+    }
     commitUpdating();
     console.log('after render state', toJSON(newNode));
     // console.log(JSON.stringify(toJSON(newNode), null, 2));
@@ -40,11 +55,12 @@ function render(node: VElement, htmlId: string) {
     if (oldNode !== undefined) {
         //todo:
         // visitEachNode(node, n => assert(n.status === 'obsolete' || n.status === 'removed'));
+    } else {
     }
 }
 
 function unmount(htmlId: string) {
-    const node = roots.get((htmlId as unknown) as ID);
+    const node = roots.get(htmlId as RootId);
     if (node !== undefined) {
         removeVNode(node, true);
     }
@@ -102,8 +118,6 @@ function commitUpdating() {
     });
     commandList = [];
     renderCommands(filteredCommands);
-
-    assert(currentComponent === rootSuspense);
 }
 
 function getCurrentComponentNode() {

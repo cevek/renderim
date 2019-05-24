@@ -9,7 +9,7 @@ function createVTextNode(text: string): VTextNode {
         props: undefined,
         type: undefined,
         extra: undefined,
-        parentComponent: undefined,
+        parentComponent: undefined!,
     };
 }
 
@@ -24,7 +24,7 @@ function createDomVNode(type: string, props: Attrs, key: string | undefined, chi
         props: props,
         type: type,
         extra: undefined,
-        parentComponent: undefined,
+        parentComponent: undefined!,
     };
 }
 
@@ -59,7 +59,7 @@ function createComponentVNode<Props extends object>(
         props,
         type: type as ComponentFun,
         extra: extra,
-        parentComponent: undefined,
+        parentComponent: undefined!,
     };
 }
 
@@ -103,7 +103,7 @@ function createVArrayNode(arr: Return[]): VArrayNode {
         props: undefined,
         type: undefined,
         extra: undefined,
-        parentComponent: undefined,
+        parentComponent: undefined!,
     };
 }
 function createVPortalNode(arr: Return[]): VPortalNode {

@@ -47,7 +47,8 @@ function restartComponent(node: VComponentNode): boolean {
     visitEachNode(node, n => assert(n.status === 'active'));
 
     const prevCurrentComponent = currentComponent;
-    currentComponent = nonNull(node.parentComponent);
+    assert(typeof node.parentComponent !== 'string');
+    currentComponent = node.parentComponent as VComponentNode;
 
     const newNode = updateVNode(createComponentVNode(node.type, node.props, node.key), node, node.id) as VComponentNode;
     assert(newNode.kind === componentKind);
@@ -60,7 +61,8 @@ function restartComponent(node: VComponentNode): boolean {
 function handleErrorBoundary(node: VErrorBoundaryNode, oldChild: VNode | undefined, parentId: ID, beforeId: ID | null) {
     assert(node.status === 'created');
     if (node.extra.errors.length > 0) {
-        currentComponent = nonNull(node.parentComponent);
+        assert(typeof node.parentComponent !== 'string');
+        currentComponent = node.parentComponent as VComponentNode;
         (node as NoReadonly<VErrorBoundaryNode>).children = mountOrUpdate(
             createComponentVNode(node.props.fallback, {errors: node.extra.errors}),
             oldChild,
@@ -142,7 +144,7 @@ function addErrorToParentBoundary(component: VComponentNode, error: Error) {
 
 function findSuspense(node: VNode) {
     let n = node.parentComponent;
-    while (n !== undefined) {
+    while (typeof n !== 'string') {
         if (n.type === Suspense) return n as VSuspenseNode;
         n = n.parentComponent;
     }
@@ -151,9 +153,17 @@ function findSuspense(node: VNode) {
 
 function findErrorBoundary(node: VNode) {
     let n = node.parentComponent;
-    while (n !== undefined) {
+    while (typeof n !== 'string') {
         if (n.type === ErrorBoundary) return n as VErrorBoundaryNode;
         n = n.parentComponent;
     }
     return never();
+}
+
+function findRootId(node: VNode) {
+    let n = node.parentComponent;
+    while (typeof n !== 'string') {
+        n = n.parentComponent;
+    }
+    return n;
 }
