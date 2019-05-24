@@ -3,8 +3,7 @@
 const domMap: Node[] = [];
 const svgNS = 'http://www.w3.org/2000/svg';
 const xlinkNS = 'http://www.w3.org/1999/xlink';
-let hydrating = false;
-const hydrateMap = new Map<Node, Node | null>();
+const domRoots = new Map<string, Map<Node, Node | null>>();
 
 function isSvg(tag: string, node: Node) {
     return (
@@ -29,7 +28,9 @@ function isSvg(tag: string, node: Node) {
 
 function setNode(id: ID, node: Node) {
     if (domMap.length <= id) {
-        for (let i = domMap.length; i <= id; i++) domMap.push(undefined!);
+        for (let i = domMap.length; i <= id; i++) {
+            domMap.push(undefined!);
+        }
     }
     domMap[id] = node;
 }
@@ -40,18 +41,20 @@ function renderCommands(commands: Command[]) {
     }
 }
 
-function endHydrate() {
-    if (hydrating) {
-        hydrating = false;
-        for (const [parentNode, nextNode] of hydrateMap) {
-            let n = nextNode;
-            while (n !== null) {
-                parentNode.removeChild(n);
-                n = n.nextSibling;
-            }
+function startHydrate(id: RootId) {
+    domRoots.set(id, new Map());
+}
+
+function endHydrate(id: RootId) {
+    const map = domRoots.get(id)!;
+    for (const [parentNode, nextNode] of map) {
+        let n = nextNode;
+        while (n !== null) {
+            parentNode.removeChild(n);
+            n = n.nextSibling;
         }
-        hydrateMap.clear();
     }
+    domRoots.delete(id);
 }
 
 function createDom(command: CreateDomCommand) {
@@ -59,18 +62,19 @@ function createDom(command: CreateDomCommand) {
     const nodeIsSVG = isSvg(command.tag, parentNode);
     let node;
     let beforeNode = getBeforeNode(command.beforeId);
-    if (hydrating) {
-        let nextNode = hydrateMap.get(parentNode);
+    const hydratingMap = domRoots.get(command.rootId);
+    if (hydratingMap !== undefined) {
+        let nextNode = hydratingMap.get(parentNode);
         if (nextNode === undefined) {
             nextNode = parentNode.firstChild;
-            hydrateMap.set(parentNode, nextNode);
+            hydratingMap.set(parentNode, nextNode);
         }
         if (nextNode !== null) {
             if (nextNode.nodeType === 8 && nextNode.nodeValue === 'n') {
-                hydrateMap.set(parentNode, nextNode.nextSibling);
+                hydratingMap.set(parentNode, nextNode.nextSibling);
             } else if (nextNode.nodeType === 1 && (nextNode as HTMLElement).localName === command.tag) {
                 node = nextNode as HTMLElement;
-                hydrateMap.set(parentNode, nextNode.nextSibling);
+                hydratingMap.set(parentNode, nextNode.nextSibling);
                 const diff = createDiffFromRealDom(node, command.attrs, command.tag);
                 setAttrs(node, diff, command.tag);
             }
@@ -84,8 +88,8 @@ function createDom(command: CreateDomCommand) {
             ? ((document.createElementNS(svgNS, command.tag) as Node) as HTMLElement)
             : document.createElement(command.tag);
         parentNode.insertBefore(node, beforeNode);
-        if (hydrating) {
-            hydrateMap.set(node, null);
+        if (hydratingMap !== undefined) {
+            hydratingMap.set(node, null);
         }
         setAttrs(node, command.attrs, command.tag);
     }
@@ -96,15 +100,16 @@ function createText(command: CreateTextCommand) {
     let node;
     let beforeNode = getBeforeNode(command.beforeId);
     const parentNode = getParentNode(command.parentId);
-    if (hydrating) {
-        let nextNode = hydrateMap.get(parentNode);
+    const hydratingMap = domRoots.get(command.rootId);
+    if (hydratingMap !== undefined) {
+        let nextNode = hydratingMap.get(parentNode);
         if (nextNode === undefined) {
             nextNode = parentNode.firstChild;
-            hydrateMap.set(parentNode, nextNode);
+            hydratingMap.set(parentNode, nextNode);
         }
         if (nextNode !== null) {
             if (nextNode.nodeType === 8 && nextNode.nodeValue === 'n') {
-                hydrateMap.set(parentNode, nextNode.nextSibling);
+                hydratingMap.set(parentNode, nextNode.nextSibling);
             } else if (nextNode.nodeType === 3) {
                 if (nextNode.nodeValue !== command.text) {
                     nextNode.nodeValue = command.text;
@@ -112,9 +117,9 @@ function createText(command: CreateTextCommand) {
                 node = nextNode as HTMLElement;
                 const nextNextNode = node.nextSibling;
                 if (nextNextNode !== null && nextNextNode.nodeType === 8 && nextNextNode.nodeValue === '') {
-                    hydrateMap.set(parentNode, nextNextNode.nextSibling);
+                    hydratingMap.set(parentNode, nextNextNode.nextSibling);
                 } else {
-                    hydrateMap.set(parentNode, nextNextNode);
+                    hydratingMap.set(parentNode, nextNextNode);
                 }
             }
         }
@@ -167,8 +172,12 @@ function renderCommand(command: Command) {
             domMap[command.id] = undefined!;
             break;
         }
-        case 'mountDone': {
-            endHydrate();
+        case 'mountStart': {
+            startHydrate(command.rootId);
+            break;
+        }
+        case 'mountEnd': {
+            endHydrate(command.rootId);
             break;
         }
         default: {
