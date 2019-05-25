@@ -10,6 +10,11 @@ render(
             <input type="checkbox" />
             <input type="radio" />
             <textarea value="text" />
+            <Portal container="#modals">
+                <div>Header</div>
+                <div>Modal</div>
+                <div>Footer</div>
+            </Portal>
             {[0, 1, 2, 3, 4, 5].map(n => (
                 <Fragment key={n}>
                     {n}
@@ -19,7 +24,7 @@ render(
             {null}
         </div>
     </Suspense>,
-    'root',
+    '#root',
 );
 
 let data: any;
@@ -47,6 +52,11 @@ render(
             <input type="checkbox" checked />
             <input type="radio" checked />
             <textarea value="some text" />
+            <Portal container="#modals">
+                <div>Header</div>
+                <content>Modal</content>
+                <div>Footer</div>
+            </Portal>
             {[0, 4, 3, 2, 1, 5].map(n => (
                 <Fragment key={n}>
                     {n}
@@ -81,7 +91,7 @@ render(
             </select>
         </div>
     </Suspense>,
-    'root',
+    '#root',
 );
 // debugger;
 

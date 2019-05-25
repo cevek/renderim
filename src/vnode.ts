@@ -81,9 +81,7 @@ function visitEachNode(node: VNode, cb: (node: VNode) => void): void {
         return;
     }
     if (node.kind === portalKind) {
-        for (const child of node.children) {
-            visitEachNode(child as VNode, cb);
-        }
+        visitEachNode(node.children as VNode, cb);
         return;
     }
     if (node.kind === textKind) {
@@ -106,8 +104,19 @@ function createVArrayNode(arr: Return[]): VArrayNode {
         parentComponent: undefined!,
     };
 }
-function createVPortalNode(arr: Return[]): VPortalNode {
-    throw new AssertError('Unimplemeted');
+function createVPortalNode(type: ID, children: Return): VPortalNode {
+    return {
+        _id: _id++,
+        status: 'created',
+        kind: portalKind,
+        id: undefined,
+        children: children,
+        key: undefined,
+        props: undefined,
+        type: type,
+        extra: undefined,
+        parentComponent: undefined!,
+    };
 }
 
 function norm(node: Return): VNode {
@@ -142,7 +151,7 @@ function cloneVNode(node: VNode): VNode {
         return createVArrayNode(node.children.map(node => cloneVNode(node as VNode)));
     }
     if (node.kind === portalKind) {
-        return createVPortalNode(node.children.map(node => cloneVNode(node as VNode)));
+        return createVPortalNode(node.type, cloneVNode(node.children as VNode));
     }
     if (node.kind === textKind) {
         return createVTextNode(node.children);

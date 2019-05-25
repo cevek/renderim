@@ -21,14 +21,13 @@ function removeVNode(node: VNode, realRemove: boolean) {
     } else if (node.kind === arrayKind) {
         removeChildren(node, realRemove);
     } else if (node.kind === portalKind) {
-        removeChildren(node, realRemove);
+        removeVNode(node.children as VNode, true);
     }
 }
 
-function removeChildren(node: VDomNode | VArrayNode | VPortalNode, realRemove: boolean) {
+function removeChildren(node: VChildrenNode, realRemove: boolean) {
     for (let i = 0; i < node.children.length; i++) {
         const child = node.children[i] as VNode;
         removeVNode(child, realRemove);
     }
 }
-

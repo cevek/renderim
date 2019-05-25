@@ -20,6 +20,9 @@ function runComponent(node: VComponentNode) {
 function Fragment(props: {children: Return}) {
     return props.children as VComponentNode;
 }
+function Portal(props: {container: string; children: Return}) {
+    return createVPortalNode((props.container as unknown) as ID, norm(props.children));
+}
 
 type ErrorBoundaryProps = {children: Return; fallback: (props: {errors: Error[]}) => Return};
 type ErrorBoundaryExtra = {errors: Error[]};

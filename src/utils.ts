@@ -10,7 +10,7 @@ function findChildVDom(node: VNode): VDomNode | VTextNode {
     if (node.kind === domKind || node.kind === textKind) return node;
     if (node.kind === componentKind) return findChildVDom(node.children);
     if (node.kind === arrayKind) return findChildVDom(node.children[0] as VNode);
-    if (node.kind === portalKind) return findChildVDom(node.children[0] as VNode);
+    if (node.kind === portalKind) return findChildVDom(node.children as VNode);
     return never(node);
 }
 

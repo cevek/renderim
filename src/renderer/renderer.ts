@@ -187,7 +187,7 @@ function renderCommand(command: Command) {
 }
 
 function getParentNode(id: string | ID) {
-    return typeof id === 'string' ? document.getElementById(id)! : domMap[id];
+    return typeof id === 'string' ? document.querySelector(id)! : domMap[id];
 }
 function getBeforeNode(id: ID | null) {
     return id === null ? null : domMap[id];

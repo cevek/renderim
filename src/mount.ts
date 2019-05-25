@@ -20,7 +20,7 @@ function mountVNode(node: VNode, parentId: ID, beforeId: ID | null) {
     } else if (node.kind === arrayKind) {
         mountChildren(node, parentId, beforeId);
     } else if (node.kind === portalKind) {
-        mountChildren(node, node.type, null);
+        (node as NoReadonly<VNode>).children = mountVNode(norm(node.children), node.type, null);
     } else {
         throw never(node);
     }

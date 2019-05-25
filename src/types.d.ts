@@ -4,7 +4,7 @@ type CommandWithParentVNode = Command & {vNode: VNode};
 
 type ComponentFun = (props: object) => VElement;
 type VNodeStatus = 'created' | 'active' | 'obsolete' | 'removed' | 'cancelled';
-type VChildrenNode = VDomNode | VArrayNode | VPortalNode;
+type VChildrenNode = VDomNode | VArrayNode;
 type NoReadonly<T> = {-readonly [P in keyof T]: T[P]};
 type VElement = {
     readonly _id: number;
@@ -74,7 +74,7 @@ type VPortalNode = {
     readonly type: ID;
     readonly props: undefined;
     readonly key: undefined;
-    readonly children: readonly Return[];
+    readonly children: Return;
     readonly extra: undefined;
     readonly parentComponent: VComponentNode | RootId;
 };
