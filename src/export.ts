@@ -8,9 +8,9 @@ function createElement(
     if (typeof type === 'string') {
         return createDomVNode(type, props, key, children);
     } else if (typeof type === 'function') {
-        if (children.length === 1) children = children[0] as Return[];
-        if (props === null) props = {children};
-        else props.children = children;
+        const propsChildren = children.length === 1 ? children[0] : children;
+        if (props === null) props = {children: propsChildren};
+        else props.children = propsChildren;
         return createComponentVNode(type, props, key);
     } else {
         throw new AssertError('Component type is empty: ' + type);
@@ -19,14 +19,15 @@ function createElement(
 
 function render(node: VElement, htmlId: string) {
     const rootId = htmlId as RootId;
+    const id = (htmlId as unknown) as ID;
 
     currentComponent = createComponentVNode(Suspense, {
         fallback: 'Root Loading...',
         timeout: 0,
         children: node,
     });
-    (currentComponent as NoReadonly<VComponentNode>).parentComponent = rootId;
-    freeze(currentComponent);
+    currentComponent.parentComponent = rootId;
+    Object.freeze(currentComponent);
 
     const rootNode = createComponentVNode(ErrorBoundary, {
         children: createComponentVNode(Suspense, {
@@ -45,10 +46,7 @@ function render(node: VElement, htmlId: string) {
     if (oldNode === undefined) {
         addCommand(rootNode, {type: 'mountStart', rootId: rootId});
     }
-    const newNode =
-        oldNode === undefined
-            ? mountVNode(rootNode, (rootId as unknown) as ID, null)
-            : updateVNode(rootNode, oldNode, (rootId as unknown) as ID);
+    const newNode = oldNode === undefined ? mountVNode(rootNode, id, null) : updateVNode(rootNode, oldNode, id);
     roots.set(rootId, newNode);
     if (oldNode === undefined) {
         addCommand(newNode, {type: 'mountEnd', rootId: rootId});
@@ -71,7 +69,7 @@ function unmount(htmlId: string) {
     }
 }
 
-function shouldCancel(node: VNode) {
+function shouldCancel(node: VNode | VNodeCreated) {
     return findSuspense(node).extra.promises.length > 0; // || node.errorBoundary.extra.errors.length > 0;
 }
 function commitUpdating() {
@@ -101,7 +99,7 @@ function commitUpdating() {
     for (const node of maybeCancelled) {
         assert(node.status === 'active');
         if (shouldCancel(node)) {
-            (node as NoReadonly<VNode>).status = 'cancelled';
+            node.status = 'cancelled';
             GCVNodes.cancelled.add(node);
         }
     }

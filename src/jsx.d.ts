@@ -1,7 +1,6 @@
 declare global {
     namespace JSX {
-        // tslint:disable-next-line:no-empty-interface
-        interface Element extends VElement {}
+        type Element = VElement;
         interface ElementClass {}
         interface ElementAttributesProperty {
             props: {};

@@ -1,4 +1,4 @@
-function createVTextNode(text: string): VTextNode {
+function createVTextNode(text: string): VTextNodeCreated {
     return {
         _id: _id++,
         status: 'created',
@@ -13,7 +13,7 @@ function createVTextNode(text: string): VTextNode {
     };
 }
 
-function createDomVNode(type: string, attrs: Attrs, key: string | undefined, children: Return[]): VDomNode {
+function createDomVNode(type: string, attrs: Attrs, key: string | undefined, children: Return[]): VDomNodeCreated {
     return {
         _id: _id++,
         status: 'created',
@@ -32,7 +32,7 @@ function createComponentVNode<Props extends object>(
     type: (props: Props) => Return,
     props: Props,
     key?: string,
-): VComponentNode {
+): VComponentNodeCreated {
     let extra = undefined;
     if (type === ErrorBoundary) {
         const val: ErrorBoundaryExtra = {
@@ -63,34 +63,8 @@ function createComponentVNode<Props extends object>(
     };
 }
 
-function visitEachNode(node: VNode, cb: (node: VNode) => void): void {
-    cb(node);
-    if (node.kind === componentKind) {
-        return visitEachNode(node.children, cb);
-    }
-    if (node.kind === domKind) {
-        for (const child of node.children) {
-            visitEachNode(child as VNode, cb);
-        }
-        return;
-    }
-    if (node.kind === arrayKind) {
-        for (const child of node.children) {
-            visitEachNode(child as VNode, cb);
-        }
-        return;
-    }
-    if (node.kind === portalKind) {
-        visitEachNode(node.children as VNode, cb);
-        return;
-    }
-    if (node.kind === textKind) {
-        return;
-    }
-    return never(node);
-}
 
-function createVArrayNode(arr: Return[]): VArrayNode {
+function createVArrayNode(arr: Return[]): VArrayNodeCreated {
     return {
         _id: _id++,
         status: 'created',
@@ -104,7 +78,7 @@ function createVArrayNode(arr: Return[]): VArrayNode {
         parentComponent: undefined!,
     };
 }
-function createVPortalNode(type: ID, children: Return): VPortalNode {
+function createVPortalNode(type: ID, children: Return): VPortalNodeCreated {
     return {
         _id: _id++,
         status: 'created',
@@ -119,7 +93,7 @@ function createVPortalNode(type: ID, children: Return): VPortalNode {
     };
 }
 
-function norm(node: Return): VNode {
+function norm(node: Return): VNodeCreated {
     if (node === null || node === undefined) {
         return createVTextNode('');
     }
@@ -127,12 +101,12 @@ function norm(node: Return): VNode {
         return createVArrayNode(node);
     }
     if (typeof node === 'object' && ((node as VNode).kind as unknown) instanceof Kind) {
-        const vnode = node as VNode;
+        const vnode = node as VNode | VNodeCreated;
         if (vnode.status === 'cancelled') {
             return cloneVNode(vnode);
         }
         assert(vnode.status === 'created' || vnode.status === 'active');
-        return vnode;
+        return vnode as VNodeCreated;
     }
     if (typeof node === 'string' || typeof node === 'number') {
         return createVTextNode(String(node));
@@ -140,18 +114,18 @@ function norm(node: Return): VNode {
     return createVTextNode('');
 }
 
-function cloneVNode(node: VNode): VNode {
+function cloneVNode(node: VNodeCreated): VNodeCreated {
     if (node.kind === componentKind) {
         return createComponentVNode(node.type, node.props, node.key);
     }
     if (node.kind === domKind) {
-        return createDomVNode(node.type, node.props, node.key, node.children.map(node => cloneVNode(node as VNode)));
+        return createDomVNode(node.type, node.props, node.key, node.children.map(node => cloneVNode(norm(node))));
     }
     if (node.kind === arrayKind) {
-        return createVArrayNode(node.children.map(node => cloneVNode(node as VNode)));
+        return createVArrayNode(node.children.map(node => cloneVNode(norm(node))));
     }
     if (node.kind === portalKind) {
-        return createVPortalNode(node.type, cloneVNode(node.children as VNode));
+        return createVPortalNode(node.type, cloneVNode(norm(node.children)));
     }
     if (node.kind === textKind) {
         return createVTextNode(node.children);

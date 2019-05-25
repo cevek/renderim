@@ -70,10 +70,10 @@ function createDom(command: CreateDomCommand) {
             hydratingMap.set(parentNode, nextNode);
         }
         if (nextNode !== null) {
-            if (nextNode.nodeType === 8 && nextNode.nodeValue === 'n') {
+            if (isComment(nextNode) && nextNode.nodeValue === 'n') {
                 hydratingMap.set(parentNode, nextNode.nextSibling);
-            } else if (nextNode.nodeType === 1 && (nextNode as HTMLElement).localName === command.tag) {
-                node = nextNode as HTMLElement;
+            } else if (isHTMLElement(nextNode) && nextNode.localName === command.tag) {
+                node = nextNode;
                 hydratingMap.set(parentNode, nextNode.nextSibling);
                 const diff = createAttrsDiff(node, command.attrs, command.tag);
                 setAttrs(node, diff, command.tag);
@@ -110,11 +110,11 @@ function createText(command: CreateTextCommand) {
         if (nextNode !== null) {
             if (nextNode.nodeType === 8 && nextNode.nodeValue === 'n') {
                 hydratingMap.set(parentNode, nextNode.nextSibling);
-            } else if (nextNode.nodeType === 3) {
+            } else if (isTextNode(nextNode)) {
                 if (nextNode.nodeValue !== command.text) {
                     nextNode.nodeValue = command.text;
                 }
-                node = nextNode as HTMLElement;
+                node = nextNode;
                 const nextNextNode = node.nextSibling;
                 if (nextNextNode !== null && nextNextNode.nodeType === 8 && nextNextNode.nodeValue === '') {
                     hydratingMap.set(parentNode, nextNextNode.nextSibling);
@@ -189,4 +189,14 @@ function getBeforeNode(id: ID | null) {
 
 function never(val: never): never {
     throw new Error('Never possible: ' + val);
+}
+
+function isComment(node: Node): node is Comment {
+    return node.nodeType === 8;
+}
+function isHTMLElement(node: Node): node is HTMLElement {
+    return node.nodeType === 1;
+}
+function isTextNode(node: Node): node is Text {
+    return node.nodeType === 3;
 }

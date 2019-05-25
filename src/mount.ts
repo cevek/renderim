@@ -1,9 +1,9 @@
-function mountVNode(node: VNode, parentId: ID, beforeId: ID | null) {
+function mountVNode(node: VNodeCreated, parentId: ID, beforeId: ID | null): VNode {
     if (node.status === 'active') {
         node = cloneVNode(node);
     }
     assert(node.status === 'created');
-    (node as NoReadonly<VNode>).parentComponent = currentComponent;
+    node.parentComponent = currentComponent;
     if (node.kind === componentKind) {
         node = mountComponent(node, parentId, beforeId);
     } else if (node.kind === domKind) {
@@ -20,32 +20,32 @@ function mountVNode(node: VNode, parentId: ID, beforeId: ID | null) {
     } else if (node.kind === arrayKind) {
         mountChildren(node, parentId, beforeId);
     } else if (node.kind === portalKind) {
-        (node as NoReadonly<VNode>).children = mountVNode(norm(node.children), node.type, null);
+        node.children = mountVNode(norm(node.children), node.type, null);
     } else {
         throw never(node);
     }
-    (node as NoReadonly<VNode>).status = 'active';
+    node.status = 'active';
     maybeCancelled.push(node);
-    return node;
+    return node as VNode;
 }
 
-function mountComponent(node: VComponentNode, parentId: ID, beforeId: ID | null): VComponentNode {
+function mountComponent(node: VComponentNodeCreated, parentId: ID, beforeId: ID | null): VComponentNodeCreated {
     const parentComponent = currentComponent;
     currentComponent = node;
-    (node as NoReadonly<VComponentNode>).id = parentId;
+    node.id = parentId;
     runComponent(node);
     if (node.type === ErrorBoundary) {
-        node = handleErrorBoundary(node as VErrorBoundaryNode, undefined, parentId, beforeId);
+        node = handleErrorBoundary(node as VErrorBoundaryNodeCreated, undefined, parentId, beforeId);
     } else if (node.type === Suspense) {
-        node = handleSuspense(node as VSuspenseNode, undefined, parentId, beforeId);
+        node = handleSuspense(node as VSuspenseNodeCreated, undefined, parentId, beforeId);
     } else {
-        (node as NoReadonly<VComponentNode>).children = mountVNode(node.children, parentId, beforeId);
+        node.children = mountVNode(norm(node.children), parentId, beforeId);
     }
     currentComponent = parentComponent;
     return node;
 }
 
-function mountVDom(node: VDomNode, parentId: ID, beforeId: ID | null) {
+function mountVDom(node: VDomNodeCreated, parentId: ID, beforeId: ID | null) {
     addCommand(node, {
         type: 'createDom',
         parentId,
@@ -62,8 +62,8 @@ function mountVDom(node: VDomNode, parentId: ID, beforeId: ID | null) {
     return node;
 }
 
-function mountChildren(node: VChildrenNode, parentId: ID, beforeId: ID | null) {
+function mountChildren(node: VChildrenNodeCreated, parentId: ID, beforeId: ID | null) {
     for (let i = 0; i < node.children.length; i++) {
-        (node.children as VNode[])[i] = mountVNode(norm(node.children[i]), parentId, beforeId);
+        node.children[i] = mountVNode(norm(node.children[i]), parentId, beforeId);
     }
 }

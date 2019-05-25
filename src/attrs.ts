@@ -63,7 +63,7 @@ function diffStyles(styles: Styles, oldStyles: Styles) {
     return hasChanges ? diff : undefined;
 }
 
-function updateSelectValue(node: VDomNode) {
+function updateSelectValue(node: VDomNodeCreated) {
     addCommand(node, {
         type: 'updateDom',
         id: node.id,

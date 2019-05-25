@@ -1,11 +1,16 @@
 type VNode = VComponentNode | VDomNode | VTextNode | VPortalNode | VArrayNode;
-type Return = undefined | null | boolean | string | number | VElement | {[key: number]: Return};
-type CommandWithParentVNode = Command & {vNode: VNode};
+type VNodeCreated = VComponentNodeCreated | VDomNodeCreated | VTextNodeCreated | VPortalNodeCreated | VArrayNodeCreated;
 
+type Return = undefined | null | boolean | string | number | VElement | {[key: number]: Return};
+type CommandWithParentVNode = Command & {vNode: VNode | VNodeCreated};
+type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 type ComponentFun = (props: object) => VElement;
-type VNodeStatus = 'created' | 'active' | 'obsolete' | 'removed' | 'cancelled';
+type VNodeStatus = 'active' | 'obsolete' | 'removed';
 type VChildrenNode = VDomNode | VArrayNode;
+type VChildrenNodeCreated = VDomNodeCreated | VArrayNodeCreated;
 type NoReadonly<T> = {-readonly [P in keyof T]: T[P]};
+
+type ParentComponent = VComponentNode | VComponentNodeCreated | RootId;
 type VElement = {
     readonly _id: number;
     readonly status: string;
@@ -18,6 +23,13 @@ type VElement = {
     readonly extra: unknown;
     readonly parentComponent: VElement | RootId;
 };
+type VComponentNodeCreated = Omit<VComponentNode, 'id' | 'children' | 'parentComponent' | 'status' | 'extra'> & {
+    id: ID;
+    children: Return;
+    parentComponent: ParentComponent;
+    extra: unknown;
+    status: 'created' | 'active' | 'cancelled';
+};
 type VComponentNode = {
     readonly _id: number;
     readonly status: VNodeStatus;
@@ -28,7 +40,13 @@ type VComponentNode = {
     readonly key: string | undefined;
     readonly children: VNode;
     readonly extra: unknown;
-    readonly parentComponent: VComponentNode | RootId;
+    readonly parentComponent: ParentComponent;
+};
+type VDomNodeCreated = Omit<VDomNode, 'id' | 'children' | 'parentComponent' | 'status'> & {
+    id: ID;
+    children: Return[];
+    parentComponent: ParentComponent;
+    status: 'created' | 'active' | 'cancelled';
 };
 type VDomNode = {
     readonly _id: number;
@@ -38,9 +56,15 @@ type VDomNode = {
     readonly type: string;
     readonly props: Attrs;
     readonly key: string | undefined;
-    readonly children: readonly Return[];
+    readonly children: readonly VNode[];
     readonly extra: undefined;
-    readonly parentComponent: VComponentNode | RootId;
+    readonly parentComponent: ParentComponent;
+};
+type VTextNodeCreated = Omit<VTextNode, 'id' | 'children' | 'parentComponent' | 'status'> & {
+    id: ID;
+    children: string;
+    parentComponent: ParentComponent;
+    status: 'created' | 'active' | 'cancelled';
 };
 type VTextNode = {
     readonly _id: number;
@@ -52,7 +76,12 @@ type VTextNode = {
     readonly key: undefined;
     readonly children: string;
     readonly extra: undefined;
-    readonly parentComponent: VComponentNode | RootId;
+    readonly parentComponent: ParentComponent;
+};
+type VArrayNodeCreated = Omit<VArrayNode, 'children' | 'parentComponent' | 'status'> & {
+    children: Return[];
+    parentComponent: ParentComponent;
+    status: 'created' | 'active' | 'cancelled';
 };
 type VArrayNode = {
     readonly _id: number;
@@ -62,9 +91,14 @@ type VArrayNode = {
     readonly type: undefined;
     readonly props: undefined;
     readonly key: undefined;
-    readonly children: readonly Return[];
+    readonly children: readonly VNode[];
     readonly extra: undefined;
-    readonly parentComponent: VComponentNode | RootId;
+    readonly parentComponent: ParentComponent;
+};
+type VPortalNodeCreated = Omit<VPortalNode, 'children' | 'parentComponent' | 'status'> & {
+    children: Return;
+    parentComponent: ParentComponent;
+    status: 'created' | 'active' | 'cancelled';
 };
 type VPortalNode = {
     readonly _id: number;
@@ -74,7 +108,7 @@ type VPortalNode = {
     readonly type: ID;
     readonly props: undefined;
     readonly key: undefined;
-    readonly children: Return;
+    readonly children: VNode;
     readonly extra: undefined;
-    readonly parentComponent: VComponentNode | RootId;
+    readonly parentComponent: ParentComponent;
 };

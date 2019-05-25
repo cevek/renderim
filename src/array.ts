@@ -1,6 +1,6 @@
-function updateArray(node: VArrayNode, oldNode: VArrayNode, parentId: ID): VArrayNode {
+function updateArray(node: VArrayNodeCreated, oldNode: VArrayNode, parentId: ID): VArrayNode {
     const newList = node.children;
-    const oldList = oldNode.children as VNode[];
+    const oldList = oldNode.children;
     const skipHead = updateHead(node, oldNode, parentId);
     const skipTail = updateTail(node, oldNode, skipHead, parentId);
     const newEnd = newList.length - skipTail;
@@ -31,7 +31,7 @@ function updateArray(node: VArrayNode, oldNode: VArrayNode, parentId: ID): VArra
             } else {
                 beforeVNode = mountVNode(child, parentId, beforeId);
             }
-            (node.children as VNode[])[i] = beforeVNode;
+            node.children[i] = beforeVNode;
         }
         for (let i = skipHead; i < oldEnd; i++) {
             if (oldUsed[i] === undefined) {
@@ -40,60 +40,56 @@ function updateArray(node: VArrayNode, oldNode: VArrayNode, parentId: ID): VArra
             }
         }
     }
-    finalUpdate(node, oldNode)
-    return node;
+    finalUpdate(node, oldNode);
+    return node as VArrayNode;
 }
 
-function updateHead(node: VArrayNode, oldNode: VArrayNode, parentId: ID) {
+function updateHead(node: VArrayNodeCreated, oldNode: VArrayNode, parentId: ID) {
     const max = node.children.length < oldNode.children.length ? node.children.length : oldNode.children.length;
     let start = 0;
     while (start < max) {
         const child = norm(node.children[start]);
-        const oldChild = oldNode.children[start] as VNode;
+        const oldChild = oldNode.children[start];
         if (child.key !== oldChild.key) break;
-        (node.children as VNode[])[start] = updateVNode(norm(node.children[start]), oldChild, parentId);;
+        node.children[start] = updateVNode(norm(node.children[start]), oldChild, parentId);
         start++;
     }
     return start;
 }
 
-function updateTail(node: VArrayNode, oldNode: VArrayNode, skipHead: number, parentId: ID) {
+function updateTail(node: VArrayNodeCreated, oldNode: VArrayNode, skipHead: number, parentId: ID) {
     let newEnd = node.children.length;
     let oldEnd = oldNode.children.length;
     while (newEnd > skipHead && oldEnd > skipHead) {
         const newI = newEnd - 1;
         const oldI = oldEnd - 1;
         const child = norm(node.children[newI]);
-        const oldChild = oldNode.children[oldI] as VNode;
+        const oldChild = oldNode.children[oldI];
         if (child.key !== oldChild.key) break;
-        (node.children as VNode[])[newI] = updateVNode(norm(node.children[newI]), oldChild, parentId);;
+        node.children[newI] = updateVNode(norm(node.children[newI]), oldChild, parentId);
         newEnd--;
         oldEnd--;
     }
     return node.children.length - newEnd;
 }
 
-function moveChild(node: VNode, beforeId: ID | null): ID | null {
+function moveChild(node: VNodeCreated, beforeId: ID | null): ID | null {
     if (node.kind === domKind || node.kind === textKind) {
         addCommand(node, {type: 'moveDom', id: node.id, beforeId});
         return node.id;
     }
     if (node.kind === componentKind) {
-        return moveChild(node.children, beforeId);
+        return moveChild(norm(node.children), beforeId);
     }
     if (node.kind === arrayKind) {
         for (let i = node.children.length - 1; i >= 0; i--) {
-            const child = node.children[i] as VNode;
+            const child = norm(node.children[i]);
             beforeId = moveChild(child, beforeId);
         }
         return beforeId;
     }
     if (node.kind === portalKind) {
-        // for (let i = node.children.length - 1; i >= 0; i--) {
-        //     const child = node.children[i] as VNode;
-        //     beforeId = moveChild(child, beforeId);
-        // }
-        return beforeId;
+        return never();
     }
     return never(node);
 }

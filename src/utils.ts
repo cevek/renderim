@@ -9,8 +9,8 @@ function genId() {
 function findChildVDom(node: VNode): VDomNode | VTextNode {
     if (node.kind === domKind || node.kind === textKind) return node;
     if (node.kind === componentKind) return findChildVDom(node.children);
-    if (node.kind === arrayKind) return findChildVDom(node.children[0] as VNode);
-    if (node.kind === portalKind) return findChildVDom(node.children as VNode);
+    if (node.kind === arrayKind) return findChildVDom(node.children[0]);
+    if (node.kind === portalKind) return findChildVDom(node.children);
     return never(node);
 }
 
@@ -33,7 +33,7 @@ function sleep(ms: number) {
 
 function noop() {}
 
-function addCommand(node: VNode, command: Command) {
+function addCommand(node: VNode | VNodeCreated, command: Command) {
     const comandWithVNode = command as CommandWithParentVNode;
     comandWithVNode.vNode = node;
     commandList.push(command);
@@ -53,11 +53,34 @@ function toJSON(node: VNode): unknown {
     return other;
 }
 
-function freeze<T>(val: T) {
-    return Object.freeze(val) as T;
-}
-
 function ensureObject<T>(value: T | null | undefined | number | string | boolean | symbol): T {
     if (typeof value === 'object' && value !== null) return value;
     return {} as T;
+}
+
+function visitEachNode(node: VNode | VNodeCreated, cb: (node: VNode | VNodeCreated) => void): void {
+    cb(node);
+    if (node.kind === componentKind) {
+        return visitEachNode(node.children as VNode, cb);
+    }
+    if (node.kind === domKind) {
+        for (const child of node.children) {
+            visitEachNode(child as VNode, cb);
+        }
+        return;
+    }
+    if (node.kind === arrayKind) {
+        for (const child of node.children) {
+            visitEachNode(child as VNode, cb);
+        }
+        return;
+    }
+    if (node.kind === portalKind) {
+        visitEachNode(node.children as VNode, cb);
+        return;
+    }
+    if (node.kind === textKind) {
+        return;
+    }
+    return never(node);
 }
