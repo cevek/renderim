@@ -56,3 +56,8 @@ function toJSON(node: VNode): unknown {
 function freeze<T>(val: T) {
     return Object.freeze(val) as T;
 }
+
+function ensureObject<T>(value: T | null | undefined | number | string | boolean | symbol): T {
+    if (typeof value === 'object' && value !== null) return value;
+    return {} as T;
+}

@@ -1,14 +1,19 @@
-function createElement(type: string | ComponentFun, props: object | null, ...children: Return[]): VElement {
-    const key = props === null ? undefined : (props as {key?: string}).key;
+function createElement(
+    type: string | ComponentFun,
+    props: {[key: string]: unknown} | null,
+    ...children: Return[]
+): VElement {
+    props = ensureObject(props);
+    const key = props.key as string | undefined;
     if (typeof type === 'string') {
-        return createDomVNode(type, createPropsFromObj(props), key, children);
+        return createDomVNode(type, props, key, children);
     } else if (typeof type === 'function') {
         if (children.length === 1) children = children[0] as Return[];
         if (props === null) props = {children};
-        else (props as {children?: Return}).children = children;
+        else props.children = children;
         return createComponentVNode(type, props, key);
     } else {
-        throw new Error('Component type is empty: ' + type);
+        throw new AssertError('Component type is empty: ' + type);
     }
 }
 

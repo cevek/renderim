@@ -13,7 +13,7 @@ function createVTextNode(text: string): VTextNode {
     };
 }
 
-function createDomVNode(type: string, props: Attrs, key: string | undefined, children: Return[]): VDomNode {
+function createDomVNode(type: string, attrs: Attrs, key: string | undefined, children: Return[]): VDomNode {
     return {
         _id: _id++,
         status: 'created',
@@ -21,7 +21,7 @@ function createDomVNode(type: string, props: Attrs, key: string | undefined, chi
         children: children,
         key: key,
         kind: domKind,
-        props: props,
+        props: attrs,
         type: type,
         extra: undefined,
         parentComponent: undefined!,

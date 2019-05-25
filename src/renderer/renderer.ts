@@ -75,7 +75,7 @@ function createDom(command: CreateDomCommand) {
             } else if (nextNode.nodeType === 1 && (nextNode as HTMLElement).localName === command.tag) {
                 node = nextNode as HTMLElement;
                 hydratingMap.set(parentNode, nextNode.nextSibling);
-                const diff = createDiffFromRealDom(node, command.attrs, command.tag);
+                const diff = createAttrsDiff(node, command.attrs, command.tag);
                 setAttrs(node, diff, command.tag);
             }
         }

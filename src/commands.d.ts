@@ -1,6 +1,7 @@
 type RootId = 'RootId';
 type ID = {id: 'ID'} & number;
-type Attrs = [string, string | null | undefined | {[key: string]: string}, ...unknown[]];
+type Attrs = {[key: string]: unknown};
+type Styles = {[key: string]: string};
 
 type Command =
     | CreateDomCommand

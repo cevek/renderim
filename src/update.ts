@@ -73,9 +73,9 @@ function updateDom(node: VDomNode, oldNode: VDomNode, parentId: ID) {
     }
     (node as NoReadonly<VDomNode>).id = oldNode.id;
     const len = Math.min(node.children.length, oldNode.children.length);
-    const diffProps = updateProps(node.props, oldNode.props);
-    if (diffProps.length > 0) {
-        addCommand(node, {type: 'updateDom', tag: node.type, id: node.id, attrs: diffProps});
+    const diffAttrs = updateAttrs(node.props, oldNode.props);
+    if (diffAttrs !== undefined) {
+        addCommand(node, {type: 'updateDom', tag: node.type, id: node.id, attrs: diffAttrs});
     }
     for (let i = 0; i < len; i++) {
         const oldChild = oldNode.children[i] as VNode;
@@ -88,7 +88,7 @@ function updateDom(node: VDomNode, oldNode: VDomNode, parentId: ID) {
         const oldChild = oldNode.children[i] as VNode;
         removeVNode(oldChild, true);
     }
-    if (diffProps.length > 0 && node.type === 'select') {
+    if (diffAttrs !== undefined && node.type === 'select') {
         updateSelectValue(node);
     }
     finalUpdate(node, oldNode);
