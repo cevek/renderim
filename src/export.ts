@@ -1,8 +1,8 @@
 function createElement(
     type: string | ComponentFun,
     props: {[key: string]: unknown} | null,
-    ...children: Return[]
-): VElement {
+    ...children: VInput[]
+): VNodeCreated {
     props = ensureObject(props);
     const key = props.key as string | undefined;
     if (typeof type === 'string') {
@@ -17,14 +17,14 @@ function createElement(
     }
 }
 
-function render(node: VElement, htmlId: string) {
+function render(node: VInput, htmlId: string) {
     const rootId = htmlId as RootId;
     const id = (htmlId as unknown) as ID;
 
     currentComponent = createComponentVNode(Suspense, {
-        fallback: 'Root Loading...',
+        fallback: '',
         timeout: 0,
-        children: node,
+        children: undefined!,
     });
     currentComponent.parentComponent = rootId;
     Object.freeze(currentComponent);

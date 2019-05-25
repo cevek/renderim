@@ -98,7 +98,7 @@ render(
 function Value(props: {value: number}) {
     return <span>{props.value}</span>;
 }
-function Errored(props: {}): VElement {
+function Errored(props: {}) {
     throw new Error('Some error');
 }
 

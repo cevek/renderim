@@ -13,7 +13,7 @@ function createVTextNode(text: string): VTextNodeCreated {
     };
 }
 
-function createDomVNode(type: string, attrs: Attrs, key: string | undefined, children: Return[]): VDomNodeCreated {
+function createDomVNode(type: string, attrs: Attrs, key: string | undefined, children: VInput[]): VDomNodeCreated {
     return {
         _id: _id++,
         status: 'created',
@@ -29,7 +29,7 @@ function createDomVNode(type: string, attrs: Attrs, key: string | undefined, chi
 }
 
 function createComponentVNode<Props extends object>(
-    type: (props: Props) => Return,
+    type: (props: Props) => VInput,
     props: Props,
     key?: string,
 ): VComponentNodeCreated {
@@ -64,7 +64,7 @@ function createComponentVNode<Props extends object>(
 }
 
 
-function createVArrayNode(arr: Return[]): VArrayNodeCreated {
+function createVArrayNode(arr: VInput[]): VArrayNodeCreated {
     return {
         _id: _id++,
         status: 'created',
@@ -78,7 +78,7 @@ function createVArrayNode(arr: Return[]): VArrayNodeCreated {
         parentComponent: undefined!,
     };
 }
-function createVPortalNode(type: ID, children: Return): VPortalNodeCreated {
+function createVPortalNode(type: ID, children: VInput): VPortalNodeCreated {
     return {
         _id: _id++,
         status: 'created',
@@ -93,7 +93,7 @@ function createVPortalNode(type: ID, children: Return): VPortalNodeCreated {
     };
 }
 
-function norm(node: Return): VNodeCreated {
+function norm(node: VInput): VNodeCreated {
     if (node === null || node === undefined) {
         return createVTextNode('');
     }

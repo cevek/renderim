@@ -1,31 +1,19 @@
 type VNode = VComponentNode | VDomNode | VTextNode | VPortalNode | VArrayNode;
 type VNodeCreated = VComponentNodeCreated | VDomNodeCreated | VTextNodeCreated | VPortalNodeCreated | VArrayNodeCreated;
 
-type Return = undefined | null | boolean | string | number | VElement | {[key: number]: Return};
+type VInput = undefined | void | null | boolean | string | number | VNodeCreated | {[key: number]: VInput};
 type CommandWithParentVNode = Command & {vNode: VNode | VNodeCreated};
 type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
-type ComponentFun = (props: object) => VElement;
+type ComponentFun = (props: object) => VInput;
 type VNodeStatus = 'active' | 'obsolete' | 'removed';
 type VChildrenNode = VDomNode | VArrayNode;
 type VChildrenNodeCreated = VDomNodeCreated | VArrayNodeCreated;
 type NoReadonly<T> = {-readonly [P in keyof T]: T[P]};
 
 type ParentComponent = VComponentNode | VComponentNodeCreated | RootId;
-type VElement = {
-    readonly _id: number;
-    readonly status: string;
-    readonly id: unknown;
-    readonly kind: string;
-    readonly type: unknown;
-    readonly props: unknown;
-    readonly key: unknown;
-    readonly children: unknown;
-    readonly extra: unknown;
-    readonly parentComponent: VElement | RootId;
-};
 type VComponentNodeCreated = Omit<VComponentNode, 'id' | 'children' | 'parentComponent' | 'status' | 'extra'> & {
     id: ID;
-    children: Return;
+    children: VInput;
     parentComponent: ParentComponent;
     extra: unknown;
     status: 'created' | 'active' | 'cancelled';
@@ -44,7 +32,7 @@ type VComponentNode = {
 };
 type VDomNodeCreated = Omit<VDomNode, 'id' | 'children' | 'parentComponent' | 'status'> & {
     id: ID;
-    children: Return[];
+    children: VInput[];
     parentComponent: ParentComponent;
     status: 'created' | 'active' | 'cancelled';
 };
@@ -79,7 +67,7 @@ type VTextNode = {
     readonly parentComponent: ParentComponent;
 };
 type VArrayNodeCreated = Omit<VArrayNode, 'children' | 'parentComponent' | 'status'> & {
-    children: Return[];
+    children: VInput[];
     parentComponent: ParentComponent;
     status: 'created' | 'active' | 'cancelled';
 };
@@ -96,7 +84,7 @@ type VArrayNode = {
     readonly parentComponent: ParentComponent;
 };
 type VPortalNodeCreated = Omit<VPortalNode, 'children' | 'parentComponent' | 'status'> & {
-    children: Return;
+    children: VInput;
     parentComponent: ParentComponent;
     status: 'created' | 'active' | 'cancelled';
 };

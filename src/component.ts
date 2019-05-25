@@ -17,18 +17,18 @@ function runComponent(node: VComponentNodeCreated) {
     }
 }
 
-function Fragment(props: {children: Return}) {
-    return props.children as VElement;
+function Fragment(props: {children: VInput}) {
+    return props.children;
 }
-function Portal(props: {container: string; children: Return}) {
+function Portal(props: {container: string; children: VInput}) {
     return createVPortalNode((props.container as unknown) as ID, norm(props.children));
 }
 
-type ErrorBoundaryProps = {children: Return; fallback: (props: {errors: Error[]}) => Return};
+type ErrorBoundaryProps = {children: VInput; fallback: (props: {errors: Error[]}) => VInput};
 type ErrorBoundaryExtra = {errors: Error[]};
 type VErrorBoundaryNodeCreated = VComponentNodeCreated & {props: ErrorBoundaryProps; extra: ErrorBoundaryExtra};
 function ErrorBoundary(props: ErrorBoundaryProps) {
-    return props.children as VElement;
+    return props.children;
 }
 
 type SuspenseExtra = {
@@ -37,10 +37,10 @@ type SuspenseExtra = {
     resolvedPromises: number;
     components: VComponentNodeCreated[];
 };
-type SuspenseProps = {children: Return; timeout: number; fallback: Return};
+type SuspenseProps = {children: VInput; timeout: number; fallback: VInput};
 type VSuspenseNodeCreated = VComponentNodeCreated & {props: SuspenseProps; extra: SuspenseExtra};
 function Suspense(props: SuspenseProps) {
-    return props.children as VElement;
+    return props.children;
 }
 
 function restartComponent(node: VComponentNode | VComponentNodeCreated): boolean {

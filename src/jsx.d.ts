@@ -1,6 +1,6 @@
 declare global {
     namespace JSX {
-        type Element = VElement;
+        type Element = VInput;
         interface ElementClass {}
         interface ElementAttributesProperty {
             props: {};
@@ -15,7 +15,7 @@ declare global {
         interface IntrinsicClassAttributes<T> {}
 
         interface IntrinsicElements {
-            [key: string]: any;
+            [key: string]: unknown;
         }
     }
 }
