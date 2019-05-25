@@ -58,7 +58,7 @@ function endHydrate(id: RootId) {
 }
 
 function createDom(command: CreateDomCommand) {
-    const parentNode = getParentNode(command.parentId);
+    const parentNode = getNode(command.parentId);
     const nodeIsSVG = isSvg(command.tag, parentNode);
     let node;
     let beforeNode = getBeforeNode(command.beforeId);
@@ -99,7 +99,7 @@ function createDom(command: CreateDomCommand) {
 function createText(command: CreateTextCommand) {
     let node;
     let beforeNode = getBeforeNode(command.beforeId);
-    const parentNode = getParentNode(command.parentId);
+    const parentNode = getNode(command.parentId);
     const hydratingMap = domRoots.get(command.rootId);
     if (hydratingMap !== undefined) {
         let nextNode = hydratingMap.get(parentNode);
@@ -129,7 +129,7 @@ function createText(command: CreateTextCommand) {
     }
     if (node === undefined) {
         node = document.createTextNode(command.text);
-        getParentNode(command.parentId).insertBefore(node, beforeNode);
+        getNode(command.parentId).insertBefore(node, beforeNode);
     }
     setNode(command.id, node);
 }
@@ -180,7 +180,9 @@ function renderCommand(command: Command) {
     }
 }
 
-function getParentNode(id: string | ID) {
+type NativeDomObjects = {native: 'window' | 'document' | 'location' | 'localStorage' | 'sessionStorage' | 'navigator'};
+function getNode(id: string | ID) {
+    if (typeof id === 'object' && id !== null) return window[((id as unknown) as NativeDomObjects).native] as Node;
     return typeof id === 'string' ? document.querySelector(id)! : domMap[id];
 }
 function getBeforeNode(id: ID | null) {

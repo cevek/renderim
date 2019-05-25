@@ -55,13 +55,45 @@ function createAttrsDiff(node: HTMLElement, attrs: Attrs, tagName: string) {
 }
 
 function eventCallback(event: Event) {
-    
+    const {data, eventProps, domProps = []} = (event.target as NodeWithCallbackData).__callbackData;
+    const eventData = extractProps(event, eventProps);
+    const domExtractedProps = domProps.map(props => extractProps(getNode(props.id), props.props));
+    const message = {
+        event: eventData,
+        domProps: domExtractedProps,
+        data: data,
+    };
+}
+
+function extractProps(from: unknown, shape: unknown): unknown {
+    type Hash = {[key: string]: unknown};
+    if (shape === undefined) return;
+    if (Array.isArray(shape)) {
+        if (Array.isArray(from)) {
+            return from.map(val => extractProps(val, shape[0]));
+        } else {
+            return [];
+        }
+    } else if (Array.isArray(from)) {
+        return;
+    }
+
+    if (typeof shape === 'object' && shape !== null && from !== null && typeof from === 'object') {
+        const res = {} as Hash;
+        for (const key in shape) {
+            res[key] = extractProps((shape as Hash)[key], (from as Hash)[key]);
+        }
+        return res;
+    }
+    return from;
 }
 
 function attrIsEvent(attr: string) {
     return attr.length > 2 && attr[0] === 'o' && attr[1] === 'n';
 }
 
+type EventCallback = {eventProps: object; domProps?: {props: object; id: ID}[]; data: object};
+type NodeWithCallbackData = HTMLElement & {__callbackData: EventCallback};
 function setAttrs(node: HTMLElement, attrs: Attrs, tagName: string) {
     for (const attr in attrs) {
         const value = attrs[attr];
@@ -78,6 +110,7 @@ function setAttrs(node: HTMLElement, attrs: Attrs, tagName: string) {
         } else if (attr === 'xlinkHref') {
             node.setAttributeNS(xlinkNS, 'xlink:href', value as string);
         } else if (attrIsEvent(attr)) {
+            (node as NodeWithCallbackData).__callbackData = value as EventCallback;
             node.addEventListener(attr.substr(2), eventCallback, {passive: true});
         } else {
             if (attr === 'value') {
