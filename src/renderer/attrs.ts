@@ -54,11 +54,21 @@ function createAttrsDiff(node: HTMLElement, attrs: Attrs, tagName: string) {
     return diff;
 }
 
+function eventCallback(event: Event) {
+    
+}
+
+function attrIsEvent(attr: string) {
+    return attr.length > 2 && attr[0] === 'o' && attr[1] === 'n';
+}
+
 function setAttrs(node: HTMLElement, attrs: Attrs, tagName: string) {
     for (const attr in attrs) {
         const value = attrs[attr];
         if (value === null || value === false) {
-            if (attr === 'xlinkHref') {
+            if (attrIsEvent(attr)) {
+                node.removeEventListener(attr.substr(2), eventCallback);
+            } else if (attr === 'xlinkHref') {
                 node.removeAttributeNS(xlinkNS, 'xlink:href');
             } else {
                 node.removeAttribute(attr);
@@ -67,6 +77,8 @@ function setAttrs(node: HTMLElement, attrs: Attrs, tagName: string) {
             setStyles(node, value as Styles);
         } else if (attr === 'xlinkHref') {
             node.setAttributeNS(xlinkNS, 'xlink:href', value as string);
+        } else if (attrIsEvent(attr)) {
+            node.addEventListener(attr.substr(2), eventCallback, {passive: true});
         } else {
             if (attr === 'value') {
                 if (tagName === 'select' || tagName === 'textarea') {
