@@ -17,3 +17,10 @@ const GCVNodes = {
     removed: new WeakSet<VNode>(),
     cancelledComponents: new WeakSet<VComponentNodeCreated>(),
 };
+
+const kindParent = {type: 'kind'};
+const componentKind = ({kind: 'component', parent: kindParent} as unknown) as 'component';
+const domKind = ({kind: 'dom', parent: kindParent} as unknown) as 'dom';
+const textKind = ({kind: 'text', parent: kindParent} as unknown) as 'text';
+const arrayKind = ({kind: 'array', parent: kindParent} as unknown) as 'array';
+const portalKind = ({kind: 'portal', parent: kindParent} as unknown) as 'portal';

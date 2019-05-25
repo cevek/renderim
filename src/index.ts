@@ -1,7 +1,6 @@
 /// <reference path="./types.d.ts" />
 /// <reference path="./commands.d.ts" />
 /// <reference path="./jsx.d.ts" />
-/// <reference path="./kind.ts" />
 /// <reference path="./globals.ts" />
 /// <reference path="./vnode.ts" />
 /// <reference path="./mount.ts" />

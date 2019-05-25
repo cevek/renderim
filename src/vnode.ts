@@ -63,7 +63,6 @@ function createComponentVNode<Props extends object>(
     };
 }
 
-
 function createVArrayNode(arr: VInput[]): VArrayNodeCreated {
     return {
         _id: _id++,
@@ -93,23 +92,28 @@ function createVPortalNode(type: ID, children: VInput): VPortalNodeCreated {
     };
 }
 
-function norm(node: VInput): VNodeCreated {
-    if (node === null || node === undefined) {
+function norm(value: VInput): VNodeCreated {
+    if (value === null || value === undefined) {
         return createVTextNode('');
     }
-    if (Array.isArray(node)) {
-        return createVArrayNode(node);
+    if (Array.isArray(value)) {
+        return createVArrayNode(value);
     }
-    if (typeof node === 'object' && ((node as VNode).kind as unknown) instanceof Kind) {
-        const vnode = node as VNode | VNodeCreated;
-        if (vnode.status === 'cancelled') {
-            return cloneVNode(vnode);
+    if (typeof value === 'object') {
+        const obj = value as {kind?: {parent?: {}}};
+        if (typeof obj.kind === 'object' && obj.kind !== null && obj.kind.parent === kindParent) {
+            const vnode = obj as VNode | VNodeCreated;
+            if (vnode.status === 'cancelled') {
+                return cloneVNode(vnode);
+            }
+            assert(vnode.status === 'created' || vnode.status === 'active');
+            return vnode as VNodeCreated;
+        } else {
+            console.warn('objects are not allowed as children', obj);
         }
-        assert(vnode.status === 'created' || vnode.status === 'active');
-        return vnode as VNodeCreated;
     }
-    if (typeof node === 'string' || typeof node === 'number') {
-        return createVTextNode(String(node));
+    if (typeof value === 'string' || typeof value === 'number') {
+        return createVTextNode(String(value));
     }
     return createVTextNode('');
 }
