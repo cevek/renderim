@@ -40,6 +40,7 @@ function updateArray(node: VArrayNode, oldNode: VArrayNode, parentId: ID): VArra
             }
         }
     }
+    finalUpdate(node, oldNode)
     return node;
 }
 

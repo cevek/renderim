@@ -19,23 +19,27 @@ function updateVNode(node: VNode, oldNode: VNode, parentId: ID): VNode {
         return replaceVNode(node, oldNode, parentId);
     }
     if (node.kind === componentKind) {
-        node = updateComponent(node, oldNode as VComponentNode, parentId);
-    } else if (node.kind === domKind) {
-        node = updateDom(node, oldNode as VDomNode, parentId);
-    } else if (node.kind === textKind) {
-        node = updateText(node, oldNode as VTextNode);
-    } else if (node.kind === arrayKind) {
-        node = updateArray(node, oldNode as VArrayNode, parentId);
-    } else if (node.kind === portalKind) {
-        node = updatePortal(node, oldNode as VPortalNode, parentId);
-    } else {
-        throw never(node);
+        return updateComponent(node, oldNode as VComponentNode, parentId);
     }
+    if (node.kind === domKind) {
+        return updateDom(node, oldNode as VDomNode, parentId);
+    }
+    if (node.kind === textKind) {
+        return updateText(node, oldNode as VTextNode);
+    }
+    if (node.kind === arrayKind) {
+        return updateArray(node, oldNode as VArrayNode, parentId);
+    }
+    if (node.kind === portalKind) {
+        return updatePortal(node, oldNode as VPortalNode);
+    }
+    throw never(node);
+}
 
+function finalUpdate(node: VNode, oldNode: VNode) {
     (node as NoReadonly<VNode>).status = 'active';
     maybeObsolete.push(oldNode);
     maybeCancelled.push(node);
-    return node;
 }
 
 function updateComponent(node: VComponentNode, oldNode: VComponentNode, parentId: ID): VComponentNode {
@@ -59,6 +63,7 @@ function updateComponent(node: VComponentNode, oldNode: VComponentNode, parentId
         noReadonlyNode.children = updateVNode(node.children, oldNode.children, parentId);
     }
     currentComponent = parentComponent;
+    finalUpdate(node, oldNode);
     return node;
 }
 
@@ -86,6 +91,7 @@ function updateDom(node: VDomNode, oldNode: VDomNode, parentId: ID) {
     if (diffProps.length > 0 && node.type === 'select') {
         updateSelectValue(node);
     }
+    finalUpdate(node, oldNode);
     return node;
 }
 
@@ -94,13 +100,16 @@ function updateText(node: VTextNode, oldNode: VTextNode) {
     if (node.children !== oldNode.children) {
         addCommand(node, {type: 'setText', id: node.id, text: node.children});
     }
+    finalUpdate(node, oldNode);
     return node;
 }
 
-function updatePortal(node: VPortalNode, oldNode: VPortalNode, parentId: ID) {
+function updatePortal(node: VPortalNode, oldNode: VPortalNode) {
     if (node.type !== oldNode.type) {
-        return replaceVNode(node, oldNode, parentId);
+        return replaceVNode(node, oldNode, node.type);
     }
+    (node as NoReadonly<VPortalNode>).children = updateVNode(norm(node.children), oldNode.children as VNode, node.type);
+    finalUpdate(node, oldNode);
     return node;
 }
 
