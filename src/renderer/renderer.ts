@@ -160,13 +160,7 @@ function renderCommand(command: Command) {
             node.nodeValue = command.text;
             break;
         }
-        case 'removeDom': {
-            const node = domMap[command.id];
-            node.parentNode!.removeChild(node);
-            domMap[command.id] = undefined!;
-            break;
-        }
-        case 'removeText': {
+        case 'removeNode': {
             const node = domMap[command.id];
             node.parentNode!.removeChild(node);
             domMap[command.id] = undefined!;

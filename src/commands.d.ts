@@ -6,10 +6,9 @@ type Command =
     | CreateDomCommand
     | UpdateDomCommand
     | MoveDomCommand
-    | RemoveDomCommand
     | CreateTextCommand
     | SetTextCommand
-    | RemoveTextCommand
+    | RemoveNodeCommand
     | MountStartCommand
     | MountEndCommand;
 
@@ -43,10 +42,6 @@ type MoveDomCommand = {
     id: ID;
     beforeId: ID | null;
 };
-type RemoveDomCommand = {
-    type: 'removeDom';
-    id: ID;
-};
 type CreateTextCommand = {
     type: 'createText';
     id: ID;
@@ -60,7 +55,7 @@ type SetTextCommand = {
     id: ID;
     text: string;
 };
-type RemoveTextCommand = {
-    type: 'removeText';
+type RemoveNodeCommand = {
+    type: 'removeNode';
     id: ID;
 };

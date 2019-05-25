@@ -106,18 +106,21 @@ function commitUpdating() {
             (node as NoReadonly<VNode>).parentComponent = newParent;
         }
     }
+    const filteredCommands = (commandList as CommandWithParentVNode[]).filter(command => {
+        let skip = command.vNode.status === 'cancelled';
+        if (command.type === 'removeNode' && command.vNode.status !== 'removed') {
+            skip = true;
+        }
+        command.vNode = undefined!;
+        return !skip;
+    });
+    renderCommands(filteredCommands);
+    commandList = [];
     maybeRestarted = [];
     maybeObsolete = [];
     maybeRemoved = [];
     maybeCancelled = [];
     maybeUpdatedParent = [];
-    const filteredCommands = (commandList as CommandWithParentVNode[]).filter(command => {
-        const skip = command.vNode.status === 'cancelled';
-        command.vNode = undefined!;
-        return !skip;
-    });
-    commandList = [];
-    renderCommands(filteredCommands);
 }
 
 function getCurrentComponentNode() {

@@ -11,12 +11,12 @@ function removeVNode(node: VNode, realRemove: boolean) {
         removeVNode(node.children, realRemove);
     } else if (node.kind === domKind) {
         if (realRemove) {
-            addCommand(node, {type: 'removeDom', id: node.id});
+            addCommand(node, {type: 'removeNode', id: node.id});
         }
         removeChildren(node, false);
     } else if (node.kind === textKind) {
         if (realRemove) {
-            addCommand(node, {type: 'removeText', id: node.id});
+            addCommand(node, {type: 'removeNode', id: node.id});
         }
     } else if (node.kind === arrayKind) {
         removeChildren(node, realRemove);
