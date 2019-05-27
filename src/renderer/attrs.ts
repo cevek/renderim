@@ -77,11 +77,17 @@ function extractProps(from: unknown, shape: unknown): unknown {
     } else if (Array.isArray(from)) {
         return;
     }
-
     if (typeof shape === 'object' && shape !== null && from !== null && typeof from === 'object') {
         const res = {} as Hash;
         for (const key in shape) {
-            res[key] = extractProps((shape as Hash)[key], (from as Hash)[key]);
+            if (key === '__args') continue;
+            const subShape = (shape as Hash)[key] as {__args?: unknown[]};
+            let subFrom = (from as Hash)[key];
+            const args = subShape.__args;
+            if (args !== undefined && typeof subFrom === 'function') {
+                subFrom = (from as {[name: string]: (...args: unknown[]) => unknown})[key](...args);
+            }
+            res[key] = extractProps(subShape, subFrom);
         }
         return res;
     }
