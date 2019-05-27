@@ -237,6 +237,10 @@ type Base = {
     style?: Partial<CSSStyleDeclaration>;
     hidden?: boolean;
     children?: VInput;
+    // microdata
+    itemtype?: string;
+    itemscope?: string;
+    itemprop?: string;
 };
 
 type BaseInput = Base & {
