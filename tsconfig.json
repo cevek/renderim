@@ -5,6 +5,7 @@
         "jsx": "react",
         "jsxFactory": "createElement",
         "module": "amd",
+        "esModuleInterop": true,
         "strict": true
     },
     "references": [
