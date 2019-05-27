@@ -54,8 +54,8 @@ function createAttrsDiff(node: HTMLElement, attrs: Attrs, tagName: string) {
     return diff;
 }
 
-function eventCallback(event: Event) {
-    const {data, eventProps, domProps = []} = (event.target as NodeWithCallbackData).__callbackData;
+function prepareCallback(event: Event, eventDataCallback: EventCallbackCommand) {
+    const {data, eventProps, domProps = []} = eventDataCallback;
     const eventData = extractProps(event, eventProps);
     const domExtractedProps = domProps.map(props => extractProps(getNode(props.id), props.props));
     const message = {
@@ -98,14 +98,20 @@ function attrIsEvent(attr: string) {
     return attr.length > 2 && attr[0] === 'o' && attr[1] === 'n';
 }
 
-type EventCallback = {eventProps: object; domProps?: {props: object; id: ID}[]; data: object};
-type NodeWithCallbackData = HTMLElement & {__callbackData: EventCallback};
+type EventCallbackCommand = {eventProps: object; domProps?: {props: object; id: ID}[]; data: object};
+type NodeWithDisposers = HTMLElement & {__eventDisposers: {name: string; dispose: () => void}[]};
 function setAttrs(node: HTMLElement, attrs: Attrs, tagName: string) {
     for (const attr in attrs) {
         const value = attrs[attr];
         if (value === null || value === false) {
             if (attrIsEvent(attr)) {
-                node.removeEventListener(attr.substr(2), eventCallback);
+                const nodeWithDisposers = node as NodeWithDisposers;
+                const callbackDispose = nodeWithDisposers.__eventDisposers.find(ev => ev.name === attr);
+                if (callbackDispose !== undefined) {
+                    callbackDispose.dispose();
+                } else {
+                    throw new Error('EventData is not found');
+                }
             } else if (attr === 'xlinkHref') {
                 node.removeAttributeNS(xlinkNS, 'xlink:href');
             } else {
@@ -116,18 +122,30 @@ function setAttrs(node: HTMLElement, attrs: Attrs, tagName: string) {
         } else if (attr === 'xlinkHref') {
             node.setAttributeNS(xlinkNS, 'xlink:href', value as string);
         } else if (attrIsEvent(attr)) {
-            (node as NodeWithCallbackData).__callbackData = value as EventCallback;
-            node.addEventListener(attr.substr(2), eventCallback, {passive: true});
+            setCallback(node, attr, value as EventCallbackCommand);
+        } else if (attr === 'value' && (tagName === 'select' || tagName === 'textarea')) {
+            (node as HTMLInputElement).value = value as string;
         } else {
-            if (attr === 'value') {
-                if (tagName === 'select' || tagName === 'textarea') {
-                    (node as HTMLInputElement).value = value as string;
-                    continue;
-                }
-            }
             node.setAttribute(attr, value === true ? '' : (value as string));
         }
     }
+}
+
+function setCallback(node: Node, callbackName: string, value: EventCallbackCommand) {
+    const nodeWithDisposers = node as NodeWithDisposers;
+    if (nodeWithDisposers.__eventDisposers === undefined) nodeWithDisposers.__eventDisposers = [];
+    const callback = (event: Event) => prepareCallback(event, value);
+    const eventName = callbackName.substr(2);
+    node.addEventListener(eventName, callback, {passive: true});
+    const disposer = {
+        name: callbackName,
+        dispose: () => {
+            const pos = nodeWithDisposers.__eventDisposers.indexOf(disposer);
+            nodeWithDisposers.__eventDisposers.splice(pos, 1);
+            node.removeEventListener(eventName, callback);
+        },
+    };
+    nodeWithDisposers.__eventDisposers.push(disposer);
 }
 
 function setStyles(node: HTMLElement, styles: Styles) {
