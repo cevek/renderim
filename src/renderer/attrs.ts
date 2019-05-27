@@ -54,16 +54,19 @@ function createAttrsDiff(node: HTMLElement, attrs: Attrs, tagName: string) {
     return diff;
 }
 
-function prepareCallback(event: Event, eventDataCallback: EventCallbackCommand) {
+function prepareCallback(event: Event, id: ID, eventDataCallback: EventCallbackCommand) {
     const {data, eventProps, domProps = []} = eventDataCallback;
     const eventData = extractProps(event, eventProps);
     const domExtractedProps = domProps.map(props => extractProps(getNode(props.id), props.props));
     const message = {
+        id,
         event: eventData,
         domProps: domExtractedProps,
         data: data,
     };
+    return message;
 }
+
 
 function extractProps(from: unknown, shape: unknown): unknown {
     type Hash = {[key: string]: unknown};
@@ -100,7 +103,7 @@ function attrIsEvent(attr: string) {
 
 type EventCallbackCommand = {eventProps: object; domProps?: {props: object; id: ID}[]; data: object};
 type NodeWithDisposers = HTMLElement & {__eventDisposers: {name: string; dispose: () => void}[]};
-function setAttrs(node: HTMLElement, attrs: Attrs, tagName: string) {
+function setAttrs(node: HTMLElement, id: ID, attrs: Attrs, tagName: string) {
     for (const attr in attrs) {
         const value = attrs[attr];
         if (value === null || value === false) {
@@ -122,7 +125,7 @@ function setAttrs(node: HTMLElement, attrs: Attrs, tagName: string) {
         } else if (attr === 'xlinkHref') {
             node.setAttributeNS(xlinkNS, 'xlink:href', value as string);
         } else if (attrIsEvent(attr)) {
-            setCallback(node, attr, value as EventCallbackCommand);
+            setCallback(node, id, attr, value as EventCallbackCommand);
         } else if (attr === 'value' && (tagName === 'select' || tagName === 'textarea')) {
             (node as HTMLInputElement).value = value as string;
         } else {
@@ -131,10 +134,15 @@ function setAttrs(node: HTMLElement, attrs: Attrs, tagName: string) {
     }
 }
 
-function setCallback(node: Node, callbackName: string, value: EventCallbackCommand) {
+let mountNodes: {id: ID; node: Node; command: EventCallbackCommand}[] = [];
+function setCallback(node: Node, id: ID, callbackName: string, command: EventCallbackCommand) {
+    if (callbackName === 'onMount') {
+        mountNodes.push({id, node, command});
+        return;
+    }
     const nodeWithDisposers = node as NodeWithDisposers;
     if (nodeWithDisposers.__eventDisposers === undefined) nodeWithDisposers.__eventDisposers = [];
-    const callback = (event: Event) => prepareCallback(event, value);
+    const callback = (event: Event) => sendData([prepareCallback(event, id, command)]);
     const eventName = callbackName.substr(2);
     node.addEventListener(eventName, callback, {passive: true});
     const disposer = {

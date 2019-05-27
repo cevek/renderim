@@ -39,6 +39,10 @@ function renderCommands(commands: Command[]) {
     for (let i = 0; i < commands.length; i++) {
         renderCommand(commands[i]);
     }
+    sendData(
+        mountNodes.map(({node, id, command}) => prepareCallback(({target: node} as unknown) as Event, id, command)),
+    );
+    mountNodes = [];
 }
 
 function startHydrate(id: RootId) {
@@ -76,7 +80,7 @@ function createDom(command: CreateDomCommand) {
                 node = nextNode;
                 hydratingMap.set(parentNode, nextNode.nextSibling);
                 const diff = createAttrsDiff(node, command.attrs, command.tag);
-                setAttrs(node, diff, command.tag);
+                setAttrs(node, command.id, diff, command.tag);
             }
         }
         if (node === undefined) {
@@ -91,7 +95,7 @@ function createDom(command: CreateDomCommand) {
         if (hydratingMap !== undefined) {
             hydratingMap.set(node, null);
         }
-        setAttrs(node, command.attrs, command.tag);
+        setAttrs(node, command.id, command.attrs, command.tag);
     }
     setNode(command.id, node);
 }
@@ -152,7 +156,7 @@ function renderCommand(command: Command) {
         }
         case 'updateDom': {
             const node = domMap[command.id] as HTMLElement;
-            setAttrs(node, command.attrs, command.tag);
+            setAttrs(node, command.id, command.attrs, command.tag);
             break;
         }
         case 'setText': {
@@ -178,6 +182,10 @@ function renderCommand(command: Command) {
             never(command);
         }
     }
+}
+
+function sendData(data: unknown[]) {
+    //todo:
 }
 
 type NativeDomObjects = {native: 'window' | 'document' | 'location' | 'localStorage' | 'sessionStorage' | 'navigator'};
