@@ -118,6 +118,17 @@ function norm(value: VInput): VNodeCreated {
     return createVTextNode('');
 }
 
+function isVNode(value: VInput): value is VNodeCreated {
+    const obj = value as {kind?: {parent?: {}}};
+    return (
+        typeof value === 'object' &&
+        typeof value !== null &&
+        typeof obj.kind === 'object' &&
+        obj.kind !== null &&
+        obj.kind.parent === kindParent
+    );
+}
+
 function cloneVNode(node: VNodeCreated): VNodeCreated {
     if (node.kind === componentKind) {
         return createComponentVNode(node.type, node.props, node.key);
