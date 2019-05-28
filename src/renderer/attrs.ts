@@ -54,52 +54,11 @@ function createAttrsDiff(node: HTMLElement, attrs: Attrs, tagName: string) {
     return diff;
 }
 
-function prepareCallback(event: Event, id: ID, eventDataCallback: EventCallbackCommand) {
-    const {data, eventProps, domProps = []} = eventDataCallback;
-    const eventData = extractProps(event, eventProps);
-    const domExtractedProps = domProps.map(props => extractProps(getNode(props.id), props.props));
-    const message = {
-        id,
-        event: eventData,
-        domProps: domExtractedProps,
-        data: data,
-    };
-    return message;
-}
-
-
-function extractProps(from: unknown, shape: unknown): unknown {
-    type Hash = {[key: string]: unknown};
-    if (shape === undefined) return;
-    if (Array.isArray(shape)) {
-        if (Array.isArray(from)) {
-            return from.map(val => extractProps(val, shape[0]));
-        } else {
-            return [];
-        }
-    } else if (Array.isArray(from)) {
-        return;
-    }
-    if (typeof shape === 'object' && shape !== null && from !== null && typeof from === 'object') {
-        const res = {} as Hash;
-        for (const key in shape) {
-            if (key === '__args') continue;
-            const subShape = (shape as Hash)[key] as {__args?: unknown[]};
-            let subFrom = (from as Hash)[key];
-            const args = subShape.__args;
-            if (args !== undefined && typeof subFrom === 'function') {
-                subFrom = (from as {[name: string]: (...args: unknown[]) => unknown})[key](...args);
-            }
-            res[key] = extractProps(subShape, subFrom);
-        }
-        return res;
-    }
-    return from;
-}
-
 function attrIsEvent(attr: string) {
     return attr.length > 2 && attr[0] === 'o' && attr[1] === 'n';
 }
+
+let mountNodes: {id: ID; node: Node; command: RPCCallback}[] = [];
 
 type EventCallbackCommand = {eventProps: object; domProps?: {props: object; id: ID}[]; data: object};
 type NodeWithDisposers = HTMLElement & {__eventDisposers: {name: string; dispose: () => void}[]};
@@ -120,12 +79,14 @@ function setAttrs(node: HTMLElement, id: ID, attrs: Attrs, tagName: string) {
             } else {
                 node.removeAttribute(attr);
             }
+        } else if (attr === 'ref') {
+            mountNodes.push({id, node, command: value as RPCCallback});
         } else if (attr === 'style') {
             setStyles(node, value as Styles);
         } else if (attr === 'xlinkHref') {
             node.setAttributeNS(xlinkNS, 'xlink:href', value as string);
         } else if (attrIsEvent(attr)) {
-            setCallback(node, id, attr, value as EventCallbackCommand);
+            setCallback(node, id, attr, value as RPCCallback);
         } else if (attr === 'value' && (tagName === 'select' || tagName === 'textarea')) {
             (node as HTMLInputElement).value = value as string;
         } else {
@@ -134,15 +95,10 @@ function setAttrs(node: HTMLElement, id: ID, attrs: Attrs, tagName: string) {
     }
 }
 
-let mountNodes: {id: ID; node: Node; command: EventCallbackCommand}[] = [];
-function setCallback(node: Node, id: ID, callbackName: string, command: EventCallbackCommand) {
-    if (callbackName === 'onMount') {
-        mountNodes.push({id, node, command});
-        return;
-    }
+function setCallback(node: Node, id: ID, callbackName: string, command: RPCCallback) {
     const nodeWithDisposers = node as NodeWithDisposers;
     if (nodeWithDisposers.__eventDisposers === undefined) nodeWithDisposers.__eventDisposers = [];
-    const callback = (event: Event) => sendData([prepareCallback(event, id, command)]);
+    const callback = (event: Event) => sendBack([{id: command.id, data: extractProps(event, command.extractArgs[0])}]);
     const eventName = callbackName.substr(2);
     node.addEventListener(eventName, callback, {passive: true});
     const disposer = {

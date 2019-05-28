@@ -39,8 +39,8 @@ function renderCommands(commands: Command[]) {
     for (let i = 0; i < commands.length; i++) {
         renderCommand(commands[i]);
     }
-    sendData(
-        mountNodes.map(({node, id, command}) => prepareCallback(({target: node} as unknown) as Event, id, command)),
+    sendBack(
+        mountNodes.map(({node, command}) => ({id: command.id, data: extractProps(node, command.extractArgs[0])})),
     );
     mountNodes = [];
 }
@@ -184,13 +184,8 @@ function renderCommand(command: Command) {
     }
 }
 
-function sendData(data: unknown[]) {
-    //todo:
-}
-
-type NativeDomObjects = {native: 'window' | 'document' | 'location' | 'localStorage' | 'sessionStorage' | 'navigator'};
 function getNode(id: string | ID) {
-    if (typeof id === 'object' && id !== null) return window[((id as unknown) as NativeDomObjects).native] as Node;
+    if (typeof id === 'object' && id !== null) return (window as unknown) as Node;
     return typeof id === 'string' ? document.querySelector(id)! : domMap[id];
 }
 function getBeforeNode(id: ID | null) {
