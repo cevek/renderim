@@ -6,7 +6,7 @@ type Styles = {[key: string]: string};
 type TagCommand = CreateTagCommand | UpdateTagCommand | MoveTagCommand | RemoveTagCommand;
 type TextCommand = CreateTextCommand | UpdateTextCommand | MoveTextCommand | RemoveTextCommand;
 type MountCommand = MountStartCommand | MountEndCommand;
-type CustomCommand = CreateCustomCommand | UpdateCustomCommand | MoveCustomCommand | RemoveCustomCommand;
+type CustomCommand = CreateCustomCommand | UpdateCustomCommand | RemoveCustomCommand;
 type Command = TagCommand | TextCommand | MountCommand | CustomCommand;
 
 type MountStartCommand = {
@@ -82,32 +82,20 @@ type RemoveTextCommand = {
 type CreateCustomCommand = {
     group: 'custom';
     action: 'create';
-    id: ID;
-    rootId: RootId;
-    parentId: ID | RootId;
-    beforeId: ID | null;
+    parentId: ID;
     name: string;
     data: unknown;
 };
 type UpdateCustomCommand = {
     group: 'custom';
     action: 'update';
-    id: ID;
     name: string;
     data: unknown;
-};
-type MoveCustomCommand = {
-    group: 'custom';
-    action: 'move';
-    name: string;
-    data: unknown;
-    id: ID;
-    beforeId: ID | null;
 };
 type RemoveCustomCommand = {
     group: 'custom';
+    parentId: ID;
     action: 'remove';
     name: string;
     data: unknown;
-    id: ID;
 };

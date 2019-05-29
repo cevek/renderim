@@ -47,6 +47,7 @@ function mountComponent(node: VComponentNodeCreated, parentId: ID, beforeId: ID 
 }
 
 function mountVDom(node: VDomNodeCreated, parentId: ID, beforeId: ID | null) {
+    const props = node.props as JSX.IntrinsicElements[string];
     addCommand(node, {
         action: 'create',
         group: 'tag',
@@ -57,7 +58,17 @@ function mountVDom(node: VDomNodeCreated, parentId: ID, beforeId: ID | null) {
         attrs: node.props,
         tag: node.type,
     });
-    mountChildren(node, node.id, null);
+    if (props.customChild !== undefined) {
+        addCommand(node, {
+            action: 'create',
+            group: 'custom',
+            parentId: node.id,
+            data: node.props,
+            name: node.type,
+        });
+    } else {
+        mountChildren(node, node.id, null);
+    }
     if (node.type === 'select') {
         updateSelectValue(node);
     }

@@ -241,6 +241,7 @@ type Base = {
     itemtype?: string;
     itemscope?: string;
     itemprop?: string;
+    customChild?: CustomChild;
 };
 
 type BaseInput = Base & {

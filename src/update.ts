@@ -78,21 +78,32 @@ function updateDom(node: VDomNodeCreated, oldNode: VDomNode, parentId: ID) {
         return replaceVNode(node, oldNode, parentId);
     }
     (node as NoReadonly<VDomNode>).id = oldNode.id;
+    const props = node.props as JSX.IntrinsicElements[string];
     const len = Math.min(node.children.length, oldNode.children.length);
     const diffAttrs = updateAttrs(node.props, oldNode.props);
     if (diffAttrs !== undefined) {
         addCommand(node, {action: 'update', group: 'tag', tag: node.type, id: node.id, attrs: diffAttrs});
     }
-    for (let i = 0; i < len; i++) {
-        const oldChild = oldNode.children[i] as VNode;
-        node.children[i] = updateVNode(norm(node.children[i]), oldChild, parentId);
-    }
-    for (let i = len; i < node.children.length; i++) {
-        node.children[i] = mountVNode(norm(node.children[i]), node.id, null);
-    }
-    for (let i = len; i < oldNode.children.length; i++) {
-        const oldChild = oldNode.children[i] as VNode;
-        removeVNode(oldChild, true);
+    if (props.customChild === undefined) {
+        for (let i = 0; i < len; i++) {
+            const oldChild = oldNode.children[i] as VNode;
+            node.children[i] = updateVNode(norm(node.children[i]), oldChild, parentId);
+        }
+        for (let i = len; i < node.children.length; i++) {
+            node.children[i] = mountVNode(norm(node.children[i]), node.id, null);
+        }
+        for (let i = len; i < oldNode.children.length; i++) {
+            const oldChild = oldNode.children[i] as VNode;
+            removeVNode(oldChild, true);
+        }
+    } else {
+        addCommand(node, {
+            action: 'update',
+            group: 'custom',
+            parentId: node.id,
+            data: node.props,
+            name: node.type,
+        });
     }
     if (diffAttrs !== undefined && node.type === 'select') {
         updateSelectValue(node);

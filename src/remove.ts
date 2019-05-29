@@ -4,10 +4,21 @@ function removeVNode(node: VNode, realRemove: boolean) {
     if (node.kind === componentKind) {
         removeVNode(node.children, realRemove);
     } else if (node.kind === domKind) {
+        const props = node.props as JSX.IntrinsicElements[string];
+        if (props.customChild !== undefined) {
+            addCommand(node, {
+                action: 'remove',
+                group: 'custom',
+                parentId: node.id,
+                data: node.props,
+                name: node.type,
+            });
+        } else {
+            removeChildren(node, false);
+        }
         if (realRemove) {
             addCommand(node, {action: 'remove', group: 'tag', tag: node.type, id: node.id});
         }
-        removeChildren(node, false);
     } else if (node.kind === textKind) {
         if (realRemove) {
             addCommand(node, {action: 'remove', group: 'text', id: node.id});
