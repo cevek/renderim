@@ -21,7 +21,7 @@ function sendBack(data: {id: string; data: unknown}[]) {}
 
 function handleRPCCommand(command: RPCCommand) {
     const {id, obj, path} = command;
-    let o = getNode(obj) as {[key: string]: unknown};
+    let o = (getNode(obj) as unknown) as {[key: string]: unknown};
     const lastPart = path[path.length - 1];
     for (let i = 0; i < path.length - 1; i++) {
         if (typeof o === 'object' && o !== null) {
