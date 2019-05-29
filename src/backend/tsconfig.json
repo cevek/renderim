@@ -1,0 +1,24 @@
+{
+    "extends": "../../tsconfig.json",
+    "compilerOptions": {
+        "noEmit": false,
+        // "declaration": true,
+        "outFile": "../../dist/backend.js"
+    },
+    "include": [
+        "../common/commands.d.ts",
+        "../common/jsx.d.ts",
+        "types.d.ts",
+        "globals.ts",
+        "vnode.ts",
+        "mount.ts",
+        "update.ts",
+        "component.ts",
+        "context.ts",
+        "array.ts",
+        "remove.ts",
+        "utils.ts",
+        "attrs.ts",
+        "export.ts"
+    ]
+}

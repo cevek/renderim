@@ -1,17 +1,12 @@
 {
     "compilerOptions": {
         "target": "esnext",
-        "outFile": "dist/main.js",
         "jsx": "react",
+        "noEmit": true,
         "jsxFactory": "createElement",
         "module": "amd",
-        "esModuleInterop": true,
-        "strict": true
+        "skipLibCheck": true,
+        "esModuleInterop": true
     },
-    "references": [
-        {
-            "path": "src/renderer"
-        }
-    ],
-    "include": ["src/index.ts"]
+    "exclude": ["node_modules", "dist"]
 }

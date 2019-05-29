@@ -1,0 +1,9 @@
+{
+    "extends": "../../tsconfig.json",
+    "compilerOptions": {
+        "target": "esnext",
+        "noEmit": false,
+        "outFile": "../../dist/example.js"
+    },
+    "include": ["../common/commands.d.ts", "../common/jsx.d.ts", "backend.d.ts", "example.tsx"]
+}

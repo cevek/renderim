@@ -1,0 +1,9 @@
+{
+    "extends": "../../tsconfig.json",
+    "compilerOptions": {
+        "target": "esnext",
+        "noEmit": false,
+        "outFile": "../../dist/frontend.js"
+    },
+    "include": ["../common/commands.d.ts", "renderer.ts", "attrs.ts", "RPC.ts"]
+}

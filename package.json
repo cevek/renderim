@@ -1,19 +1,21 @@
 {
-  "name": "renderim",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "jest",
-    "test-debug": "node --inspect-brk node_modules/.bin/jest --runInBand"
-  },
-  "keywords": [],
-  "author": "cevek",
-  "license": "ISC",
-  "dependencies": {
-    "@types/jest": ">=24.0.13",
-    "jest": ">=24.8.0",
-    "ts-jest": ">=24.0.2",
-    "typescript": ">=3.4.5"
-  }
+    "name": "renderim",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "build": "tsc -b src/example src/backend src/frontend",
+        "watch": "tsc -b src/example src/backend src/frontend -w",
+        "test": "jest",
+        "test-debug": "node --inspect-brk node_modules/.bin/jest --runInBand"
+    },
+    "keywords": [],
+    "author": "cevek",
+    "license": "ISC",
+    "dependencies": {
+        "@types/jest": ">=24.0.13",
+        "jest": ">=24.8.0",
+        "ts-jest": ">=24.0.2",
+        "typescript": ">=3.4.5"
+    }
 }

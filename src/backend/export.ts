@@ -130,3 +130,5 @@ function getCurrentComponentNode() {
     if (currentComponent === undefined) throw new Error('No current component');
     return currentComponent;
 }
+
+declare function renderCommands(commands: Command[]): void
