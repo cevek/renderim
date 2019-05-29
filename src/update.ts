@@ -81,7 +81,7 @@ function updateDom(node: VDomNodeCreated, oldNode: VDomNode, parentId: ID) {
     const len = Math.min(node.children.length, oldNode.children.length);
     const diffAttrs = updateAttrs(node.props, oldNode.props);
     if (diffAttrs !== undefined) {
-        addCommand(node, {type: 'updateDom', tag: node.type, id: node.id, attrs: diffAttrs});
+        addCommand(node, {action: 'update', group: 'tag', tag: node.type, id: node.id, attrs: diffAttrs});
     }
     for (let i = 0; i < len; i++) {
         const oldChild = oldNode.children[i] as VNode;
@@ -104,7 +104,7 @@ function updateDom(node: VDomNodeCreated, oldNode: VDomNode, parentId: ID) {
 function updateText(node: VTextNodeCreated, oldNode: VTextNode) {
     (node as NoReadonly<VTextNode>).id = oldNode.id;
     if (node.children !== oldNode.children) {
-        addCommand(node, {type: 'setText', id: node.id, text: node.children});
+        addCommand(node, {action: 'update', group: 'text', id: node.id, text: node.children});
     }
     finalUpdate(node, oldNode);
     return node as VTextNode;

@@ -3,27 +3,26 @@ type ID = {id: 'ID'} & number;
 type Attrs = {[key: string]: unknown};
 type Styles = {[key: string]: string};
 
-type Command =
-    | CreateDomCommand
-    | UpdateDomCommand
-    | MoveDomCommand
-    | CreateTextCommand
-    | SetTextCommand
-    | RemoveNodeCommand
-    | MountStartCommand
-    | MountEndCommand;
+type TagCommand = CreateTagCommand | UpdateTagCommand | MoveTagCommand | RemoveTagCommand;
+type TextCommand = CreateTextCommand | UpdateTextCommand | MoveTextCommand | RemoveTextCommand;
+type MountCommand = MountStartCommand | MountEndCommand;
+type CustomCommand = CreateCustomCommand | UpdateCustomCommand | MoveCustomCommand | RemoveCustomCommand;
+type Command = TagCommand | TextCommand | MountCommand | CustomCommand;
 
 type MountStartCommand = {
-    type: 'mountStart';
+    group: 'mount';
+    action: 'start';
     rootId: RootId;
 };
 type MountEndCommand = {
-    type: 'mountEnd';
+    group: 'mount';
+    action: 'end';
     rootId: RootId;
 };
 
-type CreateDomCommand = {
-    type: 'createDom';
+type CreateTagCommand = {
+    group: 'tag';
+    action: 'create';
     id: ID;
     rootId: RootId;
     parentId: ID | RootId;
@@ -32,31 +31,83 @@ type CreateDomCommand = {
     attrs: Attrs;
 };
 
-type UpdateDomCommand = {
-    type: 'updateDom';
-    id: ID;
+type UpdateTagCommand = {
+    group: 'tag';
+    action: 'update';
     tag: string;
+    id: ID;
     attrs: Attrs;
 };
-type MoveDomCommand = {
-    type: 'moveDom';
+type MoveTagCommand = {
+    group: 'tag';
+    action: 'move';
+    tag: string;
+    id: ID;
+    beforeId: ID | null;
+};
+type RemoveTagCommand = {
+    group: 'tag';
+    action: 'remove';
+    tag: string;
+    id: ID;
+};
+
+type MoveTextCommand = {
+    group: 'text';
+    action: 'move';
     id: ID;
     beforeId: ID | null;
 };
 type CreateTextCommand = {
-    type: 'createText';
+    group: 'text';
+    action: 'create';
     id: ID;
     rootId: RootId;
     parentId: ID | RootId;
     beforeId: ID | null;
     text: string;
 };
-type SetTextCommand = {
-    type: 'setText';
+type UpdateTextCommand = {
+    group: 'text';
+    action: 'update';
     id: ID;
     text: string;
 };
-type RemoveNodeCommand = {
-    type: 'removeNode';
+type RemoveTextCommand = {
+    group: 'text';
+    action: 'remove';
+    id: ID;
+};
+
+type CreateCustomCommand = {
+    group: 'custom';
+    action: 'create';
+    id: ID;
+    rootId: RootId;
+    parentId: ID | RootId;
+    beforeId: ID | null;
+    name: string;
+    data: unknown;
+};
+type UpdateCustomCommand = {
+    group: 'custom';
+    action: 'update';
+    id: ID;
+    name: string;
+    data: unknown;
+};
+type MoveCustomCommand = {
+    group: 'custom';
+    action: 'move';
+    name: string;
+    data: unknown;
+    id: ID;
+    beforeId: ID | null;
+};
+type RemoveCustomCommand = {
+    group: 'custom';
+    action: 'remove';
+    name: string;
+    data: unknown;
     id: ID;
 };

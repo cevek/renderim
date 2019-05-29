@@ -44,12 +44,12 @@ function render(node: VInput, htmlId: string) {
     const oldNode = roots.get(rootId);
     assert(commandList.length === 0);
     if (oldNode === undefined) {
-        addCommand(rootNode, {type: 'mountStart', rootId: rootId});
+        addCommand(rootNode, {action: 'start', group: 'mount', rootId: rootId});
     }
     const newNode = oldNode === undefined ? mountVNode(rootNode, id, null) : updateVNode(rootNode, oldNode, id);
     roots.set(rootId, newNode);
     if (oldNode === undefined) {
-        addCommand(newNode, {type: 'mountEnd', rootId: rootId});
+        addCommand(newNode, {action: 'end', group: 'mount', rootId: rootId});
     }
     commitUpdating();
     console.log('after render state', toJSON(newNode));
@@ -111,7 +111,7 @@ function commitUpdating() {
     }
     const filteredCommands = (commandList as CommandWithParentVNode[]).filter(command => {
         let skip = command.vNode.status === 'cancelled';
-        if (command.type === 'removeNode' && command.vNode.status !== 'removed') {
+        if (command.action === 'remove' && command.vNode.status !== 'removed') {
             skip = true;
         }
         command.vNode = undefined!;

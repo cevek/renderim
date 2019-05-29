@@ -10,7 +10,8 @@ function mountVNode(node: VNodeCreated, parentId: ID, beforeId: ID | null): VNod
         node = mountVDom(node, parentId, beforeId);
     } else if (node.kind === textKind) {
         addCommand(node, {
-            type: 'createText',
+            action: 'create',
+            group: 'text',
             rootId: findRootId(node),
             parentId,
             beforeId,
@@ -47,7 +48,8 @@ function mountComponent(node: VComponentNodeCreated, parentId: ID, beforeId: ID 
 
 function mountVDom(node: VDomNodeCreated, parentId: ID, beforeId: ID | null) {
     addCommand(node, {
-        type: 'createDom',
+        action: 'create',
+        group: 'tag',
         parentId,
         beforeId,
         rootId: findRootId(node),

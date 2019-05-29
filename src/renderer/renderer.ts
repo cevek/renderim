@@ -39,9 +39,7 @@ function renderCommands(commands: Command[]) {
     for (let i = 0; i < commands.length; i++) {
         renderCommand(commands[i]);
     }
-    sendBack(
-        mountNodes.map(({node, command}) => ({id: command.id, data: extractProps(node, command.extractArgs[0])})),
-    );
+    sendBack(mountNodes.map(({node, command}) => ({id: command.id, data: extractProps(node, command.extractArgs[0])})));
     mountNodes = [];
 }
 
@@ -61,7 +59,7 @@ function endHydrate(id: RootId) {
     domRoots.delete(id);
 }
 
-function createDom(command: CreateDomCommand) {
+function createDom(command: CreateTagCommand) {
     const parentNode = getNode(command.parentId);
     const nodeIsSVG = isSvg(command.tag, parentNode);
     let node;
@@ -139,49 +137,50 @@ function createText(command: CreateTextCommand) {
 }
 
 function renderCommand(command: Command) {
-    switch (command.type) {
-        case 'createDom': {
+    if (command.group === 'tag') {
+        if (command.action === 'create') {
             createDom(command);
-            break;
+        } else if (command.action === 'move') {
+            moveNode(command.id, command.beforeId);
+        } else if (command.action === 'update') {
+            setAttrs(getNode(command.id) as HTMLElement, command.id, command.attrs, command.tag);
+        } else if (command.action === 'remove') {
+            removeNode(command.id);
+        } else {
+            never(command);
         }
-        case 'createText': {
+    } else if (command.group === 'text') {
+        if (command.action === 'create') {
             createText(command);
-            break;
+        } else if (command.action === 'move') {
+            moveNode(command.id, command.beforeId);
+        } else if (command.action === 'update') {
+            getNode(command.id).nodeValue = command.text;
+        } else if (command.action === 'remove') {
+            removeNode(command.id);
+        } else {
+            never(command);
         }
-        case 'moveDom': {
-            const node = domMap[command.id];
-            const beforeNode = command.beforeId === null ? null : domMap[command.beforeId];
-            node.parentNode!.insertBefore(node, beforeNode);
-            break;
-        }
-        case 'updateDom': {
-            const node = domMap[command.id] as HTMLElement;
-            setAttrs(node, command.id, command.attrs, command.tag);
-            break;
-        }
-        case 'setText': {
-            const node = domMap[command.id];
-            node.nodeValue = command.text;
-            break;
-        }
-        case 'removeNode': {
-            const node = domMap[command.id];
-            node.parentNode!.removeChild(node);
-            domMap[command.id] = undefined!;
-            break;
-        }
-        case 'mountStart': {
+    } else if (command.group === 'mount') {
+        if (command.action === 'start') {
             startHydrate(command.rootId);
-            break;
-        }
-        case 'mountEnd': {
+        } else if (command.action === 'end') {
             endHydrate(command.rootId);
-            break;
-        }
-        default: {
+        } else {
             never(command);
         }
     }
+}
+
+function moveNode(id: ID, beforeId: ID | null) {
+    const node = domMap[id];
+    const beforeNode = beforeId === null ? null : domMap[beforeId];
+    node.parentNode!.insertBefore(node, beforeNode);
+}
+function removeNode(id: ID) {
+    const node = domMap[id];
+    node.parentNode!.removeChild(node);
+    domMap[id] = undefined!;
 }
 
 function getNode(id: string | ID) {

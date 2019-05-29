@@ -65,7 +65,8 @@ function diffStyles(styles: Styles, oldStyles: Styles) {
 
 function updateSelectValue(node: VDomNodeCreated) {
     addCommand(node, {
-        type: 'updateDom',
+        action: 'update',
+        group: 'tag',
         id: node.id,
         attrs: {value: node.props.value},
         tag: node.type,

@@ -74,8 +74,12 @@ function updateTail(node: VArrayNodeCreated, oldNode: VArrayNode, skipHead: numb
 }
 
 function moveChild(node: VNodeCreated, beforeId: ID | null): ID | null {
-    if (node.kind === domKind || node.kind === textKind) {
-        addCommand(node, {type: 'moveDom', id: node.id, beforeId});
+    if (node.kind === domKind) {
+        addCommand(node, {action: 'move', group: 'tag', tag: node.type, id: node.id, beforeId});
+        return node.id;
+    }
+    if (node.kind === textKind) {
+        addCommand(node, {action: 'move', group: 'text', id: node.id, beforeId});
         return node.id;
     }
     if (node.kind === componentKind) {
