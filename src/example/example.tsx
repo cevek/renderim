@@ -89,6 +89,7 @@ render(
                 <option value="1">1</option>
                 <option value="2">2</option>
             </select>
+            <div customChild={{name: 'foo', data: {}, url: () => import('@babel/core')}} />
         </div>
     </Suspense>,
     '#root',

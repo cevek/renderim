@@ -1,6 +1,8 @@
 declare global {
     namespace JSX {
         type Element = VInput;
+        type CustomChild = {name: string; data: unknown; url?: () => Promise<unknown>};
+
         interface ElementClass {}
         interface ElementAttributesProperty {
             props: {};
@@ -241,7 +243,7 @@ type Base = {
     itemtype?: string;
     itemscope?: string;
     itemprop?: string;
-    customChild?: CustomChild;
+    customChild?: JSX.CustomChild;
 };
 
 type BaseInput = Base & {
@@ -251,7 +253,5 @@ type BaseInput = Base & {
     disabled?: boolean;
     autofocus?: boolean;
 };
-
-type CustomChild = {name: string; data: unknown; url?: () => Promise<unknown>}
 
 export {};

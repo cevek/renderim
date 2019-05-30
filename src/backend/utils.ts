@@ -84,3 +84,10 @@ function visitEachNode(node: VNode | VNodeCreated, cb: (node: VNode | VNodeCreat
     }
     return never(node);
 }
+
+function customUrl(customChild: JSX.CustomChild) {
+    isCustomUrlCall = true;
+    const url = typeof customChild.url === 'function' ? ((customChild.url() as unknown) as string) : undefined;
+    isCustomUrlCall = false;
+    return url;
+}

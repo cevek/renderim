@@ -63,8 +63,9 @@ function mountVDom(node: VDomNodeCreated, parentId: ID, beforeId: ID | null) {
             action: 'create',
             group: 'custom',
             parentId: node.id,
-            data: node.props,
-            name: node.type,
+            data: props.customChild.data,
+            name: props.customChild.name,
+            url: customUrl(props.customChild),
         });
     } else {
         mountChildren(node, node.id, null);

@@ -101,8 +101,9 @@ function updateDom(node: VDomNodeCreated, oldNode: VDomNode, parentId: ID) {
             action: 'update',
             group: 'custom',
             parentId: node.id,
-            data: node.props,
-            name: node.type,
+            data: props.customChild.data,
+            name: props.customChild.name,
+            url: customUrl(props.customChild),
         });
     }
     if (diffAttrs !== undefined && node.type === 'select') {

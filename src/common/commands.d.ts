@@ -86,6 +86,7 @@ type CreateCustomCommand = {
     parentId: ID;
     name: string;
     data: unknown;
+    url?: string;
 };
 type UpdateCustomCommand = {
     group: 'custom';

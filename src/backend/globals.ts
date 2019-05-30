@@ -11,6 +11,7 @@ let maybeObsolete: VNode[] = [];
 let maybeRestarted: ({newNode: VComponentNode; oldNode: VComponentNode})[] = [];
 let maybeUpdatedParent: ({node: VNode; newParent: VComponentNode | VComponentNodeCreated})[] = [];
 
+let isCustomUrlCall = false;
 const GCVNodes = {
     cancelled: new WeakSet<VNodeCreated>(),
     obsolete: new WeakSet<VNode>(),

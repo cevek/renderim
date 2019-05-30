@@ -15,7 +15,11 @@ if (typeof self.document !== 'object') {
                     {
                         appendChild(node: {tagName: string; src: string; onload: () => void; onerror: () => void}) {
                             if (node.tagName === 'script') {
-                                // load script
+                                if (isCustomUrlCall) {
+                                    // load script
+                                } else {
+                                    // load script in web worker
+                                }
                             } else if (node.tagName === 'link') {
                                 // load link
                             }
