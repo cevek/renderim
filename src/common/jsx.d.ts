@@ -252,4 +252,6 @@ type BaseInput = Base & {
     autofocus?: boolean;
 };
 
+type CustomChild = {name: string; data: unknown; url?: () => Promise<unknown>}
+
 export {};

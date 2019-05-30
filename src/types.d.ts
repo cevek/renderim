@@ -100,4 +100,3 @@ type VPortalNode = {
     readonly parentComponent: ParentComponent;
 };
 
-type CustomChild = {name: string; data: unknown}
