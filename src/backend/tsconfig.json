@@ -8,6 +8,7 @@
     "include": [
         "../common/commands.d.ts",
         "../common/jsx.d.ts",
+        "parcel.ts",
         "types.d.ts",
         "globals.ts",
         "vnode.ts",
