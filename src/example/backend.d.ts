@@ -1,16 +1,14 @@
 declare function Fragment(props: {children: VInput}): VInput;
 declare function Portal(props: {container: string; children: VInput}): VPortalNodeCreated;
-declare type ErrorBoundaryProps = {
+declare function ErrorBoundary(props: {
     children: VInput;
     fallback: (props: {errors: Error[]}) => VInput;
-};
-declare function ErrorBoundary(props: ErrorBoundaryProps): VInput;
-declare type SuspenseProps = {
+}): VInput;
+declare function Suspense(props: {
     children: VInput;
     timeout: number;
     fallback: VInput;
-};
-declare function Suspense(props: SuspenseProps): VInput;
+}): VInput;
 declare function restartComponent(node: VComponentNode | VComponentNodeCreated): boolean;
 declare function createContext<T>(
     defaultValue: T,

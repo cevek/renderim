@@ -145,7 +145,7 @@ function renderCommand(command: Command) {
         } else if (command.action === 'remove') {
             removeNode(command.id);
         } else {
-            never(command);
+            nevr(command);
         }
     } else if (command.group === 'text') {
         if (command.action === 'create') {
@@ -157,7 +157,7 @@ function renderCommand(command: Command) {
         } else if (command.action === 'remove') {
             removeNode(command.id);
         } else {
-            never(command);
+            nevr(command);
         }
     } else if (command.group === 'mount') {
         if (command.action === 'start') {
@@ -165,7 +165,7 @@ function renderCommand(command: Command) {
         } else if (command.action === 'end') {
             endHydrate(command.rootId);
         } else {
-            never(command);
+            nevr(command);
         }
     } else if (command.group === 'script') {
         if (command.action === 'load') {
@@ -191,7 +191,7 @@ function renderCommand(command: Command) {
         }
     } else if (command.group === 'custom') {
     } else {
-        never(command);
+        nevr(command);
     }
 }
 
@@ -221,7 +221,7 @@ function getBeforeNode(id: ID | null) {
     return id === null ? null : domMap[id];
 }
 
-function never(val: never): never {
+function nevr(val: never): never {
     throw new Error('Never possible: ' + val);
 }
 

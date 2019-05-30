@@ -43,7 +43,7 @@ function handleRPCCommand(command: RPCCommand) {
     } else if (command.type === 'write') {
         o[lastPart] = transformArg(command.value);
     } else {
-        never(command);
+        nevr(command);
     }
 }
 
