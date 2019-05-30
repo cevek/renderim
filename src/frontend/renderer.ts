@@ -167,7 +167,39 @@ function renderCommand(command: Command) {
         } else {
             never(command);
         }
+    } else if (command.group === 'script') {
+        if (command.action === 'load') {
+            const script = document.createElement('script');
+            script.src = command.url;
+            script.onload = transformArg(command.onLoadCallback) as () => void;
+            script.onerror = transformArg(command.onErrorCallback) as () => void;
+            document.head.appendChild(script);
+        }
+    } else if (command.group === 'style') {
+        if (command.action === 'load') {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = command.url;
+            link.onload = transformArg(command.onLoadCallback) as () => void;
+            link.onerror = transformArg(command.onErrorCallback) as () => void;
+            document.head.appendChild(link);
+        } else if (command.action === 'updateAll') {
+            const links = document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]');
+            for (const link of links) {
+                updateLink(link);
+            }
+        }
+    } else if (command.group === 'custom') {
+    } else {
+        never(command);
     }
+}
+
+function updateLink(link: HTMLLinkElement) {
+    const newLink = link.cloneNode() as HTMLLinkElement;
+    newLink.onload = () => link.remove();
+    newLink.href = link.href.split('?')[0] + '?' + Date.now();
+    link.parentNode.insertBefore(newLink, link.nextSibling);
 }
 
 function moveNode(id: ID, beforeId: ID | null) {

@@ -7,7 +7,8 @@ type TagCommand = CreateTagCommand | UpdateTagCommand | MoveTagCommand | RemoveT
 type TextCommand = CreateTextCommand | UpdateTextCommand | MoveTextCommand | RemoveTextCommand;
 type MountCommand = MountStartCommand | MountEndCommand;
 type CustomCommand = CreateCustomCommand | UpdateCustomCommand | RemoveCustomCommand;
-type Command = TagCommand | TextCommand | MountCommand | CustomCommand;
+type LoadCommand = LoadScriptCommand | LoadStyleCommand | UpdateStyleCommand;
+type Command = TagCommand | TextCommand | MountCommand | CustomCommand | LoadCommand;
 
 type MountStartCommand = {
     group: 'mount';
@@ -98,4 +99,24 @@ type RemoveCustomCommand = {
     action: 'remove';
     name: string;
     data: unknown;
+};
+
+type LoadScriptCommand = {
+    group: 'script';
+    action: 'load';
+    url: string;
+    onLoadCallback: RPCCallback;
+    onErrorCallback: RPCCallback;
+    onFullLoadCallback?: RPCCallback;
+};
+type LoadStyleCommand = {
+    group: 'style';
+    action: 'load';
+    url: string;
+    onLoadCallback: RPCCallback;
+    onErrorCallback: RPCCallback;
+};
+type UpdateStyleCommand = {
+    group: 'style';
+    action: 'updateAll';
 };
