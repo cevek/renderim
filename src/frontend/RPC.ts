@@ -47,12 +47,12 @@ function handleRPCCommand(command: RPCCommand) {
     }
 }
 
-function extractProps(from: unknown, shape: unknown): unknown {
+function extractProps(from: unknown, shape: unknown, root = from): unknown {
     type Hash = {[key: string]: unknown};
     if (shape === undefined) return;
     if (Array.isArray(shape)) {
         if (Array.isArray(from)) {
-            return from.map(val => extractProps(val, shape[0]));
+            return from.map(val => extractProps(val, shape[0], root));
         } else {
             return [];
         }
@@ -63,15 +63,39 @@ function extractProps(from: unknown, shape: unknown): unknown {
         const res = {} as Hash;
         for (const key in shape) {
             if (key === '__args') continue;
-            const subShape = (shape as Hash)[key] as {__args?: unknown[]};
+            if (key === '__conditions') continue;
+            const subShape = (shape as Hash)[key] as {__args?: unknown[]; __conditions?: unknown[]};
             let subFrom = (from as Hash)[key];
             const args = subShape.__args;
+            const conditions = subShape.__conditions;
             if (args !== undefined && typeof subFrom === 'function') {
-                subFrom = (from as {[name: string]: (...args: unknown[]) => unknown})[key](...args);
+                if (conditions === undefined || conditions.some(cond => isObjectExtends(root, cond))) {
+                    subFrom = (from as {[name: string]: (...args: unknown[]) => unknown})[key](...args);
+                }
             }
-            res[key] = extractProps(subShape, subFrom);
+            res[key] = extractProps(subShape, subFrom, root);
         }
         return res;
     }
     return from;
+}
+
+function isObjectExtends(obj: unknown, base: unknown) {
+    if (
+        typeof obj === 'object' &&
+        typeof base === 'object' &&
+        obj !== null &&
+        base !== null &&
+        obj.constructor === base.constructor
+    ) {
+        if (Array.isArray(base)) {
+            if (!base.every((subBase, i) => isObjectExtends(obj[i], subBase))) return false;
+        } else {
+            for (const key in base) {
+                if (!isObjectExtends(obj[key], base[key])) return false;
+            }
+        }
+        return true;
+    }
+    return obj === base;
 }
