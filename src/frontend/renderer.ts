@@ -37,7 +37,9 @@ function renderCommands(commands: Command[]) {
     for (let i = 0; i < commands.length; i++) {
         renderCommand(commands[i]);
     }
-    sendBack(mountNodes.map(({node, command}) => ({id: command.id, data: extractProps(node, command.extractArgs[0])})));
+    sendToBackend(
+        mountNodes.map(({node, command}) => createResult(command.id, [extractProps(node, command.extractArgs[0])])),
+    );
     mountNodes = [];
 }
 
@@ -171,8 +173,9 @@ function renderCommand(command: Command) {
         if (command.action === 'load') {
             const script = document.createElement('script');
             script.src = command.url;
-            script.onload = transformArg(command.onLoadCallback) as () => void;
-            script.onerror = transformArg(command.onErrorCallback) as () => void;
+            const {onError, onValue} = transformCallback(command.onLoad);
+            script.onload = onValue;
+            script.onerror = () => onError('Script loading error');
             document.head.appendChild(script);
         }
     } else if (command.group === 'style') {
@@ -180,8 +183,9 @@ function renderCommand(command: Command) {
             const link = document.createElement('link');
             link.rel = 'stylesheet';
             link.href = command.url;
-            link.onload = transformArg(command.onLoadCallback) as () => void;
-            link.onerror = transformArg(command.onErrorCallback) as () => void;
+            const {onError, onValue} = transformCallback(command.onLoad);
+            link.onload = onValue;
+            link.onerror = () => onError('Link loading error');
             document.head.appendChild(link);
         } else if (command.action === 'updateAll') {
             const links = document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]');
@@ -199,7 +203,7 @@ function updateLink(link: HTMLLinkElement) {
     const newLink = link.cloneNode() as HTMLLinkElement;
     newLink.onload = () => link.remove();
     newLink.href = link.href.split('?')[0] + '?' + Date.now();
-    link.parentNode.insertBefore(newLink, link.nextSibling);
+    link.parentNode!.insertBefore(newLink, link.nextSibling);
 }
 
 function moveNode(id: ID, beforeId: ID | null) {

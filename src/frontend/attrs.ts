@@ -98,7 +98,8 @@ function setAttrs(node: HTMLElement, id: ID, attrs: Attrs, tagName: string) {
 function setCallback(node: Node, id: ID, callbackName: string, command: RPCCallback) {
     const nodeWithDisposers = node as NodeWithDisposers;
     if (nodeWithDisposers.__eventDisposers === undefined) nodeWithDisposers.__eventDisposers = [];
-    const callback = (event: Event) => sendBack([{id: command.id, data: extractProps(event, command.extractArgs[0])}]);
+    const callback = (event: Event) =>
+        sendToBackend([createResult(command.id, [extractProps(event, command.extractArgs[0])])]);
     const eventName = callbackName.substr(2);
     node.addEventListener(eventName, callback, {passive: true});
     const disposer = {

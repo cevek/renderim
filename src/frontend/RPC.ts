@@ -1,23 +1,32 @@
-type RPCCommand = RPCReadCommand | RPCCallCommand | RPCWriteCommand;
-type RPCCallback = {type: '__fn__'; id: string; extractArgs: object[]; return?: unknown};
-type RPCReadCommand = {type: 'read'; id: string; obj: ID; path: string[]; extract: object};
-type RPCCallCommand = {type: 'call'; id: string; obj: ID; path: string[]; args: unknown[]; extract: object};
-type RPCWriteCommand = {type: 'write'; id: string; obj: ID; path: string[]; value: unknown};
-
 function isCallback(arg: unknown): arg is RPCCallback {
     return typeof arg === 'object' && arg !== null && (arg as RPCCallback).type === '__fn__';
 }
 function transformArg(callback: unknown) {
     if (isCallback(callback)) {
         return (...args: unknown[]) => {
-            sendBack([{id: callback.id, data: args.map((arg, i) => extractProps(arg, callback.extractArgs[i]))}]);
-            return callback.return;
+            sendToBackend([
+                createResult(callback.id, args.map((arg, i) => extractProps(arg, callback.extractArgs[i]))),
+            ]);
+            return callback.returnValue;
         };
     }
     return callback;
 }
+function transformCallback(callback: RPCCallback) {
+    return {
+        onValue: (...args: unknown[]) => {
+            sendToBackend([
+                createResult(callback.id, args.map((arg, i) => extractProps(arg, callback.extractArgs[i]))),
+            ]);
+            return callback.returnValue;
+        },
+        onError: (error: Error | string) => {
+            sendToBackend([createError(callback.id, error)]);
+        },
+    };
+}
 
-function sendBack(data: {id: string; data: unknown}[]) {}
+function sendToBackend(data: RPCResult[]) {}
 
 function handleRPCCommand(command: RPCCommand) {
     const {id, obj, path} = command;
@@ -27,24 +36,31 @@ function handleRPCCommand(command: RPCCommand) {
         if (typeof o === 'object' && o !== null) {
             o = o[path[i]] as {[key: string]: unknown};
         } else {
-            sendBack([{id, data: {type: '__error__', reason: `${o}.${path[i]} is not an object`}}]);
+            sendToBackend([createError(id, `${o}.${path[i]} is not an object`)]);
             return;
         }
     }
     if (command.type === 'call') {
         if (typeof o[lastPart] === 'function') {
             const ret = (o[lastPart] as (...args: unknown[]) => void)(...command.args.map(transformArg));
-            sendBack([{id, data: extractProps(ret, command.extract)}]);
+            sendToBackend([createResult(id, [extractProps(ret, command.extract)])]);
         } else {
-            sendBack([{id, data: {type: '__error__', reason: `${o}.${lastPart} is not callable`}}]);
+            sendToBackend([createError(id, `${o}.${lastPart} is not callable`)]);
         }
     } else if (command.type === 'read') {
-        sendBack([{id, data: extractProps(o[lastPart], command.extract)}]);
+        sendToBackend([createResult(id, [extractProps(o[lastPart], command.extract)])]);
     } else if (command.type === 'write') {
         o[lastPart] = transformArg(command.value);
     } else {
         nevr(command);
     }
+}
+
+function createResult(id: string, data: unknown[]): RPCResult {
+    return {id, isError: false, type: '__res__', data};
+}
+function createError(id: string, error: unknown): RPCResult {
+    return {id, isError: true, type: '__res__', data: [error]};
 }
 
 function extractProps(from: unknown, shape: unknown, root = from): unknown {
@@ -88,11 +104,12 @@ function isObjectExtends(obj: unknown, base: unknown) {
         base !== null &&
         obj.constructor === base.constructor
     ) {
+        type Hash = {[key: string]: unknown};
         if (Array.isArray(base)) {
-            if (!base.every((subBase, i) => isObjectExtends(obj[i], subBase))) return false;
+            if (!base.every((subBase, i) => isObjectExtends((obj as Hash)[i], subBase))) return false;
         } else {
             for (const key in base) {
-                if (!isObjectExtends(obj[key], base[key])) return false;
+                if (!isObjectExtends((obj as Hash)[key], (base as Hash)[key])) return false;
             }
         }
         return true;

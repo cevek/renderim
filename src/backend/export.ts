@@ -117,7 +117,7 @@ function commitUpdating() {
         command.vNode = undefined!;
         return !skip;
     });
-    renderCommands(filteredCommands);
+    sendCommands(filteredCommands);
     commandList = [];
     maybeRestarted = [];
     maybeObsolete = [];
@@ -130,5 +130,3 @@ function getCurrentComponentNode() {
     if (currentComponent === undefined) throw new Error('No current component');
     return currentComponent;
 }
-
-declare function renderCommands(commands: Command[]): void

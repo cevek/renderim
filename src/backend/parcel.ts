@@ -5,7 +5,12 @@ if (typeof self.document !== 'object') {
         },
         querySelectorAll(query: string) {
             if (query === 'link[rel="stylesheet"]') {
-                // update styles
+                sendCommands([
+                    {
+                        group: 'style',
+                        action: 'updateAll',
+                    },
+                ]);
             }
             return [];
         },
@@ -13,15 +18,40 @@ if (typeof self.document !== 'object') {
             if (query === 'head') {
                 return [
                     {
-                        appendChild(node: {tagName: string; src: string; onload: () => void; onerror: () => void}) {
+                        appendChild(node: {
+                            tagName: string;
+                            src: string;
+                            href: string;
+                            onload: () => void;
+                            onerror: (e: Error) => void;
+                        }) {
                             if (node.tagName === 'script') {
                                 if (isCustomUrlCall) {
-                                    // load script
+                                    sendCommands([
+                                        {
+                                            group: 'script',
+                                            action: 'load',
+                                            url: node.href,
+                                            onLoad: transformCallbackOnce(node.onload, node.onerror, []),
+                                        },
+                                    ]);
                                 } else {
-                                    // load script in web worker
+                                    try {
+                                        importScripts(node.src);
+                                        node.onload();
+                                    } catch (e) {
+                                        node.onerror(e);
+                                    }
                                 }
                             } else if (node.tagName === 'link') {
-                                // load link
+                                sendCommands([
+                                    {
+                                        group: 'style',
+                                        action: 'load',
+                                        url: node.href,
+                                        onLoad: transformCallbackOnce(node.onload, node.onerror, []),
+                                    },
+                                ]);
                             }
                         },
                     },

@@ -55,7 +55,7 @@ function mountVDom(node: VDomNodeCreated, parentId: ID, beforeId: ID | null) {
         beforeId,
         rootId: findRootId(node),
         id: node.id,
-        attrs: node.props,
+        attrs: transformAttrCallbacks(node.props),
         tag: node.type,
     });
     if (props.customChild !== undefined) {

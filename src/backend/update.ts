@@ -82,7 +82,13 @@ function updateDom(node: VDomNodeCreated, oldNode: VDomNode, parentId: ID) {
     const len = Math.min(node.children.length, oldNode.children.length);
     const diffAttrs = updateAttrs(node.props, oldNode.props);
     if (diffAttrs !== undefined) {
-        addCommand(node, {action: 'update', group: 'tag', tag: node.type, id: node.id, attrs: diffAttrs});
+        addCommand(node, {
+            action: 'update',
+            group: 'tag',
+            tag: node.type,
+            id: node.id,
+            attrs: transformAttrCallbacks(diffAttrs),
+        });
     }
     if (props.customChild === undefined) {
         for (let i = 0; i < len; i++) {

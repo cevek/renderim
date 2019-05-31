@@ -72,3 +72,13 @@ function updateSelectValue(node: VDomNodeCreated) {
         tag: node.type,
     });
 }
+
+function transformAttrCallbacks(attrs: Attrs) {
+    for (const attr in attrs) {
+        const value = attrs[attr];
+        if (typeof value === 'function') {
+            attrs[attr] = transformCallback(value as () => void, () => {}, []);
+        }
+    }
+    return attrs;
+}

@@ -91,3 +91,7 @@ function customUrl(customChild: JSX.CustomChild) {
     isCustomUrlCall = false;
     return url;
 }
+
+function isObj<T>(obj: unknown): obj is T {
+    return typeof obj === 'object' && obj !== null;
+}
