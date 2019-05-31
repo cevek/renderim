@@ -87,7 +87,7 @@ function updateDom(node: VDomNodeCreated, oldNode: VDomNode, parentId: ID) {
             group: 'tag',
             tag: node.type,
             id: node.id,
-            attrs: transformAttrCallbacks(diffAttrs),
+            attrs: diffAttrs,
         });
     }
     if (props.customChild === undefined) {

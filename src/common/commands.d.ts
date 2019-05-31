@@ -108,17 +108,22 @@ type LoadScriptCommand = {
     action: 'load';
     url: string;
     onLoad: RPCCallback;
+    onError: RPCCallback;
 };
 type LoadStyleCommand = {
     group: 'style';
     action: 'load';
     url: string;
     onLoad: RPCCallback;
+    onError: RPCCallback;
 };
 type UpdateStyleCommand = {
     group: 'style';
     action: 'updateAll';
 };
+
+type DomListener = {oldListener?: RPCCallback; newListener?: RPCCallback};
+
 
 type RPCCommand = RPCReadCommand | RPCCallCommand | RPCWriteCommand;
 type RPCCallback = {type: '__fn__'; id: string; extractArgs: object[]; returnValue?: unknown};

@@ -1,4 +1,4 @@
-if (typeof self.document !== 'object') {
+if (isObj(self.document)) {
     (self as {document: {}}).document = {
         createElement(tagName: string) {
             return {tagName};
@@ -23,7 +23,7 @@ if (typeof self.document !== 'object') {
                             src: string;
                             href: string;
                             onload: () => void;
-                            onerror: (e: Error) => void;
+                            onerror: () => void;
                         }) {
                             if (node.tagName === 'script') {
                                 if (isCustomUrlCall) {
@@ -32,7 +32,8 @@ if (typeof self.document !== 'object') {
                                             group: 'script',
                                             action: 'load',
                                             url: node.href,
-                                            onLoad: transformCallbackOnce(node.onload, node.onerror, []),
+                                            onLoad: transformCallbackOnce(node.onload, []),
+                                            onError: transformCallbackOnce(node.onerror, []),
                                         },
                                     ]);
                                 } else {
@@ -40,7 +41,7 @@ if (typeof self.document !== 'object') {
                                         importScripts(node.src);
                                         node.onload();
                                     } catch (e) {
-                                        node.onerror(e);
+                                        node.onerror();
                                     }
                                 }
                             } else if (node.tagName === 'link') {
@@ -49,7 +50,8 @@ if (typeof self.document !== 'object') {
                                         group: 'style',
                                         action: 'load',
                                         url: node.href,
-                                        onLoad: transformCallbackOnce(node.onload, node.onerror, []),
+                                        onLoad: transformCallbackOnce(node.onload, []),
+                                        onError: transformCallbackOnce(node.onerror, []),
                                     },
                                 ]);
                             }

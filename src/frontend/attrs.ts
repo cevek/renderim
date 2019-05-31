@@ -60,21 +60,22 @@ function attrIsEvent(attr: string) {
 
 let mountNodes: {id: ID; node: Node; command: RPCCallback}[] = [];
 
-type EventCallbackCommand = {eventProps: object; domProps?: {props: object; id: ID}[]; data: object};
-type NodeWithDisposers = HTMLElement & {__eventDisposers: {name: string; dispose: () => void}[]};
 function setAttrs(node: HTMLElement, id: ID, attrs: Attrs, tagName: string) {
     for (const attr in attrs) {
         const value = attrs[attr];
+        if (attrIsEvent(attr)) {
+            const eventName = attr.substr(2);
+            const {oldListener, newListener} = value as DomListener;
+            if (newListener !== undefined) {
+                node.addEventListener(eventName, transformCallback(newListener), {passive: true});
+            }
+            if (oldListener !== undefined) {
+                node.removeEventListener(eventName, transformCallback(oldListener));
+                // todo: dispose callback
+            }
+        }
         if (value === null || value === false) {
-            if (attrIsEvent(attr)) {
-                const nodeWithDisposers = node as NodeWithDisposers;
-                const callbackDispose = nodeWithDisposers.__eventDisposers.find(ev => ev.name === attr);
-                if (callbackDispose !== undefined) {
-                    callbackDispose.dispose();
-                } else {
-                    throw new Error('EventData is not found');
-                }
-            } else if (attr === 'xlinkHref') {
+            if (attr === 'xlinkHref') {
                 node.removeAttributeNS(xlinkNS, 'xlink:href');
             } else {
                 node.removeAttribute(attr);
@@ -85,32 +86,12 @@ function setAttrs(node: HTMLElement, id: ID, attrs: Attrs, tagName: string) {
             setStyles(node, value as Styles);
         } else if (attr === 'xlinkHref') {
             node.setAttributeNS(xlinkNS, 'xlink:href', value as string);
-        } else if (attrIsEvent(attr)) {
-            setCallback(node, id, attr, value as RPCCallback);
         } else if (attr === 'value' && (tagName === 'select' || tagName === 'textarea')) {
             (node as HTMLInputElement).value = value as string;
         } else {
             node.setAttribute(attr, value === true ? '' : (value as string));
         }
     }
-}
-
-function setCallback(node: Node, id: ID, callbackName: string, command: RPCCallback) {
-    const nodeWithDisposers = node as NodeWithDisposers;
-    if (nodeWithDisposers.__eventDisposers === undefined) nodeWithDisposers.__eventDisposers = [];
-    const callback = (event: Event) =>
-        sendToBackend([createResult(command.id, [extractProps(event, command.extractArgs[0])])]);
-    const eventName = callbackName.substr(2);
-    node.addEventListener(eventName, callback, {passive: true});
-    const disposer = {
-        name: callbackName,
-        dispose: () => {
-            const pos = nodeWithDisposers.__eventDisposers.indexOf(disposer);
-            nodeWithDisposers.__eventDisposers.splice(pos, 1);
-            node.removeEventListener(eventName, callback);
-        },
-    };
-    nodeWithDisposers.__eventDisposers.push(disposer);
 }
 
 function setStyles(node: HTMLElement, styles: Styles) {

@@ -1,54 +1,56 @@
 function sendCommands(commands: readonly Command[]) {
-    (self.postMessage as Worker['postMessage'])(commands);
+    (self.postMessage as (data: unknown) => void)(commands);
 }
 
+type Callback = ((...args: unknown[]) => void) & {command: RPCCallback};
 let callbackId = 0;
-const callbackMap = new Map<string, {onValue: (...args: unknown[]) => void; onError: (err: Error) => void}>();
+const callbackMap = new Map<string, Callback>();
 function transformCallback(
-    callback: (...args: unknown[]) => void,
-    errCallback: (err: Error) => void,
+    callback: Function,
     extractArgs: object[],
     returnValue?: unknown,
-): {dispose: () => void; data: RPCCallback} {
-    const id = String(callbackId++);
-    callbackMap.set(id, {onValue: callback, onError: errCallback});
+): {command: RPCCallback; dispose: () => void} {
+    const callbackWithCommand = callback as Callback;
+    let id = callbackWithCommand.command !== undefined ? callbackWithCommand.command.id : String(callbackId++);
+    const newCommand: RPCCallback = {
+        type: '__fn__',
+        id,
+        extractArgs,
+        returnValue,
+    };
+    if (!isObjectSame(callbackWithCommand.command, newCommand)) {
+        id = String(callbackId++);
+        newCommand.id = id;
+        callbackWithCommand.command = newCommand;
+        callbackMap.set(id, callbackWithCommand);
+    }
     return {
-        dispose() {
+        command: newCommand,
+        dispose: () => {
             callbackMap.delete(id);
-        },
-        data: {
-            type: '__fn__',
-            id: id,
-            extractArgs,
-            returnValue,
         },
     };
 }
 function transformCallbackOnce(
     callback: (...args: unknown[]) => void,
-    errCallback: (err: Error) => void,
     extractArgs: object[],
     returnValue?: unknown,
 ): RPCCallback {
-    const {dispose, data} = transformCallback(
-        (...args) => {
+    const {dispose, command} = transformCallback(
+        (...args: unknown[]) => {
             dispose();
             callback(...args);
-        },
-        err => {
-            dispose();
-            errCallback(err);
         },
         extractArgs,
         returnValue,
     );
-    return data;
+    return command;
 }
-function createPromise<T>(extractArgs: object[], returnValue?: unknown) {
-    return new Promise<T>((resolve, reject) => {
-        transformCallbackOnce(resolve as () => void, reject, extractArgs, returnValue);
-    });
-}
+// function createPromise<T>(extractArgs: object[], returnValue?: unknown) {
+//     return new Promise<T>((resolve, reject) => {
+//         transformCallbackOnce(resolve as () => void, reject, extractArgs, returnValue);
+//     });
+// }
 
 self.addEventListener('message', msg => {
     const data: RPCResult[] = msg.data;
@@ -57,11 +59,7 @@ self.addEventListener('message', msg => {
             if (isObj<RPCResult>(item) && item.type === '__res__') {
                 const callbackObj = callbackMap.get(item.id);
                 if (callbackObj === undefined) throw new Error('Callback is not registered');
-                if (item.isError) {
-                    callbackObj.onError(item.data[0] as Error);
-                } else {
-                    callbackObj.onValue(...item.data);
-                }
+                callbackObj(...item.data);
             }
         }
     }

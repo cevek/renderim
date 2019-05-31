@@ -173,9 +173,8 @@ function renderCommand(command: Command) {
         if (command.action === 'load') {
             const script = document.createElement('script');
             script.src = command.url;
-            const {onError, onValue} = transformCallback(command.onLoad);
-            script.onload = onValue;
-            script.onerror = () => onError('Script loading error');
+            script.onload = transformCallback(command.onLoad);
+            script.onerror = () => transformCallback(command.onError)('Script loading error');
             document.head.appendChild(script);
         }
     } else if (command.group === 'style') {
@@ -183,9 +182,8 @@ function renderCommand(command: Command) {
             const link = document.createElement('link');
             link.rel = 'stylesheet';
             link.href = command.url;
-            const {onError, onValue} = transformCallback(command.onLoad);
-            link.onload = onValue;
-            link.onerror = () => onError('Link loading error');
+            link.onload = transformCallback(command.onLoad);
+            link.onerror = () => transformCallback(command.onError)('Link loading error');
             document.head.appendChild(link);
         } else if (command.action === 'updateAll') {
             const links = document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]');
@@ -218,7 +216,7 @@ function removeNode(id: ID) {
 }
 
 function getNode(id: string | ID) {
-    if (typeof id === 'object' && id !== null) return (window as unknown) as Node;
+    if (isObject(id)) return (window as unknown) as Node;
     return typeof id === 'string' ? document.querySelector(id)! : domMap[id];
 }
 function getBeforeNode(id: ID | null) {

@@ -18,6 +18,14 @@ function updateAttrs(attrs: Attrs, oldAttrs: Attrs) {
                         diff[attr] = diffStyle;
                         hasChanges = true;
                     }
+                } else if (typeof value === 'function' || typeof oldValue === 'function') {
+                    const newCb = typeof value === 'function' ? transformCallback(value, []) : undefined;
+                    const oldCb = typeof oldValue === 'function' ? transformCallback(oldValue, []) : undefined;
+                    const listener: DomListener = {
+                        newListener: newCb && newCb.command,
+                        oldListener: oldCb && oldCb.command,
+                    };
+                    attrs[attr] = listener;
                 } else {
                     diff[attr] = value;
                     hasChanges = true;
@@ -77,7 +85,9 @@ function transformAttrCallbacks(attrs: Attrs) {
     for (const attr in attrs) {
         const value = attrs[attr];
         if (typeof value === 'function') {
-            attrs[attr] = transformCallback(value as () => void, () => {}, []);
+            const {dispose, command} = transformCallback(value as () => void, []);
+            const listener: DomListener = {newListener: command};
+            attrs[attr] = listener;
         }
     }
     return attrs;

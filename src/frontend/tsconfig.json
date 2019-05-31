@@ -5,5 +5,5 @@
         "noEmit": false,
         "outFile": "../../dist/frontend.js"
     },
-    "include": ["../common/commands.d.ts", "renderer.ts", "attrs.ts", "RPC.ts"]
+    "include": ["../common/commands.d.ts", "utils.ts", "renderer.ts", "attrs.ts", "RPC.ts"]
 }

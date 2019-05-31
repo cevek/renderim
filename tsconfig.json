@@ -5,6 +5,7 @@
         "noEmit": true,
         "jsxFactory": "createElement",
         "module": "amd",
+        "strict": true,
         "skipLibCheck": true,
         "esModuleInterop": true
     },

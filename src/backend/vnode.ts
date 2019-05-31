@@ -99,18 +99,14 @@ function norm(value: VInput): VNodeCreated {
     if (Array.isArray(value)) {
         return createVArrayNode(value);
     }
-    if (typeof value === 'object') {
-        const obj = value as {kind?: {parent?: {}}};
-        if (typeof obj.kind === 'object' && obj.kind !== null && obj.kind.parent === kindParent) {
-            const vnode = obj as VNode | VNodeCreated;
-            if (vnode.status === 'cancelled') {
-                return cloneVNode(vnode);
-            }
-            assert(vnode.status === 'created' || vnode.status === 'active');
-            return vnode as VNodeCreated;
-        } else {
-            console.warn('objects are not allowed as children', obj);
+    if (isVNode(value)) {
+        if (value.status === 'cancelled') {
+            return cloneVNode(value);
         }
+        assert(value.status === 'created' || value.status === 'active');
+        return value;
+    } else if (isObj(value)) {
+        console.warn('objects are not allowed as children', value);
     }
     if (typeof value === 'string' || typeof value === 'number') {
         return createVTextNode(String(value));
@@ -119,14 +115,7 @@ function norm(value: VInput): VNodeCreated {
 }
 
 function isVNode(value: VInput): value is VNodeCreated {
-    const obj = value as {kind?: {parent?: {}}};
-    return (
-        typeof value === 'object' &&
-        typeof value !== null &&
-        typeof obj.kind === 'object' &&
-        obj.kind !== null &&
-        obj.kind.parent === kindParent
-    );
+    return isObj<{kind?: {parent?: {}}}>(value) && isObj(value.kind) && value.kind.parent === kindParent;
 }
 
 function cloneVNode(node: VNodeCreated): VNodeCreated {

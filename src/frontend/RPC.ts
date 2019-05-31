@@ -1,40 +1,36 @@
-function isCallback(arg: unknown): arg is RPCCallback {
-    return typeof arg === 'object' && arg !== null && (arg as RPCCallback).type === '__fn__';
-}
-function transformArg(callback: unknown) {
-    if (isCallback(callback)) {
-        return (...args: unknown[]) => {
-            sendToBackend([
-                createResult(callback.id, args.map((arg, i) => extractProps(arg, callback.extractArgs[i]))),
-            ]);
-            return callback.returnValue;
-        };
+type Callback = {
+    (...args: unknown[]): unknown;
+    command: RPCCallback;
+};
+function transformArg(command: unknown) {
+    if (isObject<RPCCallback>(command) && command.type === '__fn__') {
+        return transformCallback(command);
     }
-    return callback;
+    return command;
 }
-function transformCallback(callback: RPCCallback) {
-    return {
-        onValue: (...args: unknown[]) => {
-            sendToBackend([
-                createResult(callback.id, args.map((arg, i) => extractProps(arg, callback.extractArgs[i]))),
-            ]);
-            return callback.returnValue;
-        },
-        onError: (error: Error | string) => {
-            sendToBackend([createError(callback.id, error)]);
-        },
-    };
+const callbackMap = new Map<string, Callback>();
+function transformCallback(command: RPCCallback) {
+    const existsCb = callbackMap.get(command.id);
+    if (existsCb !== undefined) return existsCb;
+    const callback = ((...args: unknown[]) => {
+        sendToBackend([createResult(command.id, args.map((arg, i) => extractProps(arg, command.extractArgs[i])))]);
+        return command.returnValue;
+    }) as Callback;
+    callback.command = command;
+    callbackMap.set(command.id, callback);
+    return callback;
 }
 
 function sendToBackend(data: RPCResult[]) {}
 
 function handleRPCCommand(command: RPCCommand) {
+    type Hash = {[key: string]: Hash};
     const {id, obj, path} = command;
     let o = (getNode(obj) as unknown) as {[key: string]: unknown};
     const lastPart = path[path.length - 1];
     for (let i = 0; i < path.length - 1; i++) {
-        if (typeof o === 'object' && o !== null) {
-            o = o[path[i]] as {[key: string]: unknown};
+        if (isObject<Hash>(o)) {
+            o = o[path[i]];
         } else {
             sendToBackend([createError(id, `${o}.${path[i]} is not an object`)]);
             return;
@@ -64,7 +60,7 @@ function createError(id: string, error: unknown): RPCResult {
 }
 
 function extractProps(from: unknown, shape: unknown, root = from): unknown {
-    type Hash = {[key: string]: unknown};
+    type Hash = {[key: string]: Hash | ((...args: unknown[]) => Hash)};
     if (shape === undefined) return;
     if (Array.isArray(shape)) {
         if (Array.isArray(from)) {
@@ -75,21 +71,21 @@ function extractProps(from: unknown, shape: unknown, root = from): unknown {
     } else if (Array.isArray(from)) {
         return;
     }
-    if (typeof shape === 'object' && shape !== null && from !== null && typeof from === 'object') {
-        const res = {} as Hash;
+    if (isObject<Hash>(shape) && isObject<Hash>(from)) {
+        const res: Hash = {};
         for (const key in shape) {
             if (key === '__args') continue;
             if (key === '__conditions') continue;
-            const subShape = (shape as Hash)[key] as {__args?: unknown[]; __conditions?: unknown[]};
-            let subFrom = (from as Hash)[key];
+            const subShape = shape[key] as {__args?: unknown[]; __conditions?: unknown[]};
+            let subFrom = from[key];
             const args = subShape.__args;
             const conditions = subShape.__conditions;
-            if (args !== undefined && typeof subFrom === 'function') {
+            if (args !== undefined && typeof from[key] === 'function') {
                 if (conditions === undefined || conditions.some(cond => isObjectExtends(root, cond))) {
-                    subFrom = (from as {[name: string]: (...args: unknown[]) => unknown})[key](...args);
+                    subFrom = (from[key] as ((...args: unknown[]) => Hash))(...args);
                 }
             }
-            res[key] = extractProps(subShape, subFrom, root);
+            res[key] = extractProps(subShape, subFrom, root) as Hash;
         }
         return res;
     }
@@ -97,19 +93,13 @@ function extractProps(from: unknown, shape: unknown, root = from): unknown {
 }
 
 function isObjectExtends(obj: unknown, base: unknown) {
-    if (
-        typeof obj === 'object' &&
-        typeof base === 'object' &&
-        obj !== null &&
-        base !== null &&
-        obj.constructor === base.constructor
-    ) {
-        type Hash = {[key: string]: unknown};
+    type Hash = {[key: string]: unknown};
+    if (isObject<Hash>(obj) && isObject<Hash>(base) && obj.constructor === base.constructor) {
         if (Array.isArray(base)) {
-            if (!base.every((subBase, i) => isObjectExtends((obj as Hash)[i], subBase))) return false;
+            if (!base.every((subBase, i) => isObjectExtends(obj[i], subBase))) return false;
         } else {
             for (const key in base) {
-                if (!isObjectExtends((obj as Hash)[key], (base as Hash)[key])) return false;
+                if (!isObjectExtends(obj[key], base[key])) return false;
             }
         }
         return true;
