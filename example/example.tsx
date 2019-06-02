@@ -4,7 +4,7 @@ render(
     <Suspense timeout={5000} fallback={<div>Loading...</div>}>
         <div class="header">
             Hello
-            <span class="selected" style={{color: 'red', margin: '10px'}}>
+            <span onClick={() => console.log('click1')} class="selected" style={{color: 'red', margin: '10px'}}>
                 My name is <b>{'Alex'}</b>
             </span>
             <input type="text" value="hello" />
@@ -46,7 +46,10 @@ render(
     <Suspense timeout={500000} fallback={<div>Loading...</div>}>
         <div class="body" title="hello">
             Hello
-            <span class="selected" style={{color: 'blue', padding: '10px', display: 'block'}}>
+            <span
+                onClick={() => console.log('click2')}
+                class="selected"
+                style={{color: 'blue', padding: '10px', display: 'block'}}>
                 My name is <b>Brian</b>
             </span>
             <input type="text" value="hello man" />
