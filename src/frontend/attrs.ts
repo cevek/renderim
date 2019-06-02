@@ -21,9 +21,9 @@ function createStylesDiff(node: HTMLElement, styles: Styles) {
     return diff;
 }
 
-function createAttrsDiff(node: HTMLElement, attrs: Attrs, tagName: string) {
+function createAttrsDiff(node: HTMLElement, attrs: Attrs, tagName: string): Attrs {
     const domAttrs = [...node.attributes].map(attr => attr.nodeName);
-    const diff: Attrs = {};
+    const diff: {[key: string]: unknown} = {};
     for (const attrName in attrs) {
         const attrValue = attrs[attrName];
         const pos = domAttrs.indexOf(attrName);
@@ -60,21 +60,34 @@ function attrIsEvent(attr: string) {
 
 let mountNodes: {id: ID; node: Node; command: RPCCallback}[] = [];
 
+type ElementWithListeners = HTMLElement & {__listeners?: {[event: string]: ((event: Event) => void) | undefined}};
 function setAttrs(node: HTMLElement, id: ID, attrs: Attrs, tagName: string) {
     for (const attr in attrs) {
         const value = attrs[attr];
         if (attrIsEvent(attr)) {
-            const eventName = attr.substr(2);
+            const eventName = attr.substr(2).toLowerCase();
             const {oldListener, newListener} = value as DomListener;
+            const nodeWithListeners = node as ElementWithListeners;
             if (newListener !== undefined) {
-                node.addEventListener(eventName, transformCallback(newListener), {passive: true});
+                if (nodeWithListeners.__listeners === undefined) {
+                    nodeWithListeners.__listeners = {};
+                    const listeners = nodeWithListeners.__listeners;
+                    node.addEventListener(
+                        eventName,
+                        event => {
+                            const listener = listeners[attr];
+                            if (listener !== undefined) {
+                                return listener(event);
+                            }
+                        },
+                        {passive: true},
+                    );
+                }
+                nodeWithListeners.__listeners[attr] = transformCallback(newListener);
+            } else if (oldListener !== undefined) {
+                nodeWithListeners.__listeners![attr] = undefined;
             }
-            if (oldListener !== undefined) {
-                node.removeEventListener(eventName, transformCallback(oldListener));
-                // todo: dispose callback
-            }
-        }
-        if (value === null || value === false) {
+        } else if (value === null || value === false) {
             if (attr === 'xlinkHref') {
                 node.removeAttributeNS(xlinkNS, 'xlink:href');
             } else {

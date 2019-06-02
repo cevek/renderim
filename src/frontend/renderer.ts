@@ -4,6 +4,7 @@ const xlinkNS = 'http://www.w3.org/1999/xlink';
 const domRoots = new Map<string, Map<Node, Node | null>>();
 
 let WORKER: Worker;
+(window as {registerWorker?: typeof registerWorker}).registerWorker = registerWorker;
 function registerWorker(worker: Worker) {
     WORKER = worker;
     worker.addEventListener('message', msg => {

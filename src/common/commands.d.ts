@@ -1,6 +1,6 @@
 type RootId = 'RootId';
 type ID = {id: 'ID'} & number;
-type Attrs = {[key: string]: unknown};
+type Attrs = {readonly [key: string]: unknown};
 type Styles = {[key: string]: string};
 type DeepPartial<T> = {[P in keyof T]: DeepPartial<T[P]>};
 

@@ -1,27 +1,20 @@
-type Callback = {
-    (...args: unknown[]): unknown;
-    command: RPCCallback;
-};
 function transformArg(command: unknown) {
     if (isObject<RPCCallback>(command) && command.type === '__fn__') {
         return transformCallback(command);
     }
     return command;
 }
-const callbackMap = new Map<string, Callback>();
 function transformCallback(command: RPCCallback) {
-    const existsCb = callbackMap.get(command.id);
-    if (existsCb !== undefined) return existsCb;
     const callback = ((...args: unknown[]) => {
         sendToBackend([createResult(command.id, args.map((arg, i) => extractProps(arg, command.extractArgs[i])))]);
         return command.returnValue;
-    }) as Callback;
-    callback.command = command;
-    callbackMap.set(command.id, callback);
+    });
     return callback;
 }
 
-function sendToBackend(data: RPCResult[]) {}
+function sendToBackend(data: RPCResult[]) {
+    WORKER.postMessage(data);
+}
 
 function handleRPCCommand(command: RPCCommand) {
     type Hash = {[key: string]: Hash};
