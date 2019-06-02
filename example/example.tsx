@@ -1,4 +1,14 @@
-import R, {Suspense, createContext, ErrorBoundary, Portal, Fragment, render, lazy} from 'renderim';
+import R, {
+    Suspense,
+    createContext,
+    ErrorBoundary,
+    Portal,
+    Fragment,
+    render,
+    lazy,
+    withPreventDefault,
+    withTargetValue,
+} from 'renderim';
 import './example.scss';
 const MyLazy = lazy(() => import('./lazy'));
 const MyContext = createContext('DefaultContext');
@@ -73,13 +83,13 @@ render(
             Hello
             <Data />
             Everybody
-            <ErrorBoundary fallback={props => props.errors.map(err => <div>{err.message}</div>)}>
+            {/* <ErrorBoundary fallback={props => props.errors.map(err => <div>{err.message}</div>)}>
                 1
                 <Value value={2} />
                 <Errored />
                 <Value value={3} />4
                 <Errored />
-            </ErrorBoundary>
+            </ErrorBoundary> */}
             <MyContext.Provider value="Context">
                 <MyContext.Consumer>{value => value}</MyContext.Consumer>
             </MyContext.Provider>
@@ -96,6 +106,18 @@ render(
                 <option value="2">2</option>
             </select>
             <MyLazy name="hi" />
+            <form
+                onSubmit={withPreventDefault(() => {
+                    console.log('Submit');
+                })}>
+                <input
+                    type="text"
+                    value=""
+                    onChange={withTargetValue(val => {
+                        console.log('input value', val);
+                    })}
+                />
+            </form>
             {/* <div customChild={{name: 'foo', data: {}, url: () => import('./@babel/core')}} /> */}
         </div>
     </Suspense>,
