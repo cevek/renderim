@@ -19,8 +19,8 @@ declare global {
         type IntrinsicElements = {
             [key: string]: Base;
             input: InputType;
-            textarea: BaseInput & {spellcheck?: boolean; value: string; onChange?: (value: string) => void};
-            select: BaseInput & {multiple?: boolean; value?: string; size?: number; onChange?: (value: string) => void};
+            textarea: BaseInput & {spellcheck?: boolean; value: string; onChange?: () => void};
+            select: BaseInput & {multiple?: boolean; value?: string; size?: number; onChange?: () => void};
             a: Base & {href: string; rel?: string; target?: HTMLTarget};
             audio: Base & {
                 src: string;
@@ -88,6 +88,8 @@ declare global {
                 name?: string;
                 novalidate?: boolean;
                 target?: HTMLTarget;
+                onSubmit?: () => void;
+                onReset?: () => void;
             };
             iframe: Base & {
                 src?: string;
@@ -216,12 +218,12 @@ type InputType = BaseInput &
               max?: number;
               step?: number;
               value: number;
-              onChange?: (value: number) => void;
+              onChange?: () => void;
           }
-        | {type: 'checkbox' | 'radio'; checked?: boolean; onChange?: (value: boolean) => void}
+        | {type: 'checkbox' | 'radio'; checked?: boolean; onChange?: () => void}
         | {type: 'hidden'; value: string}
         | {type: 'button' | 'reset' | 'submit'}
-        | {type: 'color'; value?: string; onChange?: (value: string) => void}
+        | {type: 'color'; value?: string; onChange?: () => void}
         | {
               type: 'text' | 'email' | 'password' | 'search' | 'tel' | 'url';
               autocomplete?: 'on' | 'off';
@@ -232,7 +234,7 @@ type InputType = BaseInput &
               spellcheck?: boolean;
               list?: string;
               value: string;
-              onChange?: (value: string) => void;
+              onChange?: () => void;
           });
 type Base = {
     class?: string;
@@ -247,19 +249,30 @@ type Base = {
     itemscope?: string;
     itemprop?: string;
     customChild?: JSX.CustomChild;
-} & MouseEvents;
+} & BaseEvents &
+    MouseEvents;
+
 type MouseEvents = {
     onClick?: () => void;
     onDblClick?: () => void;
-    onCtxClick?: () => void;
+    onContextMenu?: () => void;
     onMouseDown?: () => void;
+    onMouseUp?: () => void;
+
+    onMouseEnter?: () => void;
+    onMouseLeave?: () => void;
+
+    onMouseOver?: () => void;
     onMouseMove?: () => void;
     onMouseOut?: () => void;
-    onMouseOver?: () => void;
     onWheel?: () => void;
-    onMouseUp?: () => void;
+
     onTouchStart?: () => void;
     onTouchEnd?: () => void;
+    onTouchMove?: () => void;
+    onTouchCancel?: () => void;
+
+    onSelect?: () => void;
 };
 
 type KeyboardEvents = {
@@ -268,12 +281,26 @@ type KeyboardEvents = {
     onKeyPress?: () => void;
 };
 
+type BaseEvents = {
+    onAnimationStart?: () => void;
+    onAnimationEnd?: () => void;
+    onAnimationCancel?: () => void;
+    onAnimationIteration?: () => void;
+
+    onTransitionStart?: () => void;
+    onTransitionCancel?: () => void;
+    onTransitionEnd?: () => void;
+    onTransitionRun?: () => void;
+};
+
 type BaseInput = Base & {
     required?: boolean;
     readonly?: boolean;
     name?: string;
     disabled?: boolean;
     autofocus?: boolean;
+    onFocus?: () => void;
+    onBlur?: () => void;
 } & KeyboardEvents;
 
 export {};
