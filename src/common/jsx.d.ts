@@ -19,8 +19,8 @@ declare global {
         type IntrinsicElements = {
             [key: string]: Base;
             input: InputType;
-            textarea: BaseInput & {spellcheck?: boolean; value: string};
-            select: BaseInput & {multiple?: boolean; value?: string; size?: number};
+            textarea: BaseInput & {spellcheck?: boolean; value: string; onChange?: (value: string) => void};
+            select: BaseInput & {multiple?: boolean; value?: string; size?: number; onChange?: (value: string) => void};
             a: Base & {href: string; rel?: string; target?: HTMLTarget};
             audio: Base & {
                 src: string;
@@ -215,11 +215,13 @@ type InputType = BaseInput &
               min?: number;
               max?: number;
               step?: number;
+              value: number;
+              onChange?: (value: number) => void;
           }
-        | {type: 'checkbox' | 'radio'; checked?: boolean}
+        | {type: 'checkbox' | 'radio'; checked?: boolean; onChange?: (value: boolean) => void}
         | {type: 'hidden'; value: string}
         | {type: 'button' | 'reset' | 'submit'}
-        | {type: 'color'; value?: string}
+        | {type: 'color'; value?: string; onChange?: (value: string) => void}
         | {
               type: 'text' | 'email' | 'password' | 'search' | 'tel' | 'url';
               autocomplete?: 'on' | 'off';
@@ -230,6 +232,7 @@ type InputType = BaseInput &
               spellcheck?: boolean;
               list?: string;
               value: string;
+              onChange?: (value: string) => void;
           });
 type Base = {
     class?: string;
@@ -244,6 +247,25 @@ type Base = {
     itemscope?: string;
     itemprop?: string;
     customChild?: JSX.CustomChild;
+} & MouseEvents;
+type MouseEvents = {
+    onClick?: () => void;
+    onDblClick?: () => void;
+    onCtxClick?: () => void;
+    onMouseDown?: () => void;
+    onMouseMove?: () => void;
+    onMouseOut?: () => void;
+    onMouseOver?: () => void;
+    onWheel?: () => void;
+    onMouseUp?: () => void;
+    onTouchStart?: () => void;
+    onTouchEnd?: () => void;
+};
+
+type KeyboardEvents = {
+    onKeyDown?: () => void;
+    onKeyUp?: () => void;
+    onKeyPress?: () => void;
 };
 
 type BaseInput = Base & {
@@ -252,6 +274,6 @@ type BaseInput = Base & {
     name?: string;
     disabled?: boolean;
     autofocus?: boolean;
-};
+} & KeyboardEvents;
 
 export {};
