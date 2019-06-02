@@ -102,3 +102,4 @@ type VPortalNode = {
 };
 
 declare const exports: {[key: string]: unknown};
+type DisposableCallback = ((...args: unknown[]) => void) & {command?: RPCCallback};

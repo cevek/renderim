@@ -2,49 +2,49 @@ function sendCommands(commands: readonly Command[]) {
     (self.postMessage as (data: unknown) => void)(commands);
 }
 
-type Callback = ((...args: unknown[]) => void) & {command: RPCCallback};
 let callbackId = 0;
-const callbackMap = new Map<string, Callback>();
-function transformCallback(
-    callback: Function,
-    extractArgs: object[],
-    returnValue?: unknown,
-): {command: RPCCallback; dispose: () => void} {
-    const callbackWithCommand = callback as Callback;
-    let id = callbackWithCommand.command !== undefined ? callbackWithCommand.command.id : String(callbackId++);
-    const newCommand: RPCCallback = {
-        type: '__fn__',
-        id,
-        extractArgs,
-        returnValue,
-    };
-    if (!isObjectSame(callbackWithCommand.command, newCommand)) {
-        id = String(callbackId++);
-        newCommand.id = id;
-        callbackWithCommand.command = newCommand;
-        callbackMap.set(id, callbackWithCommand);
+const callbackMap = new Map<string, DisposableCallback>();
+function transformCallback(callback: Function, extractArgs: object[], returnValue?: unknown): RPCCallback {
+    const callbackWithCommand = callback as DisposableCallback;
+    if (callbackWithCommand.command !== undefined) {
+        const command = callbackWithCommand.command;
+        if (!isObjectSame(command.extractArgs, extractArgs) || !isObjectSame(command.returnValue, returnValue)) {
+            callbackWithCommand.command = undefined;
+        }
     }
-    return {
-        command: newCommand,
-        dispose: () => {
-            callbackMap.delete(id);
-        },
-    };
+    if (callbackWithCommand.command === undefined) {
+        const id = String(callbackId++);
+        const command: RPCCallback = {
+            type: '__fn__',
+            id,
+            extractArgs,
+            returnValue,
+        };
+        callbackWithCommand.command = command;
+        callbackMap.set(id, callbackWithCommand);
+        return command;
+    }
+    return callbackWithCommand.command;
+}
+function disposeCallback(callback: Function) {
+    const callbackWithCommand = callback as DisposableCallback;
+    const command = nonNull(callbackWithCommand.command);
+    callbackMap.delete(command.id);
+    callbackWithCommand.command = undefined;
 }
 function transformCallbackOnce(
     callback: (...args: unknown[]) => void,
     extractArgs: object[],
     returnValue?: unknown,
 ): RPCCallback {
-    const {dispose, command} = transformCallback(
+    return transformCallback(
         (...args: unknown[]) => {
-            dispose();
-            callback(...args);
+            disposeCallback(callback);
+            return callback(...args);
         },
         extractArgs,
         returnValue,
     );
-    return command;
 }
 // function createPromise<T>(extractArgs: object[], returnValue?: unknown) {
 //     return new Promise<T>((resolve, reject) => {

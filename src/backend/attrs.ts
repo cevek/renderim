@@ -1,5 +1,5 @@
-function updateAttrs(attrs: Attrs, oldAttrs: Attrs) {
-    const diff: Attrs = {};
+function updateAttrs(attrs: Attrs, oldAttrs: Attrs): Attrs | undefined {
+    const diff: {[key: string]: unknown} = {};
     let hasChanges = false;
     const oldAttrArr = Object.keys(oldAttrs);
     for (const attr in attrs) {
@@ -19,13 +19,14 @@ function updateAttrs(attrs: Attrs, oldAttrs: Attrs) {
                         hasChanges = true;
                     }
                 } else if (typeof value === 'function' || typeof oldValue === 'function') {
-                    const newCb = typeof value === 'function' ? transformCallback(value, []) : undefined;
-                    const oldCb = typeof oldValue === 'function' ? transformCallback(oldValue, []) : undefined;
+                    const newRPCCallback = typeof value === 'function' ? transformCallback(value, []) : undefined;
+                    const oldRPCCallback = typeof oldValue === 'function' ? transformCallback(oldValue, []) : undefined;
                     const listener: DomListener = {
-                        newListener: newCb && newCb.command,
-                        oldListener: oldCb && oldCb.command,
+                        newListener: newRPCCallback && newRPCCallback,
+                        oldListener: oldRPCCallback && oldRPCCallback,
                     };
-                    attrs[attr] = listener;
+                    diff[attr] = listener;
+                    hasChanges = true;
                 } else {
                     diff[attr] = value;
                     hasChanges = true;
@@ -81,14 +82,16 @@ function updateSelectValue(node: VDomNodeCreated) {
     });
 }
 
-function transformAttrCallbacks(attrs: Attrs) {
+function transformAttrCallbacks(attrs: Attrs): Attrs {
+    let newAttrs;
     for (const attr in attrs) {
         const value = attrs[attr];
         if (typeof value === 'function') {
-            const {dispose, command} = transformCallback(value as () => void, []);
+            const command = transformCallback(value as () => void, []);
             const listener: DomListener = {newListener: command};
-            attrs[attr] = listener;
+            if (newAttrs === undefined) newAttrs = {...attrs};
+            newAttrs[attr] = listener;
         }
     }
-    return attrs;
+    return newAttrs === undefined ? attrs : newAttrs;
 }

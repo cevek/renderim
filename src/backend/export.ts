@@ -81,11 +81,12 @@ function commitUpdating() {
         } else {
         }
     }
-    console.log({maybeRemoved, maybeObsolete, maybeCancelled});
+    // console.log({maybeRemoved, maybeObsolete, maybeCancelled});
     for (const node of maybeRemoved) {
         assert(node.status === 'active');
         if (!shouldCancel(node)) {
             (node as NoReadonly<VNode>).status = 'removed';
+            disposeVDomNodeCallbacks(node);
             GCVNodes.removed.add(node);
         }
     }
@@ -93,6 +94,7 @@ function commitUpdating() {
         assert(node.status === 'active' || node.status === 'removed');
         if (!shouldCancel(node)) {
             (node as NoReadonly<VNode>).status = 'obsolete';
+            disposeVDomNodeCallbacks(node);
             GCVNodes.obsolete.add(node);
         }
     }
@@ -100,6 +102,7 @@ function commitUpdating() {
         assert(node.status === 'active');
         if (shouldCancel(node)) {
             node.status = 'cancelled';
+            disposeVDomNodeCallbacks(node);
             GCVNodes.cancelled.add(node);
         }
     }
@@ -124,6 +127,18 @@ function commitUpdating() {
     maybeRemoved = [];
     maybeCancelled = [];
     maybeUpdatedParent = [];
+}
+
+function disposeVDomNodeCallbacks(node: VNodeCreated | VNode) {
+    if (node.kind === domKind) {
+        const attrs = node.props;
+        for (const attr in attrs) {
+            const value = attrs[attr];
+            if (typeof value === 'function') {
+                disposeCallback(value)
+            }
+        }
+    }
 }
 
 function getCurrentComponentNode() {
