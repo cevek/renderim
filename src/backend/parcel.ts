@@ -32,8 +32,8 @@ if (!isObj(self.document)) {
                                             group: 'script',
                                             action: 'load',
                                             url: node.href,
-                                            onLoad: transformCallbackOnce(node.onload, []),
-                                            onError: transformCallbackOnce(node.onerror, []),
+                                            onLoad: transformCallbackOnce(node.onload),
+                                            onError: transformCallbackOnce(node.onerror),
                                         },
                                     ]);
                                 } else {
@@ -50,8 +50,8 @@ if (!isObj(self.document)) {
                                         group: 'style',
                                         action: 'load',
                                         url: node.href,
-                                        onLoad: transformCallbackOnce(node.onload, []),
-                                        onError: transformCallbackOnce(node.onerror, []),
+                                        onLoad: transformCallbackOnce(node.onload),
+                                        onError: transformCallbackOnce(node.onerror),
                                     },
                                 ]);
                             }

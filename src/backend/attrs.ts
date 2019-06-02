@@ -19,8 +19,8 @@ function updateAttrs(attrs: Attrs, oldAttrs: Attrs): Attrs | undefined {
                         hasChanges = true;
                     }
                 } else if (typeof value === 'function' || typeof oldValue === 'function') {
-                    const newRPCCallback = typeof value === 'function' ? transformCallback(value, []) : undefined;
-                    const oldRPCCallback = typeof oldValue === 'function' ? transformCallback(oldValue, []) : undefined;
+                    const newRPCCallback = typeof value === 'function' ? transformCallback(value) : undefined;
+                    const oldRPCCallback = typeof oldValue === 'function' ? transformCallback(oldValue) : undefined;
                     const listener: DomListener = {
                         newListener: newRPCCallback && newRPCCallback,
                         oldListener: oldRPCCallback && oldRPCCallback,
@@ -87,11 +87,30 @@ function transformAttrCallbacks(attrs: Attrs): Attrs {
     for (const attr in attrs) {
         const value = attrs[attr];
         if (typeof value === 'function') {
-            const command = transformCallback(value as () => void, []);
+            const command = transformCallback(value);
             const listener: DomListener = {newListener: command};
             if (newAttrs === undefined) newAttrs = {...attrs};
             newAttrs[attr] = listener;
         }
     }
     return newAttrs === undefined ? attrs : newAttrs;
+}
+
+function withPreventDefault(cb: () => void) {
+    return setDataToCallback(cb as (arg: unknown) => void, [{preventDefault: {__args: []}}]);
+}
+function withStopProgation(cb: () => void) {
+    return setDataToCallback(cb as (arg: unknown) => void, [{stopPropagation: {__args: []}}]);
+}
+function withTargetValue(cb: (value: string) => void) {
+    const newCb = (event: {target: {value: string}}) => cb(event.target.value);
+    return setDataToCallback(newCb, [{target: {value: ''}}]);
+}
+function withTargetChecked(cb: (checked: boolean) => void) {
+    const newCb = (event: {target: {checked: boolean}}) => cb(event.target.checked);
+    return setDataToCallback(newCb, [{target: {checked: true}}]);
+}
+
+function withEventData<T extends object>(cb: (value: T) => void, shape: T) {
+    return setDataToCallback(cb, [shape]);
 }

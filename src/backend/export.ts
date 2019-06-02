@@ -156,3 +156,9 @@ exports.createElement = createElement;
 exports.createContext = createContext;
 exports.restartComponent = restartComponent;
 exports.unmountComponentAtNode = unmountComponentAtNode;
+
+exports.withPreventDefault = withPreventDefault;
+exports.withStopProgation = withStopProgation;
+exports.withTargetValue = withTargetValue;
+exports.withTargetChecked = withTargetChecked;
+exports.withEventData = withEventData;

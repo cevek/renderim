@@ -96,8 +96,6 @@ function isObj<T extends object>(obj: unknown): obj is T {
     return typeof obj === 'object' && obj !== null;
 }
 
-
-
 function isObjectSame(obj1: unknown, obj2: unknown) {
     type Hash = {[key: string]: unknown};
     if (isObj<Hash>(obj1) && isObj<Hash>(obj2) && obj1.constructor === obj2.constructor) {
@@ -116,4 +114,17 @@ function isObjectSame(obj1: unknown, obj2: unknown) {
         return true;
     }
     return obj1 === obj2;
+}
+
+function immutableDeepMerge<T>(obj1: T, obj2: T): T {
+    if (isObjectSame(obj1, obj2)) return obj1;
+    type Hash = {[key: string]: Hash};
+    if (isObj<Hash>(obj1) && isObj<Hash>(obj2)) {
+        const newObj: Hash = {};
+        for (const key in obj2) {
+            newObj[key] = immutableDeepMerge(obj1[key], obj2[key]) as Hash;
+        }
+        return (newObj as {}) as T;
+    }
+    return obj2;
 }
