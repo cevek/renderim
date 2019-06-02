@@ -3,6 +3,13 @@ const svgNS = 'http://www.w3.org/2000/svg';
 const xlinkNS = 'http://www.w3.org/1999/xlink';
 const domRoots = new Map<string, Map<Node, Node | null>>();
 
+let WORKER: Worker;
+function registerWorker(worker: Worker) {
+    WORKER = worker;
+    worker.addEventListener('message', msg => {
+        renderCommands(msg.data);
+    });
+}
 function isSvg(tag: string, node: Node) {
     return (
         tag === 'svg' ||
