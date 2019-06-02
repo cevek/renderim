@@ -1,0 +1,16 @@
+{
+    "name": "example",
+    "version": "1.0.0",
+    "description": "",
+    "main": "example.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [],
+    "author": "",
+    "alias": {
+        "renderim": "../dist/backend.js"
+    },
+    "browserslist": ["last 1 Chrome version"],
+    "license": "ISC"
+}

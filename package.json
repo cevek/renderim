@@ -4,8 +4,8 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "build": "tsc -b src/example src/backend src/frontend",
-        "watch": "tsc -b src/example src/backend src/frontend -w",
+        "build": "tsc -b src/backend src/frontend",
+        "watch": "tsc -b src/backend src/frontend -w",
         "test": "jest",
         "test-debug": "node --inspect-brk node_modules/.bin/jest --runInBand"
     },
