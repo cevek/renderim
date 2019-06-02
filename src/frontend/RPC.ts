@@ -78,7 +78,7 @@ function extractProps(from: unknown, shape: unknown, root = from): unknown {
                     subFrom = (from[key] as ((...args: unknown[]) => Hash))(...args);
                 }
             }
-            res[key] = extractProps(subShape, subFrom, root) as Hash;
+            res[key] = extractProps(subFrom, subShape, root) as Hash;
         }
         return res;
     }

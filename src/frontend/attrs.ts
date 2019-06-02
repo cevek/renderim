@@ -72,16 +72,12 @@ function setAttrs(node: HTMLElement, id: ID, attrs: Attrs, tagName: string) {
                 if (nodeWithListeners.__listeners === undefined) {
                     nodeWithListeners.__listeners = {};
                     const listeners = nodeWithListeners.__listeners;
-                    node.addEventListener(
-                        eventName,
-                        event => {
-                            const listener = listeners[attr];
-                            if (listener !== undefined) {
-                                return listener(event);
-                            }
-                        },
-                        {passive: true},
-                    );
+                    node.addEventListener(eventName, event => {
+                        const listener = listeners[attr];
+                        if (listener !== undefined) {
+                            return listener(event);
+                        }
+                    });
                 }
                 nodeWithListeners.__listeners[attr] = transformCallback(newListener);
             } else if (oldListener !== undefined) {
