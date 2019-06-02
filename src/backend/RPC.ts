@@ -8,23 +8,20 @@ function transformCallback(callback: Function, extractArgs: object[], returnValu
     const callbackWithCommand = callback as DisposableCallback;
     if (callbackWithCommand.command !== undefined) {
         const command = callbackWithCommand.command;
-        if (!isObjectSame(command.extractArgs, extractArgs) || !isObjectSame(command.returnValue, returnValue)) {
-            callbackWithCommand.command = undefined;
+        if (isObjectSame(command.extractArgs, extractArgs) && isObjectSame(command.returnValue, returnValue)) {
+            return callbackWithCommand.command;
         }
     }
-    if (callbackWithCommand.command === undefined) {
-        const id = String(callbackId++);
-        const command: RPCCallback = {
-            type: '__fn__',
-            id,
-            extractArgs,
-            returnValue,
-        };
-        callbackWithCommand.command = command;
-        callbackMap.set(id, callbackWithCommand);
-        return command;
-    }
-    return callbackWithCommand.command;
+    const id = String(callbackId++);
+    const command: RPCCallback = {
+        type: '__fn__',
+        id,
+        extractArgs,
+        returnValue,
+    };
+    callbackWithCommand.command = command;
+    callbackMap.set(id, callbackWithCommand);
+    return command;
 }
 function disposeCallback(callback: Function) {
     const callbackWithCommand = callback as DisposableCallback;
