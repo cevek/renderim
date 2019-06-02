@@ -120,7 +120,7 @@ function immutableDeepMerge<T>(obj1: T, obj2: T): T {
     if (isObjectSame(obj1, obj2)) return obj1;
     type Hash = {[key: string]: Hash};
     if (isObj<Hash>(obj1) && isObj<Hash>(obj2)) {
-        const newObj: Hash = {};
+        const newObj = (Array.isArray(obj1) ? [] : {}) as Hash;
         for (const key in obj2) {
             newObj[key] = immutableDeepMerge(obj1[key], obj2[key]) as Hash;
         }
