@@ -150,6 +150,7 @@ exports.Suspense = Suspense;
 exports.Portal = Portal;
 exports.ErrorBoundary = ErrorBoundary;
 exports.Fragment = Fragment;
+exports.lazy = lazy;
 exports.render = render;
 exports.createElement = createElement;
 exports.createContext = createContext;

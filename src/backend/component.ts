@@ -181,3 +181,13 @@ function findRootId(node: VNodeCreated) {
     return n;
 }
 
+function lazy<P, T extends (props: P) => VInput>(cmp: () => Promise<{default: T}>) {
+    let component: T;
+    let error: Error | undefined;
+    const promise = cmp().then(m => (component = m.default), e => (error = e));
+    return function Lazy(props: P) {
+        if (error !== undefined) throw error;
+        if (component === undefined) throw promise;
+        return createElement((component as unknown) as ComponentFun, props as {});
+    };
+}
