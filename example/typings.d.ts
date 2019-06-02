@@ -4,6 +4,7 @@ module 'renderim' {
     export type VInput = undefined | void | null | boolean | string | number | VNode | {[key: number]: VInput};
 
     export function Fragment(props: {children: VInput}): VInput;
+    export function lazy<T extends (props: any) => VInput>(cmp: () => Promise<{default: T}>): (props: Parameters<T>[0]) => VNode;
     export function Portal(props: {container: string; children: VInput}): VNode;
     export function ErrorBoundary(props: {children: VInput; fallback: (props: {errors: Error[]}) => VInput}): VInput;
     export function Suspense(props: {children: VInput; timeout: number; fallback: VInput}): VInput;

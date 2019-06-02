@@ -1,4 +1,6 @@
-import R, {Suspense, createContext, ErrorBoundary, Portal, Fragment, render} from 'renderim';
+import R, {Suspense, createContext, ErrorBoundary, Portal, Fragment, render, lazy} from 'renderim';
+import './example.scss';
+const MyLazy = lazy(() => import('./lazy'));
 const MyContext = createContext('DefaultContext');
 render(
     <Suspense timeout={5000} fallback={<div>Loading...</div>}>
@@ -93,6 +95,7 @@ render(
                 <option value="1">1</option>
                 <option value="2">2</option>
             </select>
+            <MyLazy name="hi" />
             {/* <div customChild={{name: 'foo', data: {}, url: () => import('./@babel/core')}} /> */}
         </div>
     </Suspense>,

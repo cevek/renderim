@@ -11,6 +11,11 @@
     "alias": {
         "renderim": "../dist/backend.js"
     },
-    "browserslist": ["last 1 Chrome version"],
-    "license": "ISC"
+    "browserslist": [
+        "last 1 Chrome version"
+    ],
+    "license": "ISC",
+    "devDependencies": {
+        "sass": "^1.20.3"
+    }
 }
