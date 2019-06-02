@@ -29,19 +29,10 @@ function disposeCallback(callback: Function) {
     callbackMap.delete(command.id);
     callbackWithCommand.command = undefined;
 }
-function transformCallbackOnce(
-    callback: (...args: unknown[]) => void,
-    extractArgs: object[],
-    returnValue?: unknown,
-): RPCCallback {
-    return transformCallback(
-        (...args: unknown[]) => {
-            disposeCallback(callback);
-            return callback(...args);
-        },
-        extractArgs,
-        returnValue,
-    );
+function transformCallbackOnce(callback: Function, extractArgs: object[], returnValue?: unknown): RPCCallback {
+    const command = transformCallback(callback, extractArgs, returnValue);
+    disposeCallback(callback);
+    return command;
 }
 // function createPromise<T>(extractArgs: object[], returnValue?: unknown) {
 //     return new Promise<T>((resolve, reject) => {
