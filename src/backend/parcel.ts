@@ -1,4 +1,4 @@
-if (isObj(self.document)) {
+if (!isObj(self.document)) {
     (self as {document: {}}).document = {
         createElement(tagName: string) {
             return {tagName};
