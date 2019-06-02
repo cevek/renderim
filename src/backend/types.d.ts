@@ -100,3 +100,5 @@ type VPortalNode = {
     readonly extra: undefined;
     readonly parentComponent: ParentComponent;
 };
+
+declare const exports: {[key: string]: unknown};

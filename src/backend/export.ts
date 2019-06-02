@@ -62,7 +62,7 @@ function render(node: VInput, htmlId: string) {
     }
 }
 
-function unmount(htmlId: string) {
+function unmountComponentAtNode(htmlId: string) {
     const node = roots.get(htmlId as RootId);
     if (node !== undefined) {
         removeVNode(node, true);
@@ -130,3 +130,13 @@ function getCurrentComponentNode() {
     if (currentComponent === undefined) throw new Error('No current component');
     return currentComponent;
 }
+
+exports.Suspense = Suspense;
+exports.Portal = Portal;
+exports.ErrorBoundary = ErrorBoundary;
+exports.Fragment = Fragment;
+exports.render = render;
+exports.createElement = createElement;
+exports.createContext = createContext;
+exports.restartComponent = restartComponent;
+exports.unmountComponentAtNode = unmountComponentAtNode;
