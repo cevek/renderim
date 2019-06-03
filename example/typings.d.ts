@@ -1,7 +1,8 @@
-/// <reference path="../src/common/jsx" />
+/// <reference path="../src/common/jsx.d.ts" />
 module 'renderim' {
-    export type VNode = {type: string | ((props: object) => VInput); props: object};
-    export type VInput = undefined | void | null | boolean | string | number | VNode | {[key: number]: VInput};
+    // export type VNode = {type: string | ((props: object) => VInput); props: object};
+    export type VNode = JSX.Element;
+    export type VInput = JSX.Element;
 
     export function Fragment(props: {children: VInput}): VInput;
     export function lazy<T extends (props: any) => VInput>(
@@ -32,4 +33,14 @@ module 'renderim' {
     export function withTargetValue(cb: (value: string) => void): () => void;
     export function withTargetChecked(cb: (value: boolean) => void): () => void;
     export function withEventData<T extends object>(cb: (value: T) => void, shape: T): () => void;
+
+    export function IntersectionObserverContainer(props: {
+        children: VNode;
+        rootMargin?: string;
+        threshold?: string | number;
+    }): VNode;
+
+    function IntersectionObserverElement<T extends DeepPartial<IntersectionObserverElementCallbackParams>>(
+        props: {children: VNode} & IntersectionObserverElementProps<T>,
+    ): VNode;
 }

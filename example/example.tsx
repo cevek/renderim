@@ -6,6 +6,8 @@ import R, {
     Fragment,
     render,
     lazy,
+    IntersectionObserverContainer,
+    IntersectionObserverElement,
     withPreventDefault,
     withTargetValue,
 } from 'renderim';
@@ -65,8 +67,8 @@ render(
                 My name is <b>Brian</b>
             </span>
             <input type="text" defaultValue="hello man" />
-            <input type="checkbox" defaultChecked onChange={()=>{}}/>
-            <input type="radio" defaultChecked onChange={()=>{}}/>
+            <input type="checkbox" defaultChecked onChange={() => {}} />
+            <input type="radio" defaultChecked onChange={() => {}} />
             <textarea defaultValue="some text" />
             <Portal container="#modals">
                 <div>Header</div>
@@ -127,6 +129,20 @@ render(
                     })}
                 />
             </form>
+            <IntersectionObserverContainer>
+                <div>
+                    <IntersectionObserverElement
+                        onVisible={params => {
+                            console.log('onVisible', params);
+                        }}
+                        onVisibleParams={{boundingClientRect: {x: 0, y: 0}}}
+                        onInvisible={() => {
+                            console.log('onInvisible');
+                        }}>
+                        <div>123</div>
+                    </IntersectionObserverElement>
+                </div>
+            </IntersectionObserverContainer>
             {/* <div customChild={{name: 'foo', data: {}, url: () => import('./@babel/core')}} /> */}
         </div>
     </Suspense>,
