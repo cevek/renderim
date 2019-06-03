@@ -19,7 +19,9 @@ declare global {
         type IntrinsicElements = {
             [key: string]: Base;
             input: InputType;
-            textarea: BaseInput & {spellcheck?: boolean; value: string; onChange?: () => void};
+            textarea: BaseInput & {spellcheck?: boolean} & (
+                    | {value: string; defaultValue?: never; onInput: () => void; onChange?: never}
+                    | {value?: never; defaultValue: string; onInput?: () => void; onChange?: () => void});
             select: BaseInput & {multiple?: boolean; value?: string; size?: number; onChange?: () => void};
             a: Base & {href: string; rel?: string; target?: HTMLTarget};
             audio: Base & {
@@ -217,10 +219,13 @@ type InputType = BaseInput &
               min?: number;
               max?: number;
               step?: number;
-              value: number;
-              onChange?: () => void;
-          }
-        | {type: 'checkbox' | 'radio'; checked?: boolean; onChange?: () => void}
+          } & (
+              | {value: number | string; onInput: () => void; onChange?: never; defaultValue: never}
+              | {value?: never; defaultValue: number | string; onInput?: () => void; onChange?: () => void})
+        | ({type: 'checkbox' | 'radio'; onChange: () => void} & (
+              | {defaultChecked?: never; checked: boolean}
+              | {defaultChecked?: boolean; checked?: never}
+          ))
         | {type: 'hidden'; value: string}
         | {type: 'button' | 'reset' | 'submit'}
         | {type: 'color'; value?: string; onChange?: () => void}
@@ -233,9 +238,9 @@ type InputType = BaseInput &
               maxlength?: number;
               spellcheck?: boolean;
               list?: string;
-              value: string;
-              onChange?: () => void;
-          });
+          } & (
+              | {value: string; defaultValue?: never; onInput: () => void}
+              | {value?: never; defaultValue: string; onInput?: () => void; onChange?: () => void}));
 type Base = {
     class?: string;
     title?: string;

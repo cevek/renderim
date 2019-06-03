@@ -87,7 +87,7 @@ function createDom(command: CreateTagCommand) {
                 node = nextNode;
                 hydratingMap.set(parentNode, nextNode.nextSibling);
                 const diff = createAttrsDiff(node, command.attrs, command.tag);
-                setAttrs(node, command.id, diff, command.tag);
+                setAttrs(node, command.id, diff, command.tag, false);
             }
         }
         if (node === undefined) {
@@ -102,7 +102,7 @@ function createDom(command: CreateTagCommand) {
         if (hydratingMap !== undefined) {
             hydratingMap.set(node, null);
         }
-        setAttrs(node, command.id, command.attrs, command.tag);
+        setAttrs(node, command.id, command.attrs, command.tag, false);
     }
     setNode(command.id, node);
 }
@@ -152,7 +152,7 @@ function renderCommand(command: Command) {
         } else if (command.action === 'move') {
             moveNode(command.id, command.beforeId);
         } else if (command.action === 'update') {
-            setAttrs(getNode(command.id) as HTMLElement, command.id, command.attrs, command.tag);
+            setAttrs(getNode(command.id) as HTMLElement, command.id, command.attrs, command.tag, true);
         } else if (command.action === 'remove') {
             removeNode(command.id);
         } else {

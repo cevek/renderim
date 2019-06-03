@@ -61,7 +61,7 @@ function attrIsEvent(attr: string) {
 let mountNodes: {id: ID; node: Node; command: RPCCallback}[] = [];
 
 type ElementWithListeners = HTMLElement & {__listeners?: {[event: string]: ((event: Event) => void) | undefined}};
-function setAttrs(node: HTMLElement, id: ID, attrs: Attrs, tagName: string) {
+function setAttrs(node: HTMLElement, id: ID, attrs: Attrs, tagName: string, isUpdate: boolean) {
     for (const attr in attrs) {
         const value = attrs[attr];
         if (attrIsEvent(attr)) {
@@ -91,12 +91,26 @@ function setAttrs(node: HTMLElement, id: ID, attrs: Attrs, tagName: string) {
             }
         } else if (attr === 'ref') {
             mountNodes.push({id, node, command: value as RPCCallback});
+        } else if (attr === 'defaultValue') {
+            if (!isUpdate) {
+                if (tagName === 'select' || tagName === 'textarea') {
+                    (node as HTMLInputElement).value = value as string;
+                } else {
+                    node.setAttribute('value', value === true ? '' : (value as string));
+                }
+            }
+        } else if (attr === 'defaultChecked') {
+            if (!isUpdate && value) {
+                node.setAttribute('checked', '');
+            }
         } else if (attr === 'style') {
             setStyles(node, value as Styles);
         } else if (attr === 'xlinkHref') {
             node.setAttributeNS(xlinkNS, 'xlink:href', value as string);
-        } else if (attr === 'value' && (tagName === 'select' || tagName === 'textarea')) {
+        } else if (attr === 'value' && (tagName === 'input' || tagName === 'select' || tagName === 'textarea')) {
             (node as HTMLInputElement).value = value as string;
+        } else if (attr === 'checked' && tagName === 'input') {
+            (node as HTMLInputElement).checked = value as boolean;
         } else {
             node.setAttribute(attr, value === true ? '' : (value as string));
         }
