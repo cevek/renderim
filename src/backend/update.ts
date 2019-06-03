@@ -90,19 +90,21 @@ function updateDom(node: VDomNodeCreated, oldNode: VDomNode, parentId: ID) {
             attrs: diffAttrs,
         });
     }
-    if (props.customChild === undefined) {
-        for (let i = 0; i < len; i++) {
-            const oldChild = oldNode.children[i] as VNode;
-            node.children[i] = updateVNode(norm(node.children[i]), oldChild, parentId);
-        }
-        for (let i = len; i < node.children.length; i++) {
-            node.children[i] = mountVNode(norm(node.children[i]), node.id, null);
-        }
-        for (let i = len; i < oldNode.children.length; i++) {
-            const oldChild = oldNode.children[i] as VNode;
-            removeVNode(oldChild, true);
-        }
-    } else {
+    for (let i = 0; i < len; i++) {
+        const oldChild = oldNode.children[i] as VNode;
+        node.children[i] = updateVNode(norm(node.children[i]), oldChild, parentId);
+    }
+    for (let i = len; i < node.children.length; i++) {
+        node.children[i] = mountVNode(norm(node.children[i]), node.id, null);
+    }
+    for (let i = len; i < oldNode.children.length; i++) {
+        const oldChild = oldNode.children[i] as VNode;
+        removeVNode(oldChild, true);
+    }
+    if (diffAttrs !== undefined && node.type === 'select') {
+        updateSelectValue(node);
+    }
+    if (props.customChild !== undefined) {
         addCommand(node, {
             action: 'update',
             group: 'custom',
@@ -111,9 +113,6 @@ function updateDom(node: VDomNodeCreated, oldNode: VDomNode, parentId: ID) {
             name: props.customChild.name,
             url: customUrl(props.customChild),
         });
-    }
-    if (diffAttrs !== undefined && node.type === 'select') {
-        updateSelectValue(node);
     }
     finalUpdate(node, oldNode);
     return node as VDomNode;

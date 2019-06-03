@@ -13,9 +13,8 @@ function removeVNode(node: VNode, realRemove: boolean) {
                 data: node.props,
                 name: node.type,
             });
-        } else {
-            removeChildren(node, false);
         }
+        removeChildren(node, false);
         if (realRemove) {
             addCommand(node, {action: 'remove', group: 'tag', tag: node.type, id: node.id});
         }

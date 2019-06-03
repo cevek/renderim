@@ -1,8 +1,10 @@
+/// <reference path="./jsx.d.ts" />
+
 type RootId = 'RootId';
 type ID = {id: 'ID'} & number;
-type Attrs = {readonly [key: string]: unknown};
+type Attrs = {readonly [key: string]: unknown; customChild?: JSX.CustomChild};
 type Styles = {[key: string]: string};
-type DeepPartial<T> = {[P in keyof T]: DeepPartial<T[P]>};
+type DeepPartial<T> = {[P in keyof T]?: DeepPartial<T[P]>};
 
 type TagCommand = CreateTagCommand | UpdateTagCommand | MoveTagCommand | RemoveTagCommand;
 type TextCommand = CreateTextCommand | UpdateTextCommand | MoveTextCommand | RemoveTextCommand;
@@ -124,10 +126,28 @@ type UpdateStyleCommand = {
 
 type DomListener = {oldListener?: RPCCallback; newListener?: RPCCallback};
 
-
 type RPCCommand = RPCReadCommand | RPCCallCommand | RPCWriteCommand;
 type RPCCallback = {type: '__fn__'; id: string; extractArgs: object[]; returnValue?: unknown};
 type RPCResult = {type: '__res__'; id: string; isError: boolean; data: unknown[]};
 type RPCReadCommand = {type: 'read'; id: string; obj: ID; path: string[]; extract: object};
 type RPCCallCommand = {type: 'call'; id: string; obj: ID; path: string[]; args: unknown[]; extract: object};
 type RPCWriteCommand = {type: 'write'; id: string; obj: ID; path: string[]; value: unknown};
+
+type BoundingClientRect = {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+};
+
+type IntersectionObserverElementCallbackParams = {
+    intersectionRatio: number;
+    boundingClientRect: BoundingClientRect;
+    intersectionRect: BoundingClientRect;
+    rootBounds: BoundingClientRect;
+};
+type IntersectionObserverElementProps<T extends DeepPartial<IntersectionObserverElementCallbackParams>> = {
+    onVisible: (params: T) => void;
+    onInvisible?: () => void;
+    onVisibleParams?: T;
+};

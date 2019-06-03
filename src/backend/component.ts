@@ -191,3 +191,41 @@ function lazy<P, T extends (props: P) => VInput>(cmp: () => Promise<{default: T}
         return createElement((component as unknown) as ComponentFun, props as {});
     };
 }
+
+function IntersectionObserverContainer({
+    children,
+    rootMargin,
+    threshold,
+}: {
+    children: VDomNodeCreated;
+    rootMargin?: string;
+    threshold?: string | number;
+}) {
+    const child = ensureVDomNode(children);
+    const customChild: JSX.CustomChild = {
+        name: 'IntersectionObserverContainer',
+        data: {rootMargin, threshold},
+    };
+    (child as NoReadonly<VDomNodeCreated>).props = {...child.props, customChild};
+    return child;
+}
+
+function IntersectionObserverElement<T extends DeepPartial<IntersectionObserverElementCallbackParams>>({
+    children,
+    onVisible,
+    onVisibleParams,
+    onInvisible,
+}: {children: VDomNodeCreated} & IntersectionObserverElementProps<T>) {
+    const child = ensureVDomNode(children);
+    const customChild: JSX.CustomChild = {
+        name: 'IntersectionObserverElement',
+        data: {
+            onVisible: transformCallback(
+                setDataToCallback(onVisible, [onVisibleParams === undefined ? ({} as T) : onVisibleParams]),
+            ),
+            onInvisible: onInvisible === undefined ? undefined : transformCallback(onInvisible),
+        },
+    };
+    (child as NoReadonly<VDomNodeCreated>).props = {...child.props, customChild};
+    return child;
+}

@@ -1,9 +1,10 @@
-Object.defineProperty(window, 'parcelRequire', {value: ()=>{}});
+Object.defineProperty(window, 'parcelRequire', {value: () => {}});
 const domMap: Node[] = [];
 const svgNS = 'http://www.w3.org/2000/svg';
 const xlinkNS = 'http://www.w3.org/1999/xlink';
 const domRoots = new Map<string, Map<Node, Node | null>>();
 
+type NodeWithCommand = HTMLElement & {_command: Command; _observer?: IntersectionObserver};
 let WORKER: Worker;
 (window as {registerWorker?: typeof registerWorker}).registerWorker = registerWorker;
 function registerWorker(worker: Worker) {
@@ -105,7 +106,59 @@ function createDom(command: CreateTagCommand) {
         setAttrs(node, command.id, command.attrs, command.tag, false);
     }
     setNode(command.id, node);
+    (node as NodeWithCommand)._command = command;
+    const {customChild} = command.attrs;
+    if (customChild !== undefined) {
+        handleCustomChild(node, customChild);
+    }
 }
+
+function handleCustomChild(node: HTMLElement, customChild: JSX.CustomChild) {
+    if (customChild.name === 'IntersectionObserverContainer') {
+        (node as NodeWithCommand)._observer = new IntersectionObserver(
+            entries => {
+                for (const entry of entries) {
+                    const command = (entry.target as NodeWithCommand)._command as CreateTagCommand;
+                    const elementProps = command.attrs.customChild!.data as {
+                        onVisible: RPCCallback;
+                        onInvisible?: RPCCallback;
+                    };
+                    if (entry.isIntersecting) {
+                        // const data: IntersectionObserverElementCallbackParams = {
+                        //     boundingClientRect: getRectJSON(entry.boundingClientRect as DOMRect),
+                        //     intersectionRect: getRectJSON(entry.intersectionRect as DOMRect),
+                        //     rootBounds: getRectJSON(entry.rootBounds as DOMRect),
+                        //     intersectionRatio: entry.intersectionRatio,
+                        // };
+                        transformCallback(elementProps.onVisible)(entry);
+                    } else if (elementProps.onInvisible !== undefined) {
+                        transformCallback(elementProps.onInvisible)();
+                    }
+                }
+            },
+            customChild.data as IntersectionObserverInit,
+        );
+    } else if (customChild.name === 'IntersectionObserverElement') {
+        findRootObserver(node).observe(node);
+    }
+}
+
+function findRootObserver(node: HTMLElement) {
+    let n = node.parentNode;
+    while (n !== null) {
+        const observer = (n as NodeWithCommand)._observer;
+        if (observer !== undefined) {
+            return observer;
+        }
+        n = n.parentNode;
+    }
+    throw new Error('Observer container is not found');
+}
+
+// function getRectJSON(rect: DOMRectReadOnly): BoundingClientRect {
+//     const {x, y, width, height} = rect;
+//     return {x, y, width, height};
+// }
 
 function createText(command: CreateTextCommand) {
     let node;
@@ -119,7 +172,7 @@ function createText(command: CreateTextCommand) {
             hydratingMap.set(parentNode, nextNode);
         }
         if (nextNode !== null) {
-            if (nextNode.nodeType === 8 && nextNode.nodeValue === 'n') {
+            if (isComment(nextNode) && nextNode.nodeValue === 'n') {
                 hydratingMap.set(parentNode, nextNode.nextSibling);
             } else if (isTextNode(nextNode)) {
                 if (nextNode.nodeValue !== command.text) {

@@ -136,3 +136,8 @@ function cloneVNode(node: VNodeCreated): VNodeCreated {
     }
     return never(node);
 }
+
+function ensureVDomNode(node: VInput) {
+    if (!isVNode(node) || node.kind !== domKind) throw new AssertError('Children must be a tag element');
+    return node;
+}

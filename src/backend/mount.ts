@@ -58,6 +58,10 @@ function mountVDom(node: VDomNodeCreated, parentId: ID, beforeId: ID | null) {
         attrs: transformAttrCallbacks(node.props),
         tag: node.type,
     });
+    mountChildren(node, node.id, null);
+    if (node.type === 'select') {
+        updateSelectValue(node);
+    }
     if (props.customChild !== undefined) {
         addCommand(node, {
             action: 'create',
@@ -67,11 +71,6 @@ function mountVDom(node: VDomNodeCreated, parentId: ID, beforeId: ID | null) {
             name: props.customChild.name,
             url: customUrl(props.customChild),
         });
-    } else {
-        mountChildren(node, node.id, null);
-    }
-    if (node.type === 'select') {
-        updateSelectValue(node);
     }
     return node;
 }

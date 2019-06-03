@@ -162,3 +162,6 @@ exports.withStopProgation = withStopProgation;
 exports.withTargetValue = withTargetValue;
 exports.withTargetChecked = withTargetChecked;
 exports.withEventData = withEventData;
+
+exports.IntersectionObserverContainer = IntersectionObserverContainer;
+exports.IntersectionObserverElement = IntersectionObserverElement;
