@@ -19,10 +19,10 @@ render(
             <span onClick={() => console.log('click1')} class="selected" style={{color: 'red', margin: '10px'}}>
                 My name is <b>{'Alex'}</b>
             </span>
-            <input type="text" value="hello" />
-            <input type="checkbox" />
-            <input type="radio" />
-            <textarea value="text" />
+            <input type="text" defaultValue="hello" />
+            <input type="checkbox" defaultChecked onChange={() => {}} />
+            <input type="radio" defaultChecked onChange={() => {}} />
+            <textarea defaultValue="text" />
             <Portal container="#modals">
                 <div>Header</div>
                 <div>Modal</div>
@@ -64,10 +64,10 @@ render(
                 style={{color: 'blue', padding: '10px', display: 'block'}}>
                 My name is <b>Brian</b>
             </span>
-            <input type="text" value="hello man" />
-            <input type="checkbox" checked />
-            <input type="radio" checked />
-            <textarea value="some text" />
+            <input type="text" defaultValue="hello man" />
+            <input type="checkbox" defaultChecked onChange={()=>{}}/>
+            <input type="radio" defaultChecked onChange={()=>{}}/>
+            <textarea defaultValue="some text" />
             <Portal container="#modals">
                 <div>Header</div>
                 <content>Modal</content>
@@ -110,10 +110,19 @@ render(
                 onSubmit={withPreventDefault(() => {
                     console.log('Submit');
                 })}>
+                <input type="checkbox" defaultChecked onChange={() => {}} />
+                <input type="checkbox" checked onChange={() => {}} />
+                <input
+                    type="text"
+                    defaultValue=""
+                    onChange={withTargetValue(val => {
+                        console.log('input value', val);
+                    })}
+                />
                 <input
                     type="text"
                     value=""
-                    onChange={withTargetValue(val => {
+                    onInput={withTargetValue(val => {
                         console.log('input value', val);
                     })}
                 />
