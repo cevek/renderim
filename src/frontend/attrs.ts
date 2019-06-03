@@ -33,10 +33,18 @@ function createAttrsDiff(node: HTMLElement, attrs: Attrs, tagName: string): Attr
                 const styleDiff = createStylesDiff(node, attrValue as Styles);
                 diff[attrName] = styleDiff;
             } else if (
-                attrName === 'value' &&
-                (tagName === 'select' || tagName === 'textarea') &&
-                String(attrValue) === (node as HTMLSelectElement).value
+                (attrName === 'value' || attrName === 'defaultValue') &&
+                (tagName === 'select' || tagName === 'textarea' || tagName === 'input')
             ) {
+                const value = (node as HTMLInputElement).value;
+                if (String(attrValue) !== value) {
+                    diff[attrName] = attrValue;
+                }
+            } else if ((attrName === 'checked' || attrName === 'defaultChecked') && tagName === 'input') {
+                const checked = (node as HTMLInputElement).checked;
+                if (Boolean(attrValue) !== checked) {
+                    diff[attrName] = attrValue;
+                }
             } else {
                 if (node.getAttribute(attrName) !== String(attrValue)) {
                     diff[attrName] = attrValue;
@@ -111,6 +119,9 @@ function setAttrs(node: HTMLElement, id: ID, attrs: Attrs, tagName: string, isUp
             (node as HTMLInputElement).value = value as string;
         } else if (attr === 'checked' && tagName === 'input') {
             (node as HTMLInputElement).checked = value as boolean;
+        } else if (attr === 'customChild') {
+        } else if (isObject(value)) {
+            console.warn(`Tag attribute value <${tagName} ${attr}> is object`, value);
         } else {
             node.setAttribute(attr, value === true ? '' : (value as string));
         }
