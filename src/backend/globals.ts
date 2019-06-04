@@ -17,7 +17,8 @@ let maybeRestarted: ({newNode: VComponentNode; oldNode: VComponentNode})[] = [];
 let maybeUpdatedParent: ({node: VNode; newParent: VComponentNode | VComponentNodeCreated})[] = [];
 
 let isCustomUrlCall = false;
-const GCVNodes = new WeakSet<VNodeCreated | VNode>();
+const GCVNodes = process.env.NODE_ENV === 'development' ? new WeakSet<VNodeCreated | VNode>() : undefined;
+((self as {}) as {GCVNodes: typeof GCVNodes}).GCVNodes = GCVNodes;
 const kindParent = {type: 'kind'};
 const componentKind = ({kind: 'component', parent: kindParent} as unknown) as 'component';
 const domKind = ({kind: 'dom', parent: kindParent} as unknown) as 'dom';

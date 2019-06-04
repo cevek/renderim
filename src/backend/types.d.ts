@@ -103,3 +103,5 @@ type VPortalNode = {
 
 declare const exports: {[key: string]: unknown};
 type CallbackWithCommand = ((...args: unknown[]) => void) & {command?: RPCCallback; extractArgs?: object[]};
+
+declare const process: {env: {NODE_ENV: 'production' | 'development'}};

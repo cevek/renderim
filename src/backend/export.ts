@@ -86,27 +86,21 @@ function commitUpdating() {
         assert(node.status === 'active');
         if (!shouldCancel(node)) {
             (node as NoReadonly<VNode>).status = 'removed';
-            disposeVDomNodeCallbacks(node);
-            unmountComponentHook(node);
-            GCVNodes.add(node);
+            destroyVNode(node);
         }
     }
     for (const node of maybeObsolete) {
         assert(node.status === 'active' || node.status === 'removed');
         if (!shouldCancel(node)) {
             (node as NoReadonly<VNode>).status = 'obsolete';
-            disposeVDomNodeCallbacks(node);
-            unmountComponentHook(node);
-            GCVNodes.add(node);
+            destroyVNode(node);
         }
     }
     for (const node of maybeCancelled) {
         assert(node.status === 'active');
         if (shouldCancel(node)) {
             node.status = 'cancelled';
-            disposeVDomNodeCallbacks(node);
-            unmountComponentHook(node);
-            GCVNodes.add(node);
+            destroyVNode(node);
         }
     }
     for (const {newParent, node} of maybeUpdatedParent) {
@@ -132,21 +126,25 @@ function commitUpdating() {
     maybeUpdatedParent = [];
 }
 
-function disposeVDomNodeCallbacks(node: VNodeCreated | VNode) {
+function destroyVNode(node: VNodeCreated | VNode) {
     if (node.kind === domKind) {
-        const attrs = node.props;
-        for (const attr in attrs) {
-            const value = attrs[attr];
-            if (typeof value === 'function') {
-                disposeCallback(value);
-            }
-        }
+        disposeVDomNodeCallbacks(node);
+    }
+    if (node.kind === componentKind) {
+        hooks.unmountComponent(node);
+    }
+    if (GCVNodes !== undefined) {
+        GCVNodes.add(node);
     }
 }
 
-function unmountComponentHook(node: VNodeCreated | VNode) {
-    if (node.kind === componentKind) {
-        hooks.unmountComponent(node);
+function disposeVDomNodeCallbacks(node: VDomNodeCreated | VDomNode) {
+    const attrs = node.props;
+    for (const attr in attrs) {
+        const value = attrs[attr];
+        if (typeof value === 'function') {
+            disposeCallback(value);
+        }
     }
 }
 
