@@ -87,7 +87,8 @@ function commitUpdating() {
         if (!shouldCancel(node)) {
             (node as NoReadonly<VNode>).status = 'removed';
             disposeVDomNodeCallbacks(node);
-            GCVNodes.removed.add(node);
+            unmountComponentHook(node);
+            GCVNodes.add(node);
         }
     }
     for (const node of maybeObsolete) {
@@ -95,7 +96,8 @@ function commitUpdating() {
         if (!shouldCancel(node)) {
             (node as NoReadonly<VNode>).status = 'obsolete';
             disposeVDomNodeCallbacks(node);
-            GCVNodes.obsolete.add(node);
+            unmountComponentHook(node);
+            GCVNodes.add(node);
         }
     }
     for (const node of maybeCancelled) {
@@ -103,7 +105,8 @@ function commitUpdating() {
         if (shouldCancel(node)) {
             node.status = 'cancelled';
             disposeVDomNodeCallbacks(node);
-            GCVNodes.cancelled.add(node);
+            unmountComponentHook(node);
+            GCVNodes.add(node);
         }
     }
     for (const {newParent, node} of maybeUpdatedParent) {
@@ -135,9 +138,15 @@ function disposeVDomNodeCallbacks(node: VNodeCreated | VNode) {
         for (const attr in attrs) {
             const value = attrs[attr];
             if (typeof value === 'function') {
-                disposeCallback(value)
+                disposeCallback(value);
             }
         }
+    }
+}
+
+function unmountComponentHook(node: VNodeCreated | VNode) {
+    if (node.kind === componentKind) {
+        hooks.unmountComponent(node);
     }
 }
 
@@ -164,4 +173,9 @@ exports.withTargetChecked = withTargetChecked;
 exports.withEventData = withEventData;
 
 exports.IntersectionObserverContainer = IntersectionObserverContainer;
+exports.IntersectionObserverElement = IntersectionObserverElement;
+
+exports.setHook = function setHook<K extends keyof typeof hooks>(type: K, value: typeof hooks[K]) {
+    hooks[type] = value;
+};
 exports.IntersectionObserverElement = IntersectionObserverElement;

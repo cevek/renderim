@@ -52,18 +52,17 @@ function finalUpdate(node: VNodeCreated, oldNode: VNode) {
 function updateComponent(node: VComponentNodeCreated, oldNode: VComponentNode, parentId: ID): VComponentNode {
     assert(node.status === 'created');
     assert(oldNode.status === 'active');
-    const parentComponent = currentComponent;
-    currentComponent = node;
-    runComponent(node);
-    node.id = parentId;
     if (node.type !== oldNode.type) {
         return replaceVNode(node, oldNode, parentId) as VComponentNode;
     }
+    const parentComponent = currentComponent;
+    currentComponent = node;
+    node.id = parentId;
+    node.extra = oldNode.extra;
+    runComponent(node);
     if (node.type === ErrorBoundary) {
-        node.extra = oldNode.extra;
         node = handleErrorBoundary(node as VErrorBoundaryNodeCreated, oldNode.children, parentId, null);
     } else if (node.type === Suspense) {
-        node.extra = oldNode.extra;
         node = handleSuspense(node as VSuspenseNodeCreated, oldNode.children, parentId, null);
     } else {
         node.children = updateVNode(norm(node.children), oldNode.children, parentId);

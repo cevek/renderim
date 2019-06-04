@@ -15,7 +15,7 @@ type VComponentNodeCreated = Omit<VComponentNode, 'id' | 'children' | 'parentCom
     id: ID;
     children: VInput;
     parentComponent: ParentComponent;
-    extra: unknown;
+    extra: object;
     status: 'created' | 'active' | 'cancelled';
 };
 type VComponentNode = {
@@ -27,7 +27,7 @@ type VComponentNode = {
     readonly props: object;
     readonly key: string | undefined;
     readonly children: VNode;
-    readonly extra: unknown;
+    readonly extra: object;
     readonly parentComponent: ParentComponent;
 };
 type VDomNodeCreated = Omit<VDomNode, 'id' | 'children' | 'parentComponent' | 'status'> & {

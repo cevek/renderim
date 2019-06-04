@@ -1,8 +1,11 @@
 function runComponent(node: VComponentNodeCreated) {
     assert(node.status === 'created');
     try {
+        hooks.beforeComponent(node);
         node.children = norm(node.type(node.props));
+        hooks.afterComponent(node);
     } catch (err) {
+        hooks.afterComponent(node);
         node.children = norm(undefined);
         if (err instanceof Promise) {
             addPromiseToParentSuspense(node, err);

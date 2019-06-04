@@ -33,14 +33,14 @@ function createComponentVNode<Props extends object>(
     props: Props,
     key?: string,
 ): VComponentNodeCreated {
+    const id = _id++;
     let extra = undefined;
     if (type === ErrorBoundary) {
         const val: ErrorBoundaryExtra = {
             errors: [],
         };
         extra = val;
-    }
-    if (type === Suspense) {
+    } else if (type === Suspense) {
         const val: SuspenseExtra = {
             timeoutAt: 0,
             components: [],
@@ -48,9 +48,11 @@ function createComponentVNode<Props extends object>(
             resolvedPromises: 0,
         };
         extra = val;
+    } else {
+        extra = {componentId: id};
     }
     return {
-        _id: _id++,
+        _id: id,
         status: 'created',
         id: undefined!,
         children: undefined!,
