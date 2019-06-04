@@ -58,7 +58,7 @@ function updateComponent(node: VComponentNodeCreated, oldNode: VComponentNode, p
     const parentComponent = currentComponent;
     currentComponent = node;
     node.id = parentId;
-    node.extra = oldNode.extra;
+    node.state = oldNode.state;
     runComponent(node);
     if (node.type === ErrorBoundary) {
         node = handleErrorBoundary(node as VErrorBoundaryNodeCreated, oldNode.children, parentId, null);

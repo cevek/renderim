@@ -70,7 +70,7 @@ function unmountComponentAtNode(htmlId: string) {
 }
 
 function shouldCancel(node: VNode | VNodeCreated) {
-    return findSuspense(node).extra.promises.length > 0; // || node.errorBoundary.extra.errors.length > 0;
+    return findSuspense(node).state.promises.length > 0; // || node.errorBoundary.state.errors.length > 0;
 }
 function commitUpdating() {
     for (const {oldNode, newNode} of maybeRestarted) {

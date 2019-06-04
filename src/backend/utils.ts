@@ -40,7 +40,7 @@ function addCommand(node: VNode | VNodeCreated, command: Command) {
 }
 
 function toJSON(node: VNode): unknown {
-    const {key, suspense, errorBoundary, extra, kind, type, props, id, ...other} = node as any;
+    const {key, suspense, errorBoundary, state, kind, type, props, id, ...other} = node as any;
     other.kind = kind.constructor.name;
     if (type) {
         other.type = typeof type === 'string' ? type : type.name;

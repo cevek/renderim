@@ -8,7 +8,7 @@ function createVTextNode(text: string): VTextNodeCreated {
         kind: textKind,
         props: undefined,
         type: undefined,
-        extra: undefined,
+        state: undefined,
         parentComponent: undefined!,
     };
 }
@@ -23,7 +23,7 @@ function createDomVNode(type: string, attrs: Attrs, key: string | undefined, chi
         kind: domKind,
         props: attrs,
         type: type,
-        extra: undefined,
+        state: undefined,
         parentComponent: undefined!,
     };
 }
@@ -34,22 +34,22 @@ function createComponentVNode<Props extends object>(
     key?: string,
 ): VComponentNodeCreated {
     const id = _id++;
-    let extra = undefined;
+    let state = undefined;
     if (type === ErrorBoundary) {
-        const val: ErrorBoundaryExtra = {
+        const val: ErrorBoundaryState = {
             errors: [],
         };
-        extra = val;
+        state = val;
     } else if (type === Suspense) {
-        const val: SuspenseExtra = {
+        const val: SuspenseState = {
             timeoutAt: 0,
             components: [],
             promises: [],
             resolvedPromises: 0,
         };
-        extra = val;
+        state = val;
     } else {
-        extra = {componentId: id};
+        state = {componentId: id};
     }
     return {
         _id: id,
@@ -60,7 +60,7 @@ function createComponentVNode<Props extends object>(
         kind: componentKind,
         props,
         type: type as ComponentFun,
-        extra: extra,
+        state,
         parentComponent: undefined!,
     };
 }
@@ -75,7 +75,7 @@ function createVArrayNode(arr: VInput[]): VArrayNodeCreated {
         key: undefined,
         props: undefined,
         type: undefined,
-        extra: undefined,
+        state: undefined,
         parentComponent: undefined!,
     };
 }
@@ -89,7 +89,7 @@ function createVPortalNode(type: ID, children: VInput): VPortalNodeCreated {
         key: undefined,
         props: undefined,
         type: type,
-        extra: undefined,
+        state: undefined,
         parentComponent: undefined!,
     };
 }

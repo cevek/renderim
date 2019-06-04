@@ -28,20 +28,20 @@ function Portal(props: {container: string; children: VInput}) {
 }
 
 type ErrorBoundaryProps = {children: VInput; fallback: (props: {errors: Error[]}) => VInput};
-type ErrorBoundaryExtra = {errors: Error[]};
-type VErrorBoundaryNodeCreated = VComponentNodeCreated & {props: ErrorBoundaryProps; extra: ErrorBoundaryExtra};
+type ErrorBoundaryState = {errors: Error[]};
+type VErrorBoundaryNodeCreated = VComponentNodeCreated & {props: ErrorBoundaryProps; state: ErrorBoundaryState};
 function ErrorBoundary(props: ErrorBoundaryProps) {
     return props.children;
 }
 
-type SuspenseExtra = {
+type SuspenseState = {
     timeoutAt: number;
     promises: Promise<unknown>[];
     resolvedPromises: number;
     components: VComponentNodeCreated[];
 };
 type SuspenseProps = {children: VInput; timeout: number; fallback: VInput};
-type VSuspenseNodeCreated = VComponentNodeCreated & {props: SuspenseProps; extra: SuspenseExtra};
+type VSuspenseNodeCreated = VComponentNodeCreated & {props: SuspenseProps; state: SuspenseState};
 function Suspense(props: SuspenseProps) {
     return props.children;
 }
@@ -76,18 +76,18 @@ function handleErrorBoundary(
     beforeId: ID | null,
 ) {
     assert(node.status === 'created');
-    if (node.extra.errors.length > 0) {
+    if (node.state.errors.length > 0) {
         assert(typeof node.parentComponent !== 'string');
         currentComponent = node.parentComponent as VComponentNode;
         node.children = mountOrUpdate(
-            createComponentVNode(node.props.fallback, {errors: node.extra.errors}),
+            createComponentVNode(node.props.fallback, {errors: node.state.errors}),
             oldChild,
             parentId,
             beforeId,
         );
         currentComponent = node;
     }
-    if (node.extra.errors.length === 0) {
+    if (node.state.errors.length === 0) {
         node.children = mountOrUpdate(norm(node.children), oldChild, parentId, beforeId);
     }
     return node;
@@ -95,27 +95,27 @@ function handleErrorBoundary(
 
 function handleSuspense(node: VSuspenseNodeCreated, oldChild: VNode | undefined, parentId: ID, beforeId: ID | null) {
     assert(node.status === 'created');
-    assert(node.extra.components.length === node.extra.promises.length);
-    if (node.extra.promises.length > 0) {
-        for (const component of node.extra.components) {
+    assert(node.state.components.length === node.state.promises.length);
+    if (node.state.promises.length > 0) {
+        for (const component of node.state.components) {
             restartComponent(component);
         }
-        if (node.extra.resolvedPromises === node.extra.promises.length) {
-            node.extra.promises = [];
-            node.extra.components = [];
-            node.extra.resolvedPromises = 0;
+        if (node.state.resolvedPromises === node.state.promises.length) {
+            node.state.promises = [];
+            node.state.components = [];
+            node.state.resolvedPromises = 0;
         }
     }
     node.children = mountOrUpdate(norm(node.children), oldChild, parentId, beforeId);
-    if (node.extra.promises.length > 0) {
-        if (node.extra.timeoutAt <= Date.now()) {
+    if (node.state.promises.length > 0) {
+        if (node.state.timeoutAt <= Date.now()) {
             if (oldChild !== undefined) {
                 node.children = oldChild;
             }
         } else {
             addPromiseToParentSuspense(
                 node,
-                Promise.race([Promise.all(node.extra.promises), sleep(node.extra.timeoutAt - Date.now() + 1)]),
+                Promise.race([Promise.all(node.state.promises), sleep(node.state.timeoutAt - Date.now() + 1)]),
             );
         }
     }
@@ -126,18 +126,18 @@ function addPromiseToParentSuspense(component: VComponentNodeCreated, promise: P
     const suspense = findSuspense(component);
     assert(suspense.status === 'active' || suspense.status === 'created');
     assert(component.status === 'created');
-    if (suspense.extra.promises.length === 0) {
-        suspense.extra.timeoutAt = Date.now() + suspense.props.timeout;
+    if (suspense.state.promises.length === 0) {
+        suspense.state.timeoutAt = Date.now() + suspense.props.timeout;
     }
-    suspense.extra.promises.push(promise.catch(noop));
-    suspense.extra.components.push(component);
-    const currentPromises = suspense.extra.promises;
+    suspense.state.promises.push(promise.catch(noop));
+    suspense.state.components.push(component);
+    const currentPromises = suspense.state.promises;
     console.log('add promise to suspense', suspense);
     // debugger;
     // visitEachNode(suspense, n => console.log(n.status));
     Promise.all(currentPromises).then(() => {
         // todo: check actual id
-        suspense.extra.resolvedPromises = currentPromises.length;
+        suspense.state.resolvedPromises = currentPromises.length;
         const restarted = restartComponent(suspense);
         if (restarted) {
             commitUpdating();
@@ -147,7 +147,7 @@ function addPromiseToParentSuspense(component: VComponentNodeCreated, promise: P
 
 function addErrorToParentBoundary(component: VComponentNodeCreated, error: Error) {
     const errorBoundary = findErrorBoundary(component);
-    errorBoundary.extra.errors.push(error);
+    errorBoundary.state.errors.push(error);
     assert(errorBoundary.status === 'active' || errorBoundary.status === 'created');
     assert(component.status === 'created');
     Promise.resolve().then(() => {

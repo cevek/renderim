@@ -11,11 +11,11 @@ type VChildrenNodeCreated = VDomNodeCreated | VArrayNodeCreated;
 type NoReadonly<T> = {-readonly [P in keyof T]: T[P]};
 
 type ParentComponent = VComponentNode | VComponentNodeCreated | RootId;
-type VComponentNodeCreated = Omit<VComponentNode, 'id' | 'children' | 'parentComponent' | 'status' | 'extra'> & {
+type VComponentNodeCreated = Omit<VComponentNode, 'id' | 'children' | 'parentComponent' | 'status' | 'state'> & {
     id: ID;
     children: VInput;
     parentComponent: ParentComponent;
-    extra: object;
+    state: unknown;
     status: 'created' | 'active' | 'cancelled';
 };
 type VComponentNode = {
@@ -27,7 +27,7 @@ type VComponentNode = {
     readonly props: object;
     readonly key: string | undefined;
     readonly children: VNode;
-    readonly extra: object;
+    readonly state: unknown;
     readonly parentComponent: ParentComponent;
 };
 type VDomNodeCreated = Omit<VDomNode, 'id' | 'children' | 'parentComponent' | 'status'> & {
@@ -45,7 +45,7 @@ type VDomNode = {
     readonly props: Attrs;
     readonly key: string | undefined;
     readonly children: readonly VNode[];
-    readonly extra: undefined;
+    readonly state: undefined;
     readonly parentComponent: ParentComponent;
 };
 type VTextNodeCreated = Omit<VTextNode, 'id' | 'children' | 'parentComponent' | 'status'> & {
@@ -63,7 +63,7 @@ type VTextNode = {
     readonly props: undefined;
     readonly key: undefined;
     readonly children: string;
-    readonly extra: undefined;
+    readonly state: undefined;
     readonly parentComponent: ParentComponent;
 };
 type VArrayNodeCreated = Omit<VArrayNode, 'children' | 'parentComponent' | 'status'> & {
@@ -80,7 +80,7 @@ type VArrayNode = {
     readonly props: undefined;
     readonly key: undefined;
     readonly children: readonly VNode[];
-    readonly extra: undefined;
+    readonly state: undefined;
     readonly parentComponent: ParentComponent;
 };
 type VPortalNodeCreated = Omit<VPortalNode, 'children' | 'parentComponent' | 'status'> & {
@@ -97,7 +97,7 @@ type VPortalNode = {
     readonly props: undefined;
     readonly key: undefined;
     readonly children: VNode;
-    readonly extra: undefined;
+    readonly state: undefined;
     readonly parentComponent: ParentComponent;
 };
 
