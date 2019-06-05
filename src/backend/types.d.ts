@@ -2,7 +2,7 @@ type VNode = VComponentNode | VDomNode | VTextNode | VPortalNode | VArrayNode;
 type VNodeCreated = VComponentNodeCreated | VDomNodeCreated | VTextNodeCreated | VPortalNodeCreated | VArrayNodeCreated;
 
 type VInput = undefined | void | null | boolean | string | number | VNodeCreated | {[key: number]: VInput};
-type CommandWithParentVNode = Command & {vNode: VNode | VNodeCreated};
+type CommandWithParentVNode = Command & {vNode?: VNode | VNodeCreated};
 type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 type ComponentFun = (props: object) => VInput;
 type VNodeStatus = 'active' | 'obsolete' | 'removed';
@@ -15,7 +15,7 @@ type VComponentNodeCreated = Omit<VComponentNode, 'id' | 'children' | 'parentCom
     id: ID;
     children: VInput;
     parentComponent: ParentComponent;
-    state: unknown;
+    state: {componentId: number};
     status: 'created' | 'active' | 'cancelled';
 };
 type VComponentNode = {
@@ -27,7 +27,7 @@ type VComponentNode = {
     readonly props: object;
     readonly key: string | undefined;
     readonly children: VNode;
-    readonly state: unknown;
+    readonly state: {componentId: number};
     readonly parentComponent: ParentComponent;
 };
 type VDomNodeCreated = Omit<VDomNode, 'id' | 'children' | 'parentComponent' | 'status'> & {
@@ -66,9 +66,10 @@ type VTextNode = {
     readonly state: undefined;
     readonly parentComponent: ParentComponent;
 };
-type VArrayNodeCreated = Omit<VArrayNode, 'children' | 'parentComponent' | 'status'> & {
+type VArrayNodeCreated = Omit<VArrayNode, 'children' | 'parentComponent' | 'status' | 'state'> & {
     children: VInput[];
     parentComponent: ParentComponent;
+    state: number;
     status: 'created' | 'active' | 'cancelled';
 };
 type VArrayNode = {
@@ -80,7 +81,7 @@ type VArrayNode = {
     readonly props: undefined;
     readonly key: undefined;
     readonly children: readonly VNode[];
-    readonly state: undefined;
+    readonly state: number;
     readonly parentComponent: ParentComponent;
 };
 type VPortalNodeCreated = Omit<VPortalNode, 'children' | 'parentComponent' | 'status'> & {

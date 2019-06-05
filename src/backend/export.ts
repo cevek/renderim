@@ -50,6 +50,14 @@ function render(node: VInput, htmlId: string) {
     roots.set(rootId, newNode);
     if (oldNode === undefined) {
         addCommand(newNode, {action: 'end', group: 'mount', rootId: rootId});
+        const devToolsCommand: UpdateDevtools = {
+            action: 'update',
+            group: 'devtools',
+            isRoot: true,
+            unmounted: [],
+            node: convertVNodeToDevToolsJSON(newNode),
+        };
+        commandList.push(devToolsCommand);
     }
     commitUpdating();
     console.log('after render state', toJSON(newNode));
@@ -78,6 +86,18 @@ function commitUpdating() {
         assert(newNode.status === 'active');
         if (!shouldCancel(oldNode)) {
             (oldNode as NoReadonly<VComponentNode>).children = newNode.children;
+            const unmounted = [];
+            for (const node of maybeRemoved) {
+                unmounted.push(getPersistId(node));
+            }
+            const devToolsCommand: UpdateDevtools = {
+                action: 'update',
+                group: 'devtools',
+                isRoot: false,
+                unmounted: unmounted,
+                node: convertVNodeToDevToolsJSON(oldNode),
+            };
+            commandList.push(devToolsCommand);
         } else {
         }
     }
@@ -110,14 +130,17 @@ function commitUpdating() {
         }
     }
     const filteredCommands = (commandList as CommandWithParentVNode[]).filter(command => {
-        let skip = command.vNode.status === 'cancelled';
-        if (command.action === 'remove' && command.vNode.status !== 'removed') {
+        const vNode = command.vNode;
+        if (vNode === undefined) return true;
+        let skip = vNode.status === 'cancelled';
+        if (command.action === 'remove' && vNode.status !== 'removed') {
             skip = true;
         }
         command.vNode = undefined!;
         return !skip;
     });
     sendCommands(filteredCommands);
+
     commandList = [];
     maybeRestarted = [];
     maybeObsolete = [];

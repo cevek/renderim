@@ -20,6 +20,7 @@
         "remove.ts",
         "utils.ts",
         "attrs.ts",
-        "export.ts"
+        "export.ts",
+        "devTools.ts"
     ]
 }

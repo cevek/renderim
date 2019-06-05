@@ -37,11 +37,13 @@ function createComponentVNode<Props extends object>(
     let state = undefined;
     if (type === ErrorBoundary) {
         const val: ErrorBoundaryState = {
+            componentId: id,
             errors: [],
         };
         state = val;
     } else if (type === Suspense) {
         const val: SuspenseState = {
+            componentId: id,
             timeoutAt: 0,
             components: [],
             promises: [],
@@ -66,8 +68,9 @@ function createComponentVNode<Props extends object>(
 }
 
 function createVArrayNode(arr: VInput[]): VArrayNodeCreated {
+    const id = _id++;
     return {
-        _id: _id++,
+        _id: id,
         status: 'created',
         kind: arrayKind,
         id: undefined!,
@@ -75,7 +78,7 @@ function createVArrayNode(arr: VInput[]): VArrayNodeCreated {
         key: undefined,
         props: undefined,
         type: undefined,
-        state: undefined,
+        state: id,
         parentComponent: undefined!,
     };
 }
@@ -99,6 +102,7 @@ function norm(value: VInput): VNodeCreated {
         return createVTextNode('');
     }
     if (Array.isArray(value)) {
+        if (value.length === 0) return createVTextNode('');
         return createVArrayNode(value);
     }
     if (isVNode(value)) {
@@ -107,7 +111,8 @@ function norm(value: VInput): VNodeCreated {
         }
         assert(value.status === 'created' || value.status === 'active');
         return value;
-    } else if (isObj(value)) {
+    }
+    if (isObj(value)) {
         console.warn('objects are not allowed as children', value);
     }
     if (typeof value === 'string' || typeof value === 'number') {
@@ -142,4 +147,17 @@ function cloneVNode(node: VNodeCreated): VNodeCreated {
 function ensureVDomNode(node: VInput) {
     if (!isVNode(node) || node.kind !== domKind) throw new AssertError('Children must be a tag element');
     return node;
+}
+
+function getPersistId(node: VNode): ID {
+    if (node.kind === componentKind) {
+        return node.state.componentId as ID;
+    }
+    if (node.kind === portalKind) {
+        return node.type;
+    }
+    if (node.kind === arrayKind) {
+        return node.state as ID;
+    }
+    return node.id;
 }

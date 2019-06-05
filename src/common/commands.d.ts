@@ -11,7 +11,8 @@ type TextCommand = CreateTextCommand | UpdateTextCommand | MoveTextCommand | Rem
 type MountCommand = MountStartCommand | MountEndCommand;
 type CustomCommand = CreateCustomCommand | UpdateCustomCommand | RemoveCustomCommand;
 type LoadCommand = LoadScriptCommand | LoadStyleCommand | UpdateStyleCommand;
-type Command = TagCommand | TextCommand | MountCommand | CustomCommand | LoadCommand;
+type DevtoolsCommand = UpdateDevtools;
+type Command = TagCommand | TextCommand | MountCommand | CustomCommand | LoadCommand | DevtoolsCommand;
 
 type MountStartCommand = {
     group: 'mount';
@@ -124,6 +125,14 @@ type UpdateStyleCommand = {
     action: 'updateAll';
 };
 
+type UpdateDevtools = {
+    group: 'devtools';
+    action: 'update';
+    isRoot: boolean;
+    node: DevToolsNode;
+    unmounted: ID[]; 
+};
+
 type DomListener = {oldListener?: RPCCallback; newListener?: RPCCallback};
 
 type RPCCommand = RPCReadCommand | RPCCallCommand | RPCWriteCommand;
@@ -151,3 +160,14 @@ type IntersectionObserverElementProps<T extends DeepPartial<IntersectionObserver
     onInvisible?: () => void;
     onVisibleParams?: T;
 };
+
+interface DevToolsNode {
+    readonly _id: number;
+    readonly _nodeId: number;
+    readonly _instance: {} | undefined; // component {state: {}, props: {}}
+    readonly _renderedComponent: undefined;
+    readonly _inDevTools: boolean;
+    _currentElement: {type: string; props: object} | undefined;
+    _renderedChildren: DevToolsNode[];
+    _stringText: string | undefined;
+}

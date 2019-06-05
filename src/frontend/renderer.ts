@@ -198,6 +198,7 @@ function createText(command: CreateTextCommand) {
     setNode(command.id, node);
 }
 
+const devTools = initDevTools();
 function renderCommand(command: Command) {
     if (command.group === 'tag') {
         if (command.action === 'create') {
@@ -254,6 +255,8 @@ function renderCommand(command: Command) {
             }
         }
     } else if (command.group === 'custom') {
+    } else if (command.group === 'devtools') {
+        devTools(command);
     } else {
         nevr(command);
     }

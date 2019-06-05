@@ -28,13 +28,14 @@ function Portal(props: {container: string; children: VInput}) {
 }
 
 type ErrorBoundaryProps = {children: VInput; fallback: (props: {errors: Error[]}) => VInput};
-type ErrorBoundaryState = {errors: Error[]};
+type ErrorBoundaryState = {componentId: number; errors: Error[]};
 type VErrorBoundaryNodeCreated = VComponentNodeCreated & {props: ErrorBoundaryProps; state: ErrorBoundaryState};
 function ErrorBoundary(props: ErrorBoundaryProps) {
     return props.children;
 }
 
 type SuspenseState = {
+    componentId: number;
     timeoutAt: number;
     promises: Promise<unknown>[];
     resolvedPromises: number;
