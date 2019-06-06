@@ -50,31 +50,39 @@ function render(node: VInput, htmlId: string) {
     roots.set(rootId, newNode);
     if (oldNode === undefined) {
         addCommand(newNode, {action: 'end', group: 'mount', rootId: rootId});
-        const devToolsCommand: UpdateDevtools = {
-            action: 'update',
-            group: 'devtools',
-            isRoot: true,
-            unmounted: [],
-            node: convertVNodeToDevToolsJSON(newNode),
-        };
-        commandList.push(devToolsCommand);
+        if (process.env.NODE_ENV === 'development') {
+            const devToolsCommand: UpdateDevtools = {
+                action: 'update',
+                group: 'devtools',
+                isRoot: true,
+                unmounted: [],
+                node: convertVNodeToDevToolsJSON(newNode),
+            };
+            commandList.push(devToolsCommand);
+        }
     }
     commitUpdating();
-    console.log('after render state', toJSON(newNode));
+    // console.log('after render state', toJSON(newNode));
     // console.log(JSON.stringify(toJSON(newNode), null, 2));
     visitEachNode(newNode, n => assert(n.status === 'active'));
-    if (oldNode !== undefined) {
-        //todo:
-        // visitEachNode(node, n => assert(n.status === 'obsolete' || n.status === 'removed'));
-    } else {
-    }
 }
 
 function unmountComponentAtNode(htmlId: string) {
     const node = roots.get(htmlId as RootId);
     if (node !== undefined) {
         removeVNode(node, true);
+        if (process.env.NODE_ENV === 'development') {
+            const devToolsCommand: UpdateDevtools = {
+                action: 'update',
+                group: 'devtools',
+                isRoot: true,
+                unmounted: [getPersistId(node)],
+                node: undefined,
+            };
+            commandList.push(devToolsCommand);
+        }
     }
+    commitUpdating();
 }
 
 function shouldCancel(node: VNode | VNodeCreated) {
@@ -90,15 +98,16 @@ function commitUpdating() {
             for (const node of maybeRemoved) {
                 unmounted.push(getPersistId(node));
             }
-            const devToolsCommand: UpdateDevtools = {
-                action: 'update',
-                group: 'devtools',
-                isRoot: false,
-                unmounted: unmounted,
-                node: convertVNodeToDevToolsJSON(oldNode),
-            };
-            commandList.push(devToolsCommand);
-        } else {
+            if (process.env.NODE_ENV === 'development') {
+                const devToolsCommand: UpdateDevtools = {
+                    action: 'update',
+                    group: 'devtools',
+                    isRoot: false,
+                    unmounted: unmounted,
+                    node: convertVNodeToDevToolsJSON(oldNode),
+                };
+                commandList.push(devToolsCommand);
+            }
         }
     }
     // console.log({maybeRemoved, maybeObsolete, maybeCancelled});
@@ -162,6 +171,7 @@ function destroyVNode(node: VNodeCreated | VNode) {
 }
 
 function disposeVDomNodeCallbacks(node: VDomNodeCreated | VDomNode) {
+    assert(node.status === 'removed' || node.status === 'cancelled' || node.status === 'obsolete')
     const attrs = node.props;
     for (const attr in attrs) {
         const value = attrs[attr];

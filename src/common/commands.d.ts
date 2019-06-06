@@ -129,7 +129,7 @@ type UpdateDevtools = {
     group: 'devtools';
     action: 'update';
     isRoot: boolean;
-    node: DevToolsNode;
+    node: DevToolsNode | undefined;
     unmounted: ID[]; 
 };
 
@@ -162,12 +162,15 @@ type IntersectionObserverElementProps<T extends DeepPartial<IntersectionObserver
 };
 
 interface DevToolsNode {
-    readonly _id: number;
-    readonly _nodeId: number;
+    readonly _id: ID;
+    readonly _nodeId: ID;
     readonly _instance: {} | undefined; // component {state: {}, props: {}}
     readonly _renderedComponent: undefined;
     readonly _inDevTools: boolean;
-    _currentElement: {type: string; props: object} | undefined;
+    _currentElement: {type: string; props: unknown} | string;
     _renderedChildren: DevToolsNode[];
     _stringText: string | undefined;
 }
+
+declare const exports: {[key: string]: unknown};
+declare const process: {env: {NODE_ENV: 'production' | 'development'}};

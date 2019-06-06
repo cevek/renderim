@@ -5,6 +5,7 @@ const xlinkNS = 'http://www.w3.org/1999/xlink';
 const domRoots = new Map<string, Map<Node, Node | null>>();
 
 type NodeWithCommand = HTMLElement & {_command: Command; _observer?: IntersectionObserver};
+type HTMLElementWithId = HTMLElement & {_id: ID};
 let WORKER: Worker;
 (window as {registerWorker?: typeof registerWorker}).registerWorker = registerWorker;
 function registerWorker(worker: Worker) {
@@ -34,11 +35,14 @@ function isSvg(tag: string, node: Node) {
     );
 }
 
-function setNode(id: ID, node: Node) {
+function setNode(id: ID, node: Node, isHTML: boolean) {
     if (domMap.length <= id) {
         for (let i = domMap.length; i <= id; i++) {
             domMap.push(undefined!);
         }
+    }
+    if (isHTML) {
+        (node as HTMLElementWithId)._id = id;
     }
     domMap[id] = node;
 }
@@ -105,7 +109,7 @@ function createDom(command: CreateTagCommand) {
         }
         setAttrs(node, command.id, command.attrs, command.tag, false);
     }
-    setNode(command.id, node);
+    setNode(command.id, node, true);
     (node as NodeWithCommand)._command = command;
     const {customChild} = command.attrs;
     if (customChild !== undefined) {
@@ -195,7 +199,7 @@ function createText(command: CreateTextCommand) {
         node = document.createTextNode(command.text);
         getNode(command.parentId).insertBefore(node, beforeNode);
     }
-    setNode(command.id, node);
+    setNode(command.id, node, false);
 }
 
 const devTools = initDevTools();
@@ -288,7 +292,7 @@ function getBeforeNode(id: ID | null) {
     return id === null ? null : domMap[id];
 }
 
-function nevr(val: never): never {
+function nevr(val?: never): never {
     throw new Error('Never possible: ' + val);
 }
 
