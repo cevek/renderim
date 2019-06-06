@@ -23,15 +23,17 @@ if (process.env.NODE_ENV === 'development') {
         }
         if (typeof props === 'function') return `${props.name === '' ? '() => {...}' : `#${props.name}`}` as {};
         return props;
-    };
+    }
     convertVNodeToDevToolsJSON = function convertVNodeToDevToolsJSON(node: VNode): DevToolsNode {
         let stringText;
         let children: DevToolsNode[] = [];
         let currentElement;
-        const renderedComponent = undefined;
+        let renderedComponent;
+        let instance = {props: {}, state: {}};
         if (node.kind === componentKind) {
             currentElement = {type: node.type.name, props: convertProps(node.props)};
-            children = [convertVNodeToDevToolsJSON(node.children)];
+            children = [];
+            renderedComponent = convertVNodeToDevToolsJSON(node.children);
         } else if (node.kind === domKind) {
             currentElement = {type: node.type, props: convertProps(node.props)};
             children = node.children.map(convertVNodeToDevToolsJSON);
@@ -50,12 +52,12 @@ if (process.env.NODE_ENV === 'development') {
         const id = getPersistId(node);
         return {
             _id: id,
+            _rootNodeID: findRootId(node),
             _nodeId: findChildVDom(node).id,
             _stringText: stringText,
-            _instance: undefined,
+            _instance: instance,
             _currentElement: currentElement,
             _renderedChildren: children,
-            _inDevTools: true,
             _renderedComponent: renderedComponent,
         };
     };

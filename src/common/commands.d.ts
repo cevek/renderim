@@ -130,7 +130,7 @@ type UpdateDevtools = {
     action: 'update';
     isRoot: boolean;
     node: DevToolsNode | undefined;
-    unmounted: ID[]; 
+    unmounted: ID[];
 };
 
 type DomListener = {oldListener?: RPCCallback; newListener?: RPCCallback};
@@ -164,9 +164,9 @@ type IntersectionObserverElementProps<T extends DeepPartial<IntersectionObserver
 interface DevToolsNode {
     readonly _id: ID;
     readonly _nodeId: ID;
-    readonly _instance: {} | undefined; // component {state: {}, props: {}}
-    readonly _renderedComponent: undefined;
-    readonly _inDevTools: boolean;
+    readonly _rootNodeID: RootId;
+    readonly _instance: {};
+    _renderedComponent: DevToolsNode | undefined;
     _currentElement: {type: string; props: unknown} | string;
     _renderedChildren: DevToolsNode[];
     _stringText: string | undefined;

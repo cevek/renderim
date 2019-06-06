@@ -177,7 +177,7 @@ function findErrorBoundary(node: VNode | VNodeCreated) {
     return never();
 }
 
-function findRootId(node: VNodeCreated) {
+function findRootId(node: VNode | VNodeCreated): RootId {
     let n = node.parentComponent;
     while (typeof n !== 'string') {
         n = n.parentComponent;

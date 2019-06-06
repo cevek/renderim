@@ -36,9 +36,19 @@ function initDevTools() {
             if (exists !== undefined) {
                 exists._stringText = instance._stringText;
                 exists._currentElement = instance._currentElement;
+                if (instance._renderedComponent !== undefined) {
+                    exists._renderedComponent = update(instance._renderedComponent);
+                }
                 exists._renderedChildren = instance._renderedChildren.map(update);
                 bridge.Reconciler.receiveComponent(exists);
                 return exists;
+            }
+            if (instance._renderedComponent !== undefined && typeof instance._currentElement !== 'string') {
+                const el = (instance._currentElement as {}) as {type: Function & {displayName?: string}};
+                const componentName = instance._currentElement.type;
+                el.type = () => {};
+                el.type.displayName = componentName;
+                instance._renderedComponent = update(instance._renderedComponent);
             }
             instance._renderedChildren = instance._renderedChildren.map(update);
             bridge.Reconciler.mountComponent(instance);
