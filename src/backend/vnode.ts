@@ -1,8 +1,8 @@
 function createVTextNode(text: string): VTextNodeCreated {
     return {
-        _id: _id++,
+        _id: vNodeIdCounter++,
         status: 'created',
-        id: genId(),
+        id: genNodeId(),
         children: text,
         key: undefined,
         kind: textKind,
@@ -15,9 +15,9 @@ function createVTextNode(text: string): VTextNodeCreated {
 
 function createDomVNode(type: string, attrs: Attrs, key: string | undefined, children: VInput[]): VDomNodeCreated {
     return {
-        _id: _id++,
+        _id: vNodeIdCounter++,
         status: 'created',
-        id: genId(),
+        id: genNodeId(),
         children: children,
         key: key,
         kind: domKind,
@@ -33,17 +33,17 @@ function createComponentVNode<Props extends object>(
     props: Props,
     key?: string,
 ): VComponentNodeCreated {
-    const id = _id++;
+    const componentId = nodeIdCounter++;
     let state = undefined;
     if (type === ErrorBoundary) {
         const val: ErrorBoundaryState = {
-            componentId: id,
+            componentId,
             errors: [],
         };
         state = val;
     } else if (type === Suspense) {
         const val: SuspenseState = {
-            componentId: id,
+            componentId,
             timeoutAt: 0,
             components: [],
             promises: [],
@@ -51,10 +51,10 @@ function createComponentVNode<Props extends object>(
         };
         state = val;
     } else {
-        state = {componentId: id};
+        state = {componentId};
     }
     return {
-        _id: id,
+        _id: vNodeIdCounter++,
         status: 'created',
         id: undefined!,
         children: undefined!,
@@ -68,9 +68,8 @@ function createComponentVNode<Props extends object>(
 }
 
 function createVArrayNode(arr: VInput[]): VArrayNodeCreated {
-    const id = _id++;
     return {
-        _id: id,
+        _id: vNodeIdCounter++,
         status: 'created',
         kind: arrayKind,
         id: undefined!,
@@ -78,13 +77,13 @@ function createVArrayNode(arr: VInput[]): VArrayNodeCreated {
         key: undefined,
         props: undefined,
         type: undefined,
-        state: id,
+        state: nodeIdCounter++,
         parentComponent: undefined!,
     };
 }
 function createVPortalNode(type: ID, children: VInput): VPortalNodeCreated {
     return {
-        _id: _id++,
+        _id: vNodeIdCounter++,
         status: 'created',
         kind: portalKind,
         id: undefined,

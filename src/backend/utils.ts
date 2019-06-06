@@ -2,8 +2,8 @@ function never(val?: never): never {
     throw new AssertError('Never possible: ' + val);
 }
 
-function genId() {
-    return (id++ as unknown) as ID;
+function genNodeId() {
+    return (nodeIdCounter++ as unknown) as ID;
 }
 
 function findChildVDom(node: VNode): VDomNode | VTextNode {

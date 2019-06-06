@@ -1,5 +1,5 @@
-let id = 0;
-let _id = 0;
+let nodeIdCounter = 0;
+let vNodeIdCounter = 0;
 let commandList: Command[] = [];
 const roots = new Map<RootId, VNode>();
 let currentComponent: VComponentNode | VComponentNodeCreated;
