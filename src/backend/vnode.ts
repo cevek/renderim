@@ -120,7 +120,7 @@ function norm(value: VInput): VNodeCreated {
     return createVTextNode('');
 }
 
-function isVNode(value: VInput): value is VNodeCreated {
+function isVNode(value: unknown): value is VNodeCreated {
     return isObj<{kind?: {parent?: {}}}>(value) && isObj(value.kind) && value.kind.parent === kindParent;
 }
 

@@ -167,7 +167,7 @@ interface DevToolsNode {
     readonly _rootNodeID: RootId;
     readonly _instance: {};
     _renderedComponent: DevToolsNode | undefined;
-    _currentElement: {type: string; props: unknown} | string;
+    _currentElement: {type: string | Function; props: {[key: string]: unknown}} | string;
     _renderedChildren: DevToolsNode[];
     _stringText: string | undefined;
 }

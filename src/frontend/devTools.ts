@@ -31,26 +31,39 @@ function initDevTools() {
         };
         __REACT_DEVTOOLS_GLOBAL_HOOK__.inject(bridge);
 
+        function createFunctionWithName(name: string) {
+            const obj = {[name]: function() {}};
+            const fn = obj[name];
+            return fn;
+        }
+
         function update(instance: DevToolsNode) {
+            if (typeof instance._currentElement !== 'string') {
+                const {props} = instance._currentElement;
+                for (const prop in props) {
+                    const value = props[prop];
+                    if (isObject<{__fn: string}>(value) && typeof value.__fn === 'string') {
+                        props[prop] = createFunctionWithName(value.__fn);
+                    }
+                }
+            }
+            instance._renderedChildren = instance._renderedChildren.map(update);
+            if (instance._renderedComponent !== undefined) {
+                instance._renderedComponent = update(instance._renderedComponent);
+                if (typeof instance._currentElement !== 'string') {
+                    const el = instance._currentElement;
+                    el.type = createFunctionWithName(String(el.type));
+                }
+            }
             const exists = devToolsNodes.get(instance._id);
             if (exists !== undefined) {
                 exists._stringText = instance._stringText;
                 exists._currentElement = instance._currentElement;
-                if (instance._renderedComponent !== undefined) {
-                    exists._renderedComponent = update(instance._renderedComponent);
-                }
-                exists._renderedChildren = instance._renderedChildren.map(update);
+                exists._renderedComponent = instance._renderedComponent;
+                exists._renderedChildren = instance._renderedChildren;
                 bridge.Reconciler.receiveComponent(exists);
                 return exists;
             }
-            if (instance._renderedComponent !== undefined && typeof instance._currentElement !== 'string') {
-                const el = (instance._currentElement as {}) as {type: Function & {displayName?: string}};
-                const componentName = instance._currentElement.type;
-                el.type = () => {};
-                el.type.displayName = componentName;
-                instance._renderedComponent = update(instance._renderedComponent);
-            }
-            instance._renderedChildren = instance._renderedChildren.map(update);
             bridge.Reconciler.mountComponent(instance);
             devToolsNodes.set(instance._id, instance);
             return instance;

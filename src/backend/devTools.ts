@@ -6,7 +6,7 @@ let convertVNodeToDevToolsJSON = (node: VNode): DevToolsNode => undefined!;
 if (process.env.NODE_ENV === 'development') {
     function convertProps(props: unknown): unknown {
         type Hash = {[key: string]: Hash | string};
-        if (isVNode(props as VNode)) return 'VNode';
+        if (isVNode(props)) return 'VNode';
         if (isObj<Hash>(props)) {
             const newObj: Hash = {};
             if (Array.isArray(props)) return props.map(convertProps);
@@ -21,7 +21,7 @@ if (process.env.NODE_ENV === 'development') {
             }
             return newObj;
         }
-        if (typeof props === 'function') return `${props.name === '' ? '() => {...}' : `#${props.name}`}` as {};
+        if (typeof props === 'function') return {__fn: `${props.name}`};
         return props;
     }
     convertVNodeToDevToolsJSON = function convertVNodeToDevToolsJSON(node: VNode): DevToolsNode {
@@ -29,20 +29,32 @@ if (process.env.NODE_ENV === 'development') {
         let children: DevToolsNode[] = [];
         let currentElement;
         let renderedComponent;
-        let instance = {props: {}, state: {}};
+        let instance = {};
+        const props = convertProps(node.props) as {[key: string]: unknown};
         if (node.kind === componentKind) {
-            currentElement = {type: node.type.name, props: convertProps(node.props)};
             children = [];
-            renderedComponent = convertVNodeToDevToolsJSON(node.children);
+            if (node.type === Fragment) {
+                currentElement = {type: '#fragment', props};
+                if (node.children.kind === arrayKind) {
+                    children = node.children.children.map(convertVNodeToDevToolsJSON);
+                }
+            } else if (node.type === Portal && node.children.kind === portalKind) {
+                currentElement = {type: '#portal', props};
+                if (node.children.children.kind === arrayKind) {
+                    children = node.children.children.children.map(convertVNodeToDevToolsJSON);
+                }
+            } else {
+                currentElement = {type: node.type.name, props};
+                renderedComponent = convertVNodeToDevToolsJSON(node.children);
+            }
         } else if (node.kind === domKind) {
-            currentElement = {type: node.type, props: convertProps(node.props)};
+            currentElement = {type: node.type, props};
             children = node.children.map(convertVNodeToDevToolsJSON);
         } else if (node.kind === arrayKind) {
             currentElement = {type: '#array', props: {}};
             children = node.children.map(convertVNodeToDevToolsJSON);
         } else if (node.kind === portalKind) {
-            currentElement = {type: '#portal', props: {container: node.type}};
-            children = [convertVNodeToDevToolsJSON(node.children)];
+            throw never();
         } else if (node.kind === textKind) {
             currentElement = String(node.children);
             stringText = String(node.children);
