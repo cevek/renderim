@@ -15,6 +15,7 @@
         "mount.ts",
         "update.ts",
         "component.ts",
+        "components.ts",
         "context.ts",
         "array.ts",
         "remove.ts",
