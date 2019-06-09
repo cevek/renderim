@@ -8,9 +8,11 @@ function createElement(
     if (typeof type === 'string') {
         return createDomVNode(type, props, key, children);
     } else if (typeof type === 'function') {
-        const propsChildren = children.length === 1 ? children[0] : children;
-        if (props === null) props = {children: propsChildren};
-        else props.children = propsChildren;
+        if (children.length > 0) {
+            const propsChildren = children.length === 1 ? children[0] : children;
+            if (props === null) props = {children: propsChildren};
+            else props.children = propsChildren;
+        } else if (props === null) props = {};
         return createComponentVNode(type, props, key);
     } else {
         throw new AssertError('Component type is empty: ' + type);
@@ -171,7 +173,7 @@ function destroyVNode(node: VNodeCreated | VNode) {
 }
 
 function disposeVDomNodeCallbacks(node: VDomNodeCreated | VDomNode) {
-    assert(node.status === 'removed' || node.status === 'cancelled' || node.status === 'obsolete')
+    assert(node.status === 'removed' || node.status === 'cancelled' || node.status === 'obsolete');
     const attrs = node.props;
     for (const attr in attrs) {
         const value = attrs[attr];
