@@ -13,7 +13,7 @@ function InsersectionObserverTarget(props: {children: VNode; onIntersection: () 
 
 function Scrollable(props: {children: VNode; onScroll: () => void}) {
     const vDomNode = findFirstVDomNodeInProps(props.children);
-    vDomNode.props.onScroll = props.onScroll;
+    // vDomNode.props.onScroll = props.onScroll;
     return props.children;
 }
 
