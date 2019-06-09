@@ -1,5 +1,5 @@
 /// <reference path="../common/jsx.d.ts" />
-module 'renderim' {
+declare module 'renderim' {
     export function Fragment(props: {children: JSX.InputElement}): JSX.Element;
     export function lazy<T extends (props: any) => JSX.Element>(
         cmp: () => Promise<{default: T}>,

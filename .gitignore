@@ -5,3 +5,5 @@ dist
 bench.html
 .cache
 bb
+x.tsx
+exp.ts

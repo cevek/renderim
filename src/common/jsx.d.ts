@@ -1,6 +1,8 @@
 declare global {
     namespace JSX {
-        type Element = VInput;
+        interface InputElementArray extends Array<InputElement>{}
+        type InputElement = undefined | null | boolean | string | number | Element | InputElementArray;
+        type Element = {type: string | ((props: object) => InputElement); props: object};
         type CustomChild = {name: string; data: unknown; url?: () => Promise<unknown>};
 
         interface ElementClass {}
@@ -248,7 +250,7 @@ type Base = {
     tabindex?: number;
     style?: Partial<CSSStyleDeclaration>;
     hidden?: boolean;
-    children?: VInput;
+    children?: JSX.InputElement;
     // microdata
     itemtype?: string;
     itemscope?: string;

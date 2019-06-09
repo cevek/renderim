@@ -3,7 +3,6 @@ type VNodeCreated = VComponentNodeCreated | VDomNodeCreated | VTextNodeCreated |
 
 type VInput = undefined | void | null | boolean | string | number | VNodeCreated | {[key: number]: VInput};
 type CommandWithParentVNode = Command & {vNode?: VNode | VNodeCreated};
-type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 type ComponentFun = (props: object) => VInput;
 type VNodeStatus = 'active' | 'obsolete' | 'removed';
 type VChildrenNode = VDomNode | VArrayNode;
