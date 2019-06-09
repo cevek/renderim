@@ -1,4 +1,3 @@
-
 function lazy<P, T extends (props: P) => VInput>(cmp: () => Promise<{default: T}>) {
     let component: T;
     let error: Error | undefined;
@@ -24,8 +23,7 @@ function IntersectionObserverContainer({
         name: 'IntersectionObserverContainer',
         data: {rootMargin, threshold},
     };
-    (child as NoReadonly<VDomNodeCreated>).props = {...child.props, customChild};
-    return child;
+    return cloneVNode(child, {...child.props, customChild}, false);
 }
 
 function IntersectionObserverElement<T extends DeepPartial<IntersectionObserverElementCallbackParams>>({
