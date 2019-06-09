@@ -106,7 +106,7 @@ function norm(value: VInput): VNodeCreated {
     }
     if (isVNode(value)) {
         if (value.status === 'cancelled') {
-            return cloneVNode(value);
+            return cloneVNode(value, true);
         }
         assert(value.status === 'created' || value.status === 'active');
         return value;
@@ -124,18 +124,23 @@ function isVNode(value: unknown): value is VNodeCreated {
     return isObj<{kind?: {parent?: {}}}>(value) && isObj(value.kind) && value.kind.parent === kindParent;
 }
 
-function cloneVNode(node: VNodeCreated): VNodeCreated {
+function cloneVNode(node: VNodeCreated, deep: boolean): VNodeCreated {
     if (node.kind === componentKind) {
         return createComponentVNode(node.type, node.props, node.key);
     }
     if (node.kind === domKind) {
-        return createDomVNode(node.type, node.props, node.key, node.children.map(node => cloneVNode(norm(node))));
+        return createDomVNode(
+            node.type,
+            node.props,
+            node.key,
+            deep ? node.children.map(node => cloneVNode(norm(node), true)) : node.children,
+        );
     }
     if (node.kind === arrayKind) {
-        return createVArrayNode(node.children.map(node => cloneVNode(norm(node))));
+        return createVArrayNode(deep ? node.children.map(node => cloneVNode(norm(node), true)) : node.children);
     }
     if (node.kind === portalKind) {
-        return createVPortalNode(node.type, cloneVNode(norm(node.children)));
+        return createVPortalNode(node.type, deep ? cloneVNode(norm(node.children), true) : node.children);
     }
     if (node.kind === textKind) {
         return createVTextNode(node.children);

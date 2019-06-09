@@ -1,6 +1,6 @@
 function mountVNode(node: VNodeCreated, parentId: ID, beforeId: ID | null): VNode {
     if (node.status === 'active') {
-        node = cloneVNode(node);
+        node = cloneVNode(node, true);
     }
     assert(node.status === 'created');
     node.parentComponent = currentComponent;

@@ -18,7 +18,7 @@ function updateVNode(node: VNodeCreated, oldNode: VNode, parentId: ID): VNode {
         return oldNode;
     }
     if (node.status === 'active') {
-        node = cloneVNode(node);
+        node = cloneVNode(node, true);
     }
     assert(node.status === 'created');
     (node as NoReadonly<VNode>).parentComponent = currentComponent;

@@ -1,31 +1,27 @@
 /// <reference path="../common/jsx.d.ts" />
 module 'renderim' {
-    // export type VNode = {type: string | ((props: object) => VInput); props: object};
-    export type VNode = JSX.Element;
-    export type VInput = JSX.Element;
-
-    export function Fragment(props: {children: VInput}): VInput;
-    export function lazy<T extends (props: any) => VInput>(
+    export function Fragment(props: {children: JSX.InputElement}): JSX.Element;
+    export function lazy<T extends (props: any) => JSX.Element>(
         cmp: () => Promise<{default: T}>,
-    ): (props: Parameters<T>[0]) => VNode;
-    export function Portal(props: {container: string; children: VInput}): VNode;
-    export function ErrorBoundary(props: {children: VInput; fallback: (props: {errors: Error[]}) => VInput}): VInput;
-    export function Suspense(props: {children: VInput; timeout: number; fallback: VInput}): VInput;
-    export function restartComponent(node: VNode): boolean;
+    ): (props: Parameters<T>[0]) => JSX.Element;
+    export function Portal(props: {container: string; children: JSX.InputElement}): JSX.Element;
+    export function ErrorBoundary(props: {children: JSX.InputElement; fallback: (props: {errors: Error[]}) => JSX.Element}): JSX.Element;
+    export function Suspense(props: {children: JSX.InputElement; timeout: number; fallback: JSX.InputElement}): JSX.Element;
+    export function restartComponent(node: JSX.Element): boolean;
     export function createContext<T>(
         defaultValue: T,
     ): {
-        Provider: (props: {value: T; children: VInput}) => VInput;
-        Consumer: (props: {children: (value: T) => VInput}) => VInput;
+        Provider: (props: {value: T; children: JSX.InputElement}) => JSX.Element;
+        Consumer: (props: {children: (value: T) => JSX.InputElement}) => JSX.Element;
     };
     export function createElement(
-        type: string | ((props: object) => VInput),
+        type: string | ((props: object) => JSX.Element),
         props: {
             [key: string]: unknown;
         } | null,
-        ...children: VInput[]
-    ): VNode;
-    export function render(node: VInput, htmlId: string): void;
+        ...children: JSX.InputElement[]
+    ): JSX.Element;
+    export function render(node: JSX.Element, htmlId: string): void;
     export function unmountComponentAtNode(htmlId: string): void;
 
     export function withPreventDefault(cb: () => void): () => void;
@@ -35,14 +31,14 @@ module 'renderim' {
     export function withEventData<T extends object>(cb: (value: T) => void, shape: T): () => void;
 
     export function IntersectionObserverContainer(props: {
-        children: VNode;
+        children: JSX.InputElement;
         rootMargin?: string;
         threshold?: string | number;
-    }): VNode;
+    }): JSX.Element;
 
     export function IntersectionObserverElement<T extends DeepPartial<IntersectionObserverElementCallbackParams>>(
-        props: {children: VNode} & IntersectionObserverElementProps<T>,
-    ): VNode;
+        props: {children: JSX.InputElement} & IntersectionObserverElementProps<T>,
+    ): JSX.Element;
 
-    export function setHook(type: 'beforeComponent' | 'afterComponent' | 'unmountComponent', value: (node: VNode) => void): void;
+    export function setHook(type: 'beforeComponent' | 'afterComponent' | 'unmountComponent', value: (node: JSX.Element) => void): void;
 }
