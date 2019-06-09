@@ -6,6 +6,7 @@
         "jsxFactory": "createElement",
         "module": "amd",
         "strict": true,
+        "typeRoots": [],
         "esModuleInterop": true
     },
     "exclude": ["node_modules", "dist"]
