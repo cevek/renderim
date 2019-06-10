@@ -27,8 +27,8 @@ function updateArray(node: VArrayNodeCreated, oldNode: VArrayNode, parentId: ID)
             if (oldChildIdx !== undefined && oldUsed[oldChildIdx] === undefined) {
                 oldUsed[oldChildIdx] = true;
                 const oldChild = oldList[oldChildIdx];
-                beforeVNode = updateVNode(norm(node.children[i]), oldChild, parentId);
-                moveChild(child, beforeId);
+                beforeVNode = updateVNode(child, oldChild, parentId);
+                moveChild(beforeVNode, beforeId);
             } else {
                 beforeVNode = mountVNode(child, parentId, beforeId);
             }
@@ -74,7 +74,8 @@ function updateTail(node: VArrayNodeCreated, oldNode: VArrayNode, skipHead: numb
     return node.children.length - newEnd;
 }
 
-function moveChild(node: VNodeCreated, beforeId: ID | null): ID | null {
+function moveChild(node: VNode, beforeId: ID | null): ID | null {
+    assert(node.status === 'active');
     if (node.kind === domKind) {
         addCommand(node, {action: 'move', group: 'tag', tag: node.type, id: node.id, beforeId});
         return node.id;
@@ -84,12 +85,11 @@ function moveChild(node: VNodeCreated, beforeId: ID | null): ID | null {
         return node.id;
     }
     if (node.kind === componentKind) {
-        return moveChild(norm(node.children), beforeId);
+        return moveChild(node.children, beforeId);
     }
     if (node.kind === arrayKind) {
         for (let i = node.children.length - 1; i >= 0; i--) {
-            const child = norm(node.children[i]);
-            beforeId = moveChild(child, beforeId);
+            beforeId = moveChild(node.children[i], beforeId);
         }
         return beforeId;
     }
@@ -98,4 +98,3 @@ function moveChild(node: VNodeCreated, beforeId: ID | null): ID | null {
     }
     return never(node);
 }
-
