@@ -1,9 +1,9 @@
 type VNode = VComponentNode | VDomNode | VTextNode | VPortalNode | VArrayNode;
 type VNodeCreated = VComponentNodeCreated | VDomNodeCreated | VTextNodeCreated | VPortalNodeCreated | VArrayNodeCreated;
 
-type VInput = undefined | void | null | boolean | string | number | VNodeCreated | {[key: number]: VInput};
+type VInput = undefined | null | boolean | string | number | VNodeCreated | {[key: number]: VInput};
 type CommandWithParentVNode = Command & {vNode?: VNode | VNodeCreated};
-type ComponentFun = (props: object) => VInput;
+type ComponentFun = (props: any) => VInput;
 type VNodeStatus = 'active' | 'obsolete' | 'removed';
 type VChildrenNode = VDomNode | VArrayNode;
 type VChildrenNodeCreated = VDomNodeCreated | VArrayNodeCreated;
@@ -103,11 +103,9 @@ type VPortalNode = {
 
 type CallbackWithCommand = ((...args: unknown[]) => void) & {command?: RPCCallback; extractArgs?: object[]};
 
-
 type ErrorBoundaryProps = {children: VInput; fallback: (props: {errors: Error[]}) => VInput};
 type ErrorBoundaryState = {componentId: number; errors: Error[]};
 type VErrorBoundaryNodeCreated = VComponentNodeCreated & {props: ErrorBoundaryProps; state: ErrorBoundaryState};
-
 
 type SuspenseState = {
     componentId: number;
@@ -116,5 +114,8 @@ type SuspenseState = {
     resolvedPromises: number;
     components: VComponentNodeCreated[];
 };
-type SuspenseProps = {children: VInput; timeout: number; fallback: VInput};
+type SuspenseProps = {children: VInput; hideIfSuspended?: boolean; timeout: number; fallback: VInput};
 type VSuspenseNodeCreated = VComponentNodeCreated & {props: SuspenseProps; state: SuspenseState};
+type VSuspenseContentNodeCreated = VComponentNodeCreated & {
+    readonly parentComponent: {readonly parentComponent: VSuspenseNodeCreated};
+};

@@ -13,30 +13,23 @@ function createElement(
             if (props === null) props = {children: propsChildren};
             else props.children = propsChildren;
         } else if (props === null) props = {};
+        console.log(type, props);
         return createComponentVNode(type, props, key);
     } else {
         throw new AssertError('Component type is empty: ' + type);
     }
 }
 
+function setParentComponents(node: VNodeCreated, parentComponent: ParentComponent) {
+    node.parentComponent = parentComponent;
+}
+
 function render(node: VInput, htmlId: string) {
     const rootId = htmlId as RootId;
     const id = (htmlId as unknown) as ID;
-
-    currentComponent = createComponentVNode(Suspense, {
-        fallback: '',
-        timeout: 0,
-        children: undefined!,
-    });
-    currentComponent.parentComponent = rootId;
-    Object.freeze(currentComponent);
-
+    currentComponent = rootId;
     const rootNode = createComponentVNode(ErrorBoundary, {
-        children: createComponentVNode(Suspense, {
-            fallback: 'Root Loading...',
-            timeout: 0,
-            children: node,
-        }),
+        children: createElement(Suspense, {fallback: '', hideIfSuspended: false, timeout: 0}, node),
         fallback: (props: {errors: Error[]}) => {
             console.error(props.errors);
             return 'Something went wrong';
@@ -88,7 +81,9 @@ function unmountComponentAtNode(htmlId: string) {
 }
 
 function shouldCancel(node: VNode | VNodeCreated) {
-    return findSuspense(node).state.promises.length > 0; // || node.errorBoundary.state.errors.length > 0;
+    const suspenseContent = findSuspense(node);
+    if (suspenseContent === undefined) return false;
+    return suspenseContent.parentComponent.parentComponent.state.promises.length > 0; // || node.errorBoundary.state.errors.length > 0;
 }
 function commitUpdating() {
     for (const {oldNode, newNode} of maybeRestarted) {
@@ -114,6 +109,10 @@ function commitUpdating() {
     }
     // console.log({maybeRemoved, maybeObsolete, maybeCancelled});
     for (const node of maybeRemoved) {
+        // suspense can remount children 2 times
+        // if (node.status === 'removed') {
+        //     continue;
+        // }
         assert(node.status === 'active');
         if (!shouldCancel(node)) {
             (node as NoReadonly<VNode>).status = 'removed';
@@ -121,6 +120,10 @@ function commitUpdating() {
         }
     }
     for (const node of maybeObsolete) {
+        // suspense can remount children 2 times
+        // if (node.status === 'obsolete') {
+        //     continue;
+        // }
         assert(node.status === 'active' || node.status === 'removed');
         if (!shouldCancel(node)) {
             (node as NoReadonly<VNode>).status = 'obsolete';
@@ -135,6 +138,11 @@ function commitUpdating() {
         }
     }
     for (const {newParent, node} of maybeUpdatedParent) {
+        // suspense can remount children 2 times
+        // if (node.status === 'removed' || node.status === 'obsolete') {
+        //     continue;
+        // }
+
         assert(node.status === 'active');
         if (!shouldCancel(node)) {
             (node as NoReadonly<VNode>).parentComponent = newParent;

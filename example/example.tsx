@@ -14,10 +14,26 @@ import R, {
 import './example.scss';
 const MyLazy = lazy(() => import('./lazy'));
 const MyContext = createContext('DefaultContext');
+
+
+let data: any;
+function Data() {
+    if (data === undefined) {
+        throw new Promise(res => {
+            return setTimeout(() => {
+                data = 'DATA';
+                res();
+            }, 2000);
+        });
+    }
+    return data;
+}
+
 render(
-    <Suspense timeout={5000} fallback={<div>Loading...</div>}>
+    <Suspense timeout={1000} fallback={<div>My Loading...</div>}>
         <div class="header">
             Hello
+            <Data />
             <span onClick={() => console.log('click1')} class="selected" style={{color: 'red', margin: '10px'}}>
                 My name is <b>{'Alex'}</b>
             </span>
@@ -42,24 +58,12 @@ render(
     '#root',
 );
 
-let data: any;
-function Data() {
-    if (data === undefined) {
-        throw new Promise(res => {
-            return setTimeout(() => {
-                data = 'DATA';
-                res();
-            }, 1000);
-        });
-    }
-    return data;
-}
-
 // debugger;
 render(
-    <Suspense timeout={500000} fallback={<div>Loading...</div>}>
+    <Suspense timeout={1000} fallback={<div>My Loading...</div>}>
         <div class="body" title="hello">
             Hello
+            <Data />
             <span
                 onClick={() => console.log('click2')}
                 class="selected"
@@ -83,7 +87,6 @@ render(
             ))}
             {/* <Suspense timeout={500} fallback={<div>Loading...</div>}> */}
             Hello
-            <Data />
             Everybody
             {/* <ErrorBoundary fallback={props => props.errors.map(err => <div>{err.message}</div>)}>
                 1

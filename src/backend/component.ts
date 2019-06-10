@@ -20,8 +20,6 @@ function runComponent(node: VComponentNodeCreated) {
     }
 }
 
-
-
 function restartComponent(node: VComponentNode | VComponentNodeCreated): boolean {
     if (node.status === 'removed' || node.status === 'cancelled' || node.status === 'obsolete') return false;
     const oldNode = node as VComponentNode;
@@ -71,35 +69,48 @@ function handleErrorBoundary(
 
 function handleSuspense(node: VSuspenseNodeCreated, oldChild: VNode | undefined, parentId: ID, beforeId: ID | null) {
     assert(node.status === 'created');
-    assert(node.state.components.length === node.state.promises.length);
-    if (node.state.promises.length > 0) {
-        for (const component of node.state.components) {
+    const state = node.state;
+    assert(state.components.length === state.promises.length);
+    if (state.promises.length > 0) {
+        for (const component of state.components) {
             restartComponent(component);
         }
-        if (node.state.resolvedPromises === node.state.promises.length) {
-            node.state.promises = [];
-            node.state.components = [];
-            node.state.resolvedPromises = 0;
+        if (state.resolvedPromises === state.promises.length) {
+            state.promises = [];
+            state.components = [];
+            state.resolvedPromises = 0;
         }
     }
-    node.children = mountOrUpdate(norm(node.children), oldChild, parentId, beforeId);
-    if (node.state.promises.length > 0) {
-        if (node.state.timeoutAt <= Date.now()) {
-            if (oldChild !== undefined) {
-                node.children = oldChild;
-            }
-        } else {
+    // if (state.promises.length === 0) {
+    const newChildren = mountOrUpdate(norm(node.children), oldChild, parentId, beforeId);
+    node.children = undefined;
+    if (state.promises.length === 0) {
+        node.children = newChildren;
+    } else {
+        if (state.timeoutAt > Date.now()) {
             addPromiseToParentSuspense(
                 node,
-                Promise.race([Promise.all(node.state.promises), sleep(node.state.timeoutAt - Date.now() + 1)]),
+                Promise.race([Promise.all(state.promises), sleep(state.timeoutAt - Date.now() + 1)]),
             );
+        } else {
+            node;
+            // setTimeout(() => restartComponent(node));
+        }
+    }
+    // }
+    if (node.children === undefined) {
+        if (oldChild === undefined) {
+            node.children = mountVNode(norm(null), parentId, beforeId);
+        } else {
+            node.children = oldChild;
         }
     }
     return node;
 }
 
 function addPromiseToParentSuspense(component: VComponentNodeCreated, promise: Promise<unknown>) {
-    const suspense = findSuspense(component);
+    const suspenseContent = nonNull(findSuspense(component));
+    const suspense = suspenseContent.parentComponent.parentComponent;
     assert(suspense.status === 'active' || suspense.status === 'created');
     assert(component.status === 'created');
     if (suspense.state.promises.length === 0) {
@@ -134,13 +145,23 @@ function addErrorToParentBoundary(component: VComponentNodeCreated, error: Error
     });
 }
 
+const defaultSuspenseState: SuspenseState = {
+    componentId: 0,
+    components: [],
+    promises: [],
+    resolvedPromises: 0,
+    timeoutAt: 0,
+};
 function findSuspense(node: VNode | VNodeCreated) {
     let n = node.parentComponent;
     while (typeof n !== 'string') {
-        if (n.type === Suspense) return n as VSuspenseNodeCreated;
+        if (n.type === SuspenseContent) {
+            const ret = n as VSuspenseContentNodeCreated;
+            assert(ret.parentComponent.parentComponent.type === Suspense);
+            return ret;
+        }
         n = n.parentComponent;
     }
-    return never();
 }
 
 function findErrorBoundary(node: VNode | VNodeCreated) {

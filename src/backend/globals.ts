@@ -2,7 +2,7 @@ let nodeIdCounter = 0;
 let vNodeIdCounter = 0;
 let commandList: Command[] = [];
 const roots = new Map<RootId, VNode>();
-let currentComponent: VComponentNode | VComponentNodeCreated;
+let currentComponent: ParentComponent;
 
 const hooks = {
     beforeComponent(node: VComponentNodeCreated) {},

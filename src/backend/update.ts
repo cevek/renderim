@@ -14,7 +14,7 @@ function replaceVNode(node: VNodeCreated, oldNode: VNode, parentId: ID) {
 function updateVNode(node: VNodeCreated, oldNode: VNode, parentId: ID): VNode {
     assert(oldNode.status === 'active');
     if (oldNode === node) {
-        maybeUpdatedParent.push({newParent: currentComponent, node: oldNode});
+        maybeUpdatedParent.push({newParent: currentComponent as VComponentNode, node: oldNode});
         return oldNode;
     }
     if (node.status === 'active') {
