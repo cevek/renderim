@@ -64,6 +64,13 @@ function updateComponent(node: VComponentNodeCreated, oldNode: VComponentNode, p
         node = handleErrorBoundary(node as VErrorBoundaryNodeCreated, oldNode.children, parentId, null);
     } else if (node.type === Suspense) {
         node = handleSuspense(node as VSuspenseNodeCreated, oldNode.children, parentId, null);
+    } else if (node.type === SuspenseContent) {
+        const oldChild = oldNode !== undefined && oldNode.children.status !== 'active' ? undefined : oldNode.children;
+        if (oldChild !== undefined) {
+            node.children = updateVNode(norm(node.children), oldChild, parentId);
+        } else {
+            node.children = mountVNode(norm(node.children), parentId, null);
+        }
     } else {
         node.children = updateVNode(norm(node.children), oldNode.children, parentId);
     }

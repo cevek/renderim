@@ -45,6 +45,7 @@ function createComponentVNode<Props extends object>(
         const val: SuspenseState = {
             componentId,
             timeoutAt: 0,
+            promisesSet: new Set(),
             components: [],
             promises: [],
             resolvedPromises: 0,

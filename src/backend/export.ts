@@ -13,7 +13,6 @@ function createElement(
             if (props === null) props = {children: propsChildren};
             else props.children = propsChildren;
         } else if (props === null) props = {};
-        console.log(type, props);
         return createComponentVNode(type, props, key);
     } else {
         throw new AssertError('Component type is empty: ' + type);

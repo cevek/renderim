@@ -111,6 +111,7 @@ type SuspenseState = {
     componentId: number;
     timeoutAt: number;
     promises: Promise<unknown>[];
+    promisesSet: Set<Promise<unknown>>;
     resolvedPromises: number;
     components: VComponentNodeCreated[];
 };
