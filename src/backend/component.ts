@@ -114,15 +114,16 @@ function handleSuspense(node: VSuspenseNodeCreated, oldChild: VNode | undefined,
 }
 
 function restartSuspense(node: VSuspenseNodeCreated) {
+    console.log('restartSuspense', node);
     const state = node.state;
     assert(state.components.length === state.promises.length);
     assert(state.resolvedPromises <= state.promises.length);
     for (const component of state.components) {
-        if (component.type === Suspense) {
-            restartSuspense(component as VSuspenseNodeCreated);
-        } else {
-            restartComponent(component);
-        }
+        // if (component.type === Suspense) {
+        //     restartSuspense(component as VSuspenseNodeCreated);
+        // } else {
+        restartComponent(component);
+        // }
     }
     if (state.resolvedPromises === state.promises.length) {
         state.promises = [];
@@ -143,6 +144,7 @@ function addPromiseToParentSuspense(component: VComponentNodeCreated, promise: P
             // restartComponent(suspense);
         });
     }
+    console.log('add promise to suspense', suspense, promise);
     suspense.state.promisesSet.add(promise);
     assert(suspense.status === 'active' || suspense.status === 'created');
     assert(component.status === 'created');
@@ -152,10 +154,10 @@ function addPromiseToParentSuspense(component: VComponentNodeCreated, promise: P
     suspense.state.promises.push(promise.catch(noop));
     suspense.state.components.push(component);
     const currentPromises = suspense.state.promises.slice();
-    console.log('add promise to suspense', suspense);
     // debugger;
     // visitEachNode(suspense, n => console.log(n.status));
     Promise.all(currentPromises).then(() => {
+        if (suspense.status !== 'active') return;
         // todo: check actual id
         suspense.state.resolvedPromises = currentPromises.length;
         const restarted = restartSuspense(suspense);
