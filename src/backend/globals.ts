@@ -2,7 +2,7 @@ let nodeIdCounter = 0;
 let vNodeIdCounter = 0;
 let commandList: Command[] = [];
 const roots = new Map<RootId, VNode>();
-let currentComponent: ParentComponent;
+let currentComponent: VComponentNode | VComponentNodeCreated | undefined;
 
 const hooks = {
     beforeComponent(node: VComponentNodeCreated) {},
@@ -14,7 +14,7 @@ let maybeCancelled: VNodeCreated[] = [];
 let maybeRemoved: VNode[] = [];
 let maybeObsolete: VNode[] = [];
 let maybeRestarted: ({newNode: VComponentNode; oldNode: VComponentNode})[] = [];
-let maybeUpdatedParent: ({node: VNode; newParent: VComponentNode | VComponentNodeCreated})[] = [];
+let maybeUpdatedParent: ({node: VNode; newParent: ParentComponent})[] = [];
 
 let isCustomUrlCall = false;
 const GCVNodes = process.env.NODE_ENV === 'development' ? new WeakSet<VNodeCreated | VNode>() : undefined;

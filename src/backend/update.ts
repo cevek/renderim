@@ -1,29 +1,29 @@
-function mountOrUpdate(node: VNodeCreated, oldNode: VNode | undefined, parentId: ID, beforeId: ID | null) {
+function mountOrUpdate(parentNode: ParentComponent, node: VNodeCreated, oldNode: VNode | undefined, parentId: ID, beforeId: ID | null) {
     if (oldNode === undefined) {
-        return mountVNode(node, parentId, beforeId);
+        return mountVNode(parentNode, node, parentId, beforeId);
     }
-    return updateVNode(node, oldNode, parentId);
+    return updateVNode(parentNode, node, oldNode, parentId);
 }
 
-function replaceVNode(node: VNodeCreated, oldNode: VNode, parentId: ID) {
-    const newNode = mountVNode(node, parentId, findChildVDom(oldNode).id);
+function replaceVNode(parentNode: ParentComponent, node: VNodeCreated, oldNode: VNode, parentId: ID) {
+    const newNode = mountVNode(parentNode, node, parentId, findChildVDom(oldNode).id);
     removeVNode(oldNode, true);
     return newNode;
 }
 
-function updateVNode(node: VNodeCreated, oldNode: VNode, parentId: ID): VNode {
+function updateVNode(parentNode: ParentComponent, node: VNodeCreated, oldNode: VNode, parentId: ID): VNode {
     assert(oldNode.status === 'active');
-    if (oldNode === node) {
-        maybeUpdatedParent.push({newParent: currentComponent as VComponentNode, node: oldNode});
+    if (oldNode === node && getPersistId(oldNode.parentComponent) === getPersistId(parentNode)) {
+        maybeUpdatedParent.push({newParent: parentNode, node: oldNode});
         return oldNode;
     }
     if (node.status === 'active') {
         node = cloneVNode(node);
     }
     assert(node.status === 'created');
-    (node as NoReadonly<VNode>).parentComponent = currentComponent;
+    (node as NoReadonly<VNode>).parentComponent = parentNode;
     if (node.kind !== oldNode.kind) {
-        return replaceVNode(node, oldNode, parentId);
+        return replaceVNode(parentNode, node, oldNode, parentId);
     }
     if (node.kind === componentKind) {
         return updateComponent(node, oldNode as VComponentNode, parentId);
@@ -53,10 +53,8 @@ function updateComponent(node: VComponentNodeCreated, oldNode: VComponentNode, p
     assert(node.status === 'created');
     assert(oldNode.status === 'active');
     if (node.type !== oldNode.type) {
-        return replaceVNode(node, oldNode, parentId) as VComponentNode;
+        return replaceVNode(node.parentComponent, node, oldNode, parentId) as VComponentNode;
     }
-    const parentComponent = currentComponent;
-    currentComponent = node;
     node.id = parentId;
     node.state = oldNode.state;
     runComponent(node);
@@ -67,21 +65,20 @@ function updateComponent(node: VComponentNodeCreated, oldNode: VComponentNode, p
     } else if (node.type === SuspenseContent) {
         const oldChild = oldNode !== undefined && oldNode.children.status !== 'active' ? undefined : oldNode.children;
         if (oldChild !== undefined) {
-            node.children = updateVNode(norm(node.children), oldChild, parentId);
+            node.children = updateVNode(node, norm(node.children), oldChild, parentId);
         } else {
-            node.children = mountVNode(norm(node.children), parentId, null);
+            node.children = mountVNode(node, norm(node.children), parentId, null);
         }
     } else {
-        node.children = updateVNode(norm(node.children), oldNode.children, parentId);
+        node.children = updateVNode(node, norm(node.children), oldNode.children, parentId);
     }
-    currentComponent = parentComponent;
     finalUpdate(node, oldNode);
     return node as VComponentNode;
 }
 
 function updateDom(node: VDomNodeCreated, oldNode: VDomNode, parentId: ID) {
     if (node.type !== oldNode.type) {
-        return replaceVNode(node, oldNode, parentId);
+        return replaceVNode(node.parentComponent, node, oldNode, parentId);
     }
     (node as NoReadonly<VDomNode>).id = oldNode.id;
     const props = node.props as JSX.IntrinsicElements[string];
@@ -98,10 +95,10 @@ function updateDom(node: VDomNodeCreated, oldNode: VDomNode, parentId: ID) {
     }
     for (let i = 0; i < len; i++) {
         const oldChild = oldNode.children[i] as VNode;
-        node.children[i] = updateVNode(norm(node.children[i]), oldChild, parentId);
+        node.children[i] = updateVNode(node, norm(node.children[i]), oldChild, parentId);
     }
     for (let i = len; i < node.children.length; i++) {
-        node.children[i] = mountVNode(norm(node.children[i]), node.id, null);
+        node.children[i] = mountVNode(node, norm(node.children[i]), node.id, null);
     }
     for (let i = len; i < oldNode.children.length; i++) {
         const oldChild = oldNode.children[i] as VNode;
@@ -135,9 +132,9 @@ function updateText(node: VTextNodeCreated, oldNode: VTextNode) {
 
 function updatePortal(node: VPortalNodeCreated, oldNode: VPortalNode) {
     if (node.type !== oldNode.type) {
-        return replaceVNode(node, oldNode, node.type);
+        return replaceVNode(node.parentComponent, node, oldNode, node.type);
     }
-    node.children = updateVNode(norm(node.children), oldNode.children as VNode, node.type);
+    node.children = updateVNode(node, norm(node.children), oldNode.children as VNode, node.type);
     finalUpdate(node, oldNode);
     return node as VPortalNode;
 }

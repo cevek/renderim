@@ -155,7 +155,8 @@ function ensureVDomNode(node: VInput) {
     return node;
 }
 
-function getPersistId(node: VNode): ID {
+function getPersistId(node: VNode | VNodeCreated | RootId): ID {
+    if (typeof node === 'string') return (node as unknown) as ID;
     if (node.kind === componentKind) {
         return node.state.componentId as ID;
     }

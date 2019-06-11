@@ -1,5 +1,6 @@
 function runComponent(node: VComponentNodeCreated) {
     assert(node.status === 'created');
+    currentComponent = node;
     try {
         hooks.beforeComponent(node);
         node.children = norm(node.type(node.props));
@@ -17,6 +18,8 @@ function runComponent(node: VComponentNodeCreated) {
             });
             addErrorToParentBoundary(node, err);
         }
+    } finally {
+        currentComponent = undefined;
     }
 }
 
@@ -26,20 +29,16 @@ function restartComponent(node: VComponentNode | VComponentNodeCreated): boolean
     console.log('restart', node);
     assert(node.status === 'active');
     visitEachNode(node, n => assert(n.status === 'active'));
-
-    const prevCurrentComponent = currentComponent;
     assert(typeof node.parentComponent !== 'string');
-    currentComponent = node.parentComponent as VComponentNode;
 
     const newNode = updateVNode(
+        node.parentComponent,
         createComponentVNode(node.type, node.props, node.key),
         oldNode,
         node.id,
     ) as VComponentNode;
     assert(newNode.kind === componentKind);
     maybeRestarted.push({newNode: newNode, oldNode: oldNode});
-
-    currentComponent = prevCurrentComponent;
     return true;
 }
 
@@ -52,17 +51,16 @@ function handleErrorBoundary(
     assert(node.status === 'created');
     if (node.state.errors.length > 0) {
         assert(typeof node.parentComponent !== 'string');
-        currentComponent = node.parentComponent as VComponentNode;
         node.children = mountOrUpdate(
+            node,
             createComponentVNode(node.props.fallback, {errors: node.state.errors}),
             oldChild,
             parentId,
             beforeId,
         );
-        currentComponent = node;
     }
     if (node.state.errors.length === 0) {
-        node.children = mountOrUpdate(norm(node.children), oldChild, parentId, beforeId);
+        node.children = mountOrUpdate(node, norm(node.children), oldChild, parentId, beforeId);
     }
     return node;
 }
@@ -73,7 +71,7 @@ function handleSuspense(node: VSuspenseNodeCreated, oldChild: VNode | undefined,
     assert(state.components.length === state.promises.length);
     assert(state.resolvedPromises <= state.promises.length);
     // const prevPromisesLen = state.promises.length;
-    node.children = mountOrUpdate(norm(node.children), oldChild, parentId, beforeId);
+    node.children = mountOrUpdate(node, norm(node.children), oldChild, parentId, beforeId);
     // if (state.promises.length === 0) {
     // const newChildren = mountOrUpdate(norm(node.children), oldChild, parentId, beforeId);
     // node.children = undefined;
@@ -84,12 +82,13 @@ function handleSuspense(node: VSuspenseNodeCreated, oldChild: VNode | undefined,
         const suspenseContent = fragmentArray.children[1] as VComponentNodeCreated;
         assert(suspenseContent.type === SuspenseContent);
         if (oldChild === undefined) {
-            fragmentArray.children[1] = mountVNode(norm(null), parentId, beforeId);
+            fragmentArray.children[1] = mountVNode(fragmentArray, norm(null), parentId, beforeId);
         } else {
             const oldSuspenseContent = (oldChild.children as VArrayNode).children[1] as VComponentNode;
             // assert(oldSuspenseContent.type === SuspenseContent);
             // currentComponent = suspenseContent;
             fragmentArray.children[1] = updateVNode(
+                fragmentArray,
                 oldSuspenseContent as VComponentNodeCreated,
                 oldSuspenseContent,
                 parentId,

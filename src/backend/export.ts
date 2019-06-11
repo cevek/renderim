@@ -26,7 +26,6 @@ function setParentComponents(node: VNodeCreated, parentComponent: ParentComponen
 function render(node: VInput, htmlId: string) {
     const rootId = htmlId as RootId;
     const id = (htmlId as unknown) as ID;
-    currentComponent = rootId;
     const rootNode = createComponentVNode(ErrorBoundary, {
         children: createElement(Suspense, {fallback: '', hideIfSuspended: false, timeout: 0}, node),
         fallback: (props: {errors: Error[]}) => {
@@ -40,7 +39,7 @@ function render(node: VInput, htmlId: string) {
     if (oldNode === undefined) {
         addCommand(rootNode, {action: 'start', group: 'mount', rootId: rootId});
     }
-    const newNode = oldNode === undefined ? mountVNode(rootNode, id, null) : updateVNode(rootNode, oldNode, id);
+    const newNode = oldNode === undefined ? mountVNode(rootId, rootNode, id, null) : updateVNode(rootId, rootNode, oldNode, id);
     roots.set(rootId, newNode);
     if (oldNode === undefined) {
         addCommand(newNode, {action: 'end', group: 'mount', rootId: rootId});

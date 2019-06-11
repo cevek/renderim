@@ -27,10 +27,10 @@ function updateArray(node: VArrayNodeCreated, oldNode: VArrayNode, parentId: ID)
             if (oldChildIdx !== undefined && oldUsed[oldChildIdx] === undefined) {
                 oldUsed[oldChildIdx] = true;
                 const oldChild = oldList[oldChildIdx];
-                beforeVNode = updateVNode(child, oldChild, parentId);
+                beforeVNode = updateVNode(node, child, oldChild, parentId);
                 moveChild(beforeVNode, beforeId);
             } else {
-                beforeVNode = mountVNode(child, parentId, beforeId);
+                beforeVNode = mountVNode(node, child, parentId, beforeId);
             }
             node.children[i] = beforeVNode;
         }
@@ -52,7 +52,7 @@ function updateHead(node: VArrayNodeCreated, oldNode: VArrayNode, parentId: ID) 
         const child = norm(node.children[start]);
         const oldChild = oldNode.children[start];
         if (child.key !== oldChild.key) break;
-        node.children[start] = updateVNode(norm(node.children[start]), oldChild, parentId);
+        node.children[start] = updateVNode(node, norm(node.children[start]), oldChild, parentId);
         start++;
     }
     return start;
@@ -67,7 +67,7 @@ function updateTail(node: VArrayNodeCreated, oldNode: VArrayNode, skipHead: numb
         const child = norm(node.children[newI]);
         const oldChild = oldNode.children[oldI];
         if (child.key !== oldChild.key) break;
-        node.children[newI] = updateVNode(norm(node.children[newI]), oldChild, parentId);
+        node.children[newI] = updateVNode(node, norm(node.children[newI]), oldChild, parentId);
         newEnd--;
         oldEnd--;
     }

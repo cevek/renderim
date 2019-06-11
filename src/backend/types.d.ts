@@ -9,7 +9,7 @@ type VChildrenNode = VDomNode | VArrayNode;
 type VChildrenNodeCreated = VDomNodeCreated | VArrayNodeCreated;
 type NoReadonly<T> = {-readonly [P in keyof T]: T[P]};
 
-type ParentComponent = VComponentNode | VComponentNodeCreated | RootId;
+type ParentComponent = VComponentNode | VComponentNodeCreated | VArrayNode | VArrayNodeCreated | VDomNode | VDomNodeCreated | VPortalNode | VPortalNodeCreated | RootId;
 type VComponentNodeCreated = Omit<VComponentNode, 'id' | 'children' | 'parentComponent' | 'status' | 'state'> & {
     id: ID;
     children: VInput;

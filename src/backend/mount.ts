@@ -1,9 +1,9 @@
-function mountVNode(node: VNodeCreated, parentId: ID, beforeId: ID | null): VNode {
+function mountVNode(parentNode: ParentComponent, node: VNodeCreated, parentId: ID, beforeId: ID | null): VNode {
     if (node.status === 'active') {
         node = cloneVNode(node);
     }
     assert(node.status === 'created');
-    node.parentComponent = currentComponent;
+    node.parentComponent = parentNode;
     if (node.kind === componentKind) {
         node = mountComponent(node, parentId, beforeId);
     } else if (node.kind === domKind) {
@@ -21,7 +21,7 @@ function mountVNode(node: VNodeCreated, parentId: ID, beforeId: ID | null): VNod
     } else if (node.kind === arrayKind) {
         mountChildren(node, parentId, beforeId);
     } else if (node.kind === portalKind) {
-        node.children = mountVNode(norm(node.children), node.type, null);
+        node.children = mountVNode(node, norm(node.children), node.type, null);
     } else {
         throw never(node);
     }
@@ -31,8 +31,6 @@ function mountVNode(node: VNodeCreated, parentId: ID, beforeId: ID | null): VNod
 }
 
 function mountComponent(node: VComponentNodeCreated, parentId: ID, beforeId: ID | null): VComponentNodeCreated {
-    const parentComponent = currentComponent;
-    currentComponent = node;
     node.id = parentId;
     runComponent(node);
     if (node.type === ErrorBoundary) {
@@ -40,9 +38,8 @@ function mountComponent(node: VComponentNodeCreated, parentId: ID, beforeId: ID 
     } else if (node.type === Suspense) {
         node = handleSuspense(node as VSuspenseNodeCreated, undefined, parentId, beforeId);
     } else {
-        node.children = mountVNode(norm(node.children), parentId, beforeId);
+        node.children = mountVNode(node, norm(node.children), parentId, beforeId);
     }
-    currentComponent = parentComponent;
     return node;
 }
 
@@ -77,6 +74,6 @@ function mountVDom(node: VDomNodeCreated, parentId: ID, beforeId: ID | null) {
 
 function mountChildren(node: VChildrenNodeCreated, parentId: ID, beforeId: ID | null) {
     for (let i = 0; i < node.children.length; i++) {
-        node.children[i] = mountVNode(norm(node.children[i]), parentId, beforeId);
+        node.children[i] = mountVNode(node, norm(node.children[i]), parentId, beforeId);
     }
 }

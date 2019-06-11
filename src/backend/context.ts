@@ -5,7 +5,7 @@ function createContext<T>(defaultValue: T) {
     return {
         Provider: ContextProvider,
         Consumer: function ContextConsumer(props: {children: (value: T) => VInput}) {
-            let n = (currentComponent as VComponentNode).parentComponent;
+            let n = getCurrentComponentNode().parentComponent;
             while (typeof n !== 'string') {
                 if (n.type === ContextProvider) {
                     const value = (n.props as {value: T}).value;
