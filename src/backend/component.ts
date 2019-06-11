@@ -72,7 +72,7 @@ function handleSuspense(node: VSuspenseNodeCreated, oldChild: VNode | undefined,
     const state = node.state;
     assert(state.components.length === state.promises.length);
     assert(state.resolvedPromises <= state.promises.length);
-    const prevPromisesLen = state.promises.length;
+    // const prevPromisesLen = state.promises.length;
     node.children = mountOrUpdate(norm(node.children), oldChild, parentId, beforeId);
     // if (state.promises.length === 0) {
     // const newChildren = mountOrUpdate(norm(node.children), oldChild, parentId, beforeId);
@@ -80,12 +80,22 @@ function handleSuspense(node: VSuspenseNodeCreated, oldChild: VNode | undefined,
     if (state.promises.length === 0) {
         // node.children = newChildren;
     } else {
-        // const fragmentArray = (node.children as VComponentNodeCreated).children as VArrayNodeCreated;
-        // if (oldChild === undefined) {
-        //     fragmentArray.children[1] = mountVNode(norm(null), parentId, beforeId);
-        // } else {
-        //     const oldSuspenseContent = (oldChild.children as VArrayNodeCreated).children[1] as VComponentNodeCreated;
-        // }
+        const fragmentArray = (node.children as VComponentNodeCreated).children as VArrayNodeCreated;
+        const suspenseContent = fragmentArray.children[1] as VComponentNodeCreated;
+        assert(suspenseContent.type === SuspenseContent);
+        if (oldChild === undefined) {
+            fragmentArray.children[1] = mountVNode(norm(null), parentId, beforeId);
+        } else {
+            const oldSuspenseContent = (oldChild.children as VArrayNode).children[1] as VComponentNode;
+            // assert(oldSuspenseContent.type === SuspenseContent);
+            // currentComponent = suspenseContent;
+            fragmentArray.children[1] = updateVNode(
+                oldSuspenseContent as VComponentNodeCreated,
+                oldSuspenseContent,
+                parentId,
+            );
+            // currentComponent = node;
+        }
         if (state.timeoutAt > Date.now()) {
             addPromiseToParentSuspense(
                 node,
