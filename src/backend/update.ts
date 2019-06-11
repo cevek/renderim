@@ -1,14 +1,20 @@
-function mountOrUpdate(parentNode: ParentComponent, node: VNodeCreated, oldNode: VNode | undefined, parentId: ID, beforeId: ID | null) {
+function mountOrUpdate(
+    parentNode: ParentComponent,
+    node: VNodeCreated,
+    oldNode: VNode | undefined,
+    parentId: ID,
+    beforeId: ID | null,
+) {
     if (oldNode === undefined) {
         return mountVNode(parentNode, node, parentId, beforeId);
     }
     return updateVNode(parentNode, node, oldNode, parentId);
 }
 
-function replaceVNode(parentNode: ParentComponent, node: VNodeCreated, oldNode: VNode, parentId: ID) {
+function replaceVNode<T extends VNode>(parentNode: ParentComponent, node: VNodeCreated, oldNode: VNode, parentId: ID) {
     const newNode = mountVNode(parentNode, node, parentId, findChildVDom(oldNode).id);
     removeVNode(oldNode, true);
-    return newNode;
+    return newNode as T;
 }
 
 function updateVNode(parentNode: ParentComponent, node: VNodeCreated, oldNode: VNode, parentId: ID): VNode {
@@ -21,7 +27,7 @@ function updateVNode(parentNode: ParentComponent, node: VNodeCreated, oldNode: V
         node = cloneVNode(node);
     }
     assert(node.status === 'created');
-    (node as NoReadonly<VNode>).parentComponent = parentNode;
+    node.parentComponent = parentNode;
     if (node.kind !== oldNode.kind) {
         return replaceVNode(parentNode, node, oldNode, parentId);
     }
@@ -43,8 +49,11 @@ function updateVNode(parentNode: ParentComponent, node: VNodeCreated, oldNode: V
     throw never(node);
 }
 
-function finalUpdate(node: VNodeCreated, oldNode: VNode) {
-    (node as NoReadonly<VNode>).status = 'active';
+function afterUpdate<T extends VNode>(node: VNodeCreated) {
+    node.status = 'active';
+    return node as T;
+}
+function beforeUpdate(node: VNodeCreated, oldNode: VNode) {
     maybeObsolete.push(oldNode);
     maybeCancelled.push(node);
 }
@@ -53,8 +62,9 @@ function updateComponent(node: VComponentNodeCreated, oldNode: VComponentNode, p
     assert(node.status === 'created');
     assert(oldNode.status === 'active');
     if (node.type !== oldNode.type) {
-        return replaceVNode(node.parentComponent, node, oldNode, parentId) as VComponentNode;
+        return replaceVNode(node.parentComponent, node, oldNode, parentId);
     }
+    beforeUpdate(node, oldNode);
     node.id = parentId;
     node.state = oldNode.state;
     runComponent(node);
@@ -72,15 +82,15 @@ function updateComponent(node: VComponentNodeCreated, oldNode: VComponentNode, p
     } else {
         node.children = updateVNode(node, norm(node.children), oldNode.children, parentId);
     }
-    finalUpdate(node, oldNode);
-    return node as VComponentNode;
+    return afterUpdate(node);
 }
 
-function updateDom(node: VDomNodeCreated, oldNode: VDomNode, parentId: ID) {
+function updateDom(node: VDomNodeCreated, oldNode: VDomNode, parentId: ID): VDomNode {
     if (node.type !== oldNode.type) {
         return replaceVNode(node.parentComponent, node, oldNode, parentId);
     }
-    (node as NoReadonly<VDomNode>).id = oldNode.id;
+    beforeUpdate(node, oldNode);
+    node.id = oldNode.id;
     const props = node.props as JSX.IntrinsicElements[string];
     const len = Math.min(node.children.length, oldNode.children.length);
     const diffAttrs = updateAttrs(node.props, oldNode.props);
@@ -94,14 +104,14 @@ function updateDom(node: VDomNodeCreated, oldNode: VDomNode, parentId: ID) {
         });
     }
     for (let i = 0; i < len; i++) {
-        const oldChild = oldNode.children[i] as VNode;
+        const oldChild = oldNode.children[i];
         node.children[i] = updateVNode(node, norm(node.children[i]), oldChild, parentId);
     }
     for (let i = len; i < node.children.length; i++) {
         node.children[i] = mountVNode(node, norm(node.children[i]), node.id, null);
     }
     for (let i = len; i < oldNode.children.length; i++) {
-        const oldChild = oldNode.children[i] as VNode;
+        const oldChild = oldNode.children[i];
         removeVNode(oldChild, true);
     }
     if (diffAttrs !== undefined && node.type === 'select') {
@@ -117,24 +127,23 @@ function updateDom(node: VDomNodeCreated, oldNode: VDomNode, parentId: ID) {
             url: customUrl(props.customChild),
         });
     }
-    finalUpdate(node, oldNode);
-    return node as VDomNode;
+    return afterUpdate(node);
 }
 
-function updateText(node: VTextNodeCreated, oldNode: VTextNode) {
-    (node as NoReadonly<VTextNode>).id = oldNode.id;
+function updateText(node: VTextNodeCreated, oldNode: VTextNode): VTextNode {
+    node.id = oldNode.id;
+    beforeUpdate(node, oldNode);
     if (node.children !== oldNode.children) {
         addCommand(node, {action: 'update', group: 'text', id: node.id, text: node.children});
     }
-    finalUpdate(node, oldNode);
-    return node as VTextNode;
+    return afterUpdate(node);
 }
 
-function updatePortal(node: VPortalNodeCreated, oldNode: VPortalNode) {
+function updatePortal(node: VPortalNodeCreated, oldNode: VPortalNode): VPortalNode {
     if (node.type !== oldNode.type) {
         return replaceVNode(node.parentComponent, node, oldNode, node.type);
     }
-    node.children = updateVNode(node, norm(node.children), oldNode.children as VNode, node.type);
-    finalUpdate(node, oldNode);
-    return node as VPortalNode;
+    beforeUpdate(node, oldNode);
+    node.children = updateVNode(node, norm(node.children), oldNode.children, node.type);
+    return afterUpdate(node);
 }

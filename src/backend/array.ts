@@ -1,4 +1,5 @@
 function updateArray(node: VArrayNodeCreated, oldNode: VArrayNode, parentId: ID): VArrayNode {
+    beforeUpdate(node, oldNode);
     node.state = oldNode.state;
     const newList = node.children;
     const oldList = oldNode.children;
@@ -41,8 +42,7 @@ function updateArray(node: VArrayNodeCreated, oldNode: VArrayNode, parentId: ID)
             }
         }
     }
-    finalUpdate(node, oldNode);
-    return node as VArrayNode;
+    return afterUpdate(node);
 }
 
 function updateHead(node: VArrayNodeCreated, oldNode: VArrayNode, parentId: ID) {
