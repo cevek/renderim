@@ -82,18 +82,17 @@ function handleSuspense(node: VSuspenseNodeCreated, oldChild: VNode | undefined,
         const suspenseContent = fragmentArray.children[1] as VComponentNodeCreated;
         assert(suspenseContent.type === SuspenseContent);
         if (oldChild === undefined) {
-            fragmentArray.children[1] = mountVNode(fragmentArray, norm(null), parentId, beforeId);
+            // fragmentArray.children[1] = mountVNode(fragmentArray, norm(null), parentId, beforeId);
+            suspenseContent.children = mountVNode(suspenseContent, norm(null), parentId, beforeId);
         } else {
             const oldSuspenseContent = (oldChild.children as VArrayNode).children[1] as VComponentNode;
-            // assert(oldSuspenseContent.type === SuspenseContent);
-            // currentComponent = suspenseContent;
-            fragmentArray.children[1] = updateVNode(
-                fragmentArray,
-                oldSuspenseContent as VComponentNodeCreated,
-                oldSuspenseContent,
+            assert(oldSuspenseContent.type === SuspenseContent);
+            suspenseContent.children = updateVNode(
+                suspenseContent,
+                oldSuspenseContent.children as VComponentNodeCreated,
+                oldSuspenseContent.children,
                 parentId,
             );
-            // currentComponent = node;
         }
         if (state.timeoutAt > Date.now()) {
             addPromiseToParentSuspense(
@@ -137,11 +136,11 @@ function restartSuspense(node: VSuspenseNodeCreated) {
 
 function addPromiseToParentSuspense(component: VComponentNodeCreated, promise: Promise<unknown>) {
     const suspenseContent = nonNull(findSuspense(component));
-    const suspense = suspenseContent.parentComponent.parentComponent;
+    const suspense = suspenseContent.parentComponent.parentComponent.parentComponent;
     if (suspense.state.promisesSet.has(promise)) return;
     if (suspense.state.promisesSet.size === 0) {
         setTimeout(() => {
-            restartComponent(suspense);
+            // restartComponent(suspense);
         });
     }
     suspense.state.promisesSet.add(promise);
@@ -184,7 +183,7 @@ function findSuspense(node: VNode | VNodeCreated) {
     while (typeof n !== 'string') {
         if (n.type === SuspenseContent) {
             const ret = n as VSuspenseContentNodeCreated;
-            assert(ret.parentComponent.parentComponent.type === Suspense);
+            assert(ret.parentComponent.parentComponent.parentComponent.type === Suspense);
             return ret;
         }
         n = n.parentComponent;

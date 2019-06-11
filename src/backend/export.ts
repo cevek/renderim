@@ -81,7 +81,7 @@ function unmountComponentAtNode(htmlId: string) {
 function shouldCancel(node: VNode | VNodeCreated) {
     const suspenseContent = findSuspense(node);
     if (suspenseContent === undefined) return false;
-    return suspenseContent.parentComponent.parentComponent.state.promises.length > 0; // || node.errorBoundary.state.errors.length > 0;
+    return suspenseContent.parentComponent.parentComponent.parentComponent.state.promises.length > 0; // || node.errorBoundary.state.errors.length > 0;
 }
 function commitUpdating() {
     for (const {oldNode, newNode} of maybeRestarted) {
@@ -131,6 +131,9 @@ function commitUpdating() {
     for (const node of maybeCancelled) {
         assert(node.status === 'active');
         if (shouldCancel(node)) {
+            if (node.kind === textKind && typeof node.parentComponent !== 'string' && node.parentComponent.type === SuspenseContent && node.parentComponent.status === 'active') {
+                continue;
+            }
             node.status = 'cancelled';
             destroyVNode(node);
         }

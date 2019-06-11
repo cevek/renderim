@@ -118,5 +118,5 @@ type SuspenseState = {
 type SuspenseProps = {children: VInput; hideIfSuspended?: boolean; timeout: number; fallback: VInput};
 type VSuspenseNodeCreated = VComponentNodeCreated & {props: SuspenseProps; state: SuspenseState};
 type VSuspenseContentNodeCreated = VComponentNodeCreated & {
-    readonly parentComponent: {readonly parentComponent: VSuspenseNodeCreated};
+    readonly parentComponent: {readonly parentComponent: {readonly parentComponent: VSuspenseNodeCreated}};
 };
