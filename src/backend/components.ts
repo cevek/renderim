@@ -48,14 +48,11 @@ function IntersectionObserverElement<T extends DeepPartial<IntersectionObserverE
 
 function Suspense(props: SuspenseProps) {
     const {state} = getCurrentComponentNode() as VSuspenseNodeCreated;
-    const showFallback = state !== undefined && state.promises.length > 0 && state.timeoutAt <= Date.now();
+    const showFallback = state !== undefined && state.components.size > 0 && state.timeoutAt <= now;
     const fallback = showFallback ? props.fallback : null;
-    return createElement(Fragment, {}, fallback, createElement(SuspenseContent, {}, props.children));
+    return createElement(Fragment, {}, fallback, props.children);
 }
 
-function SuspenseContent(props: {children: VNodeCreated}) {
-    return props.children;
-}
 
 function ErrorBoundary(props: ErrorBoundaryProps) {
     return props.children;

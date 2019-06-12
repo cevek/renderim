@@ -26,20 +26,22 @@ function setParentComponents(node: VNodeCreated, parentComponent: ParentComponen
 function render(node: VInput, htmlId: string) {
     const rootId = htmlId as RootId;
     const id = (htmlId as unknown) as ID;
-    const rootNode = createComponentVNode(ErrorBoundary, {
-        children: createElement(Suspense, {fallback: '', hideIfSuspended: false, timeout: 0}, node),
-        fallback: (props: {errors: Error[]}) => {
-            console.error(props.errors);
-            return 'Something went wrong';
-        },
-    });
+    const rootNode = node as VComponentNodeCreated;
+    // const rootNode = createComponentVNode(ErrorBoundary, {
+    //     children: createElement(Suspense, {fallback: '', hideIfSuspended: false, timeout: 0}, node),
+    //     fallback: (props: {errors: Error[]}) => {
+    //         console.error(props.errors);
+    //         return 'Something went wrong';
+    //     },
+    // });
 
     const oldNode = roots.get(rootId);
     assert(commandList.length === 0);
     if (oldNode === undefined) {
         addCommand(rootNode, {action: 'start', group: 'mount', rootId: rootId});
     }
-    const newNode = oldNode === undefined ? mountVNode(rootId, rootNode, id, null) : updateVNode(rootId, rootNode, oldNode, id);
+    const newNode =
+        oldNode === undefined ? mountVNode(rootId, rootNode, id, null) : updateVNode(rootId, rootNode, oldNode, id);
     roots.set(rootId, newNode);
     if (oldNode === undefined) {
         addCommand(newNode, {action: 'end', group: 'mount', rootId: rootId});
@@ -79,27 +81,32 @@ function unmountComponentAtNode(htmlId: string) {
 }
 
 function shouldCancel(node: VNode | VNodeCreated) {
-    const suspenseContent = findSuspense(node);
-    if (suspenseContent === undefined) return false;
-    return suspenseContent.parentComponent.parentComponent.parentComponent.state.promises.length > 0; // || node.errorBoundary.state.errors.length > 0;
+    // const suspenseContent = findSuspenseShield(node);
+    // if (suspenseContent === undefined) return false;
+    // const suspense = suspenseContent.parentComponent.parentComponent.parentComponent;
+    // return suspense.state.components.size > 0 && suspense.status !== 'active'; // || node.errorBoundary.state.errors.length > 0;
+    return rootSuspended;
 }
+
 function commitUpdating() {
-    for (const {oldNode, newNode} of maybeRestarted) {
-        assert(oldNode.status === 'active');
-        assert(newNode.status === 'active');
-        if (!shouldCancel(oldNode)) {
-            (oldNode as NoReadonly<VComponentNode>).children = newNode.children;
-            const unmounted = [];
-            for (const node of maybeRemoved) {
-                unmounted.push(getPersistId(node));
-            }
+    rootSuspended = false;
+    now = Date.now();
+    for (const {newChild, node} of updatedComponents) {
+        assert(node.status === 'active');
+        assert(newChild.status === 'active');
+        if (!shouldCancel(node)) {
+            (node as VComponentNodeCreated).children = newChild;
             if (process.env.NODE_ENV === 'development') {
+                const unmounted = [];
+                for (const node of maybeRemoved) {
+                    unmounted.push(getPersistId(node));
+                }
                 const devToolsCommand: UpdateDevtools = {
                     action: 'update',
                     group: 'devtools',
                     isRoot: false,
                     unmounted: unmounted,
-                    node: convertVNodeToDevToolsJSON(oldNode),
+                    node: convertVNodeToDevToolsJSON(node),
                 };
                 commandList.push(devToolsCommand);
             }
@@ -131,11 +138,12 @@ function commitUpdating() {
     for (const node of maybeCancelled) {
         assert(node.status === 'active');
         if (shouldCancel(node)) {
-            if (node.kind === textKind && typeof node.parentComponent !== 'string' && node.parentComponent.type === SuspenseContent && node.parentComponent.status === 'active') {
-                continue;
-            }
             node.status = 'cancelled';
             destroyVNode(node);
+        } else {
+            // if (node.kind === componentKind) {
+            //     node.state.vNode = node;
+            // }
         }
     }
     for (const {newParent, node} of maybeUpdatedParent) {
@@ -146,7 +154,7 @@ function commitUpdating() {
 
         assert(node.status === 'active');
         if (!shouldCancel(node)) {
-            (node as NoReadonly<VNode>).parentComponent = newParent;
+            (node as VNodeCreated).parentComponent = newParent;
         }
     }
     const filteredCommands = (commandList as CommandWithParentVNode[]).filter(command => {
@@ -159,10 +167,12 @@ function commitUpdating() {
         command.vNode = undefined!;
         return !skip;
     });
-    sendCommands(filteredCommands);
+    if (filteredCommands.length > 0) {
+        sendCommands(filteredCommands);
+    }
 
     commandList = [];
-    maybeRestarted = [];
+    updatedComponents = [];
     maybeObsolete = [];
     maybeRemoved = [];
     maybeCancelled = [];

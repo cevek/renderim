@@ -10,11 +10,20 @@ const hooks = {
     unmountComponent(node: VComponentNode | VComponentNodeCreated) {},
 };
 
+let rootSuspended = false;
+let now = Date.now();
 let maybeCancelled: VNodeCreated[] = [];
 let maybeRemoved: VNode[] = [];
 let maybeObsolete: VNode[] = [];
-let maybeRestarted: ({newNode: VComponentNode; oldNode: VComponentNode})[] = [];
+let updatedComponents: ({node: VComponentNode; newChild: VNode})[] = [];
 let maybeUpdatedParent: ({node: VNode; newParent: ParentComponent})[] = [];
+
+const globalSuspense: SuspenseState = {
+    version: 0,
+    timeoutAt: 0,
+    components: new Map(),
+    componentId: 0,
+};
 
 let isCustomUrlCall = false;
 const GCVNodes = process.env.NODE_ENV === 'development' ? new WeakSet<VNodeCreated | VNode>() : undefined;

@@ -15,37 +15,38 @@ import './example.scss';
 const MyLazy = lazy(() => import('./lazy'));
 const MyContext = createContext('DefaultContext');
 
-let data: any;
-function Data() {
-    if (data === undefined) {
-        data = new Promise(res => {
+const data: {[key: number]: string | Promise<void>} = {};
+function Data({ms}: {ms: number}) {
+    if (data[ms] === undefined) {
+        data[ms] = new Promise(res => {
             return setTimeout(() => {
-                data = 'DATA';
+                data[ms] = 'DATA';
                 res();
-            }, 200000);
+            }, ms);
         });
     }
-    if (data instanceof Promise) throw data;
-    return data;
+    const val = data[ms];
+    if (val instanceof Promise) throw val;
+    return (val as {}) as JSX.Element;
 }
 
 render(
-    <Suspense timeout={100000} fallback={<div>My Loading...</div>}>
-        <div class="header">
-            <Data />
-        </div>
+    <Suspense timeout={1000} fallback={<div>My Loading...</div>}>
+        <div class="header">123</div>
     </Suspense>,
     '#root',
 );
 
-// render(
-//     <Suspense timeout={1000} fallback={<div>My Loading...</div>}>
-//         <div class="header">
-//             <Data />
-//         </div>
-//     </Suspense>,
-//     '#root',
-// );
+render(
+    <Suspense timeout={1000} fallback={<div>My Loading...</div>}>
+        <div class="header">
+            123
+            <Data ms={200} />
+            <Data ms={3000} />
+        </div>
+    </Suspense>,
+    '#root',
+);
 
 // render(
 //     <Suspense timeout={1000} fallback={<div>My Loading...</div>}>
@@ -75,8 +76,6 @@ render(
 //     </Suspense>,
 //     '#root',
 // );
-
-
 
 // // debugger;
 // render(

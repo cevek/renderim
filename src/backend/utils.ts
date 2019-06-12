@@ -128,3 +128,7 @@ function immutableDeepMerge<T>(obj1: T, obj2: T): T {
     }
     return obj2;
 }
+
+function is<T>(val: unknown): val is T {
+    return true;
+}

@@ -9,7 +9,16 @@ type VChildrenNode = VDomNode | VArrayNode;
 type VChildrenNodeCreated = VDomNodeCreated | VArrayNodeCreated;
 type NoReadonly<T> = {-readonly [P in keyof T]: T[P]};
 
-type ParentComponent = VComponentNode | VComponentNodeCreated | VArrayNode | VArrayNodeCreated | VDomNode | VDomNodeCreated | VPortalNode | VPortalNodeCreated | RootId;
+type ParentComponent =
+    | VComponentNode
+    | VComponentNodeCreated
+    | VArrayNode
+    | VArrayNodeCreated
+    | VDomNode
+    | VDomNodeCreated
+    | VPortalNode
+    | VPortalNodeCreated
+    | RootId;
 type VComponentNodeCreated = Omit<VComponentNode, 'id' | 'children' | 'parentComponent' | 'status' | 'state'> & {
     id: ID;
     children: VInput;
@@ -110,13 +119,8 @@ type VErrorBoundaryNodeCreated = VComponentNodeCreated & {props: ErrorBoundaryPr
 type SuspenseState = {
     componentId: number;
     timeoutAt: number;
-    promises: Promise<unknown>[];
-    promisesSet: Set<Promise<unknown>>;
-    resolvedPromises: number;
-    components: VComponentNodeCreated[];
+    version: number;
+    components: Map<VComponentNodeCreated, Promise<unknown>>;
 };
 type SuspenseProps = {children: VInput; hideIfSuspended?: boolean; timeout: number; fallback: VInput};
 type VSuspenseNodeCreated = VComponentNodeCreated & {props: SuspenseProps; state: SuspenseState};
-type VSuspenseContentNodeCreated = VComponentNodeCreated & {
-    readonly parentComponent: {readonly parentComponent: {readonly parentComponent: VSuspenseNodeCreated}};
-};

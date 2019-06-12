@@ -44,11 +44,9 @@ function createComponentVNode<Props extends object>(
     } else if (type === Suspense) {
         const val: SuspenseState = {
             componentId,
-            timeoutAt: 0,
-            promisesSet: new Set(),
-            components: [],
-            promises: [],
-            resolvedPromises: 0,
+            version: 0,
+            timeoutAt: 0.0,
+            components: new Map(),
         };
         state = val;
     } else {

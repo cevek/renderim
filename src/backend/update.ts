@@ -72,13 +72,6 @@ function updateComponent(node: VComponentNodeCreated, oldNode: VComponentNode, p
         node = handleErrorBoundary(node as VErrorBoundaryNodeCreated, oldNode.children, parentId, null);
     } else if (node.type === Suspense) {
         node = handleSuspense(node as VSuspenseNodeCreated, oldNode.children, parentId, null);
-    } else if (node.type === SuspenseContent) {
-        const oldChild = oldNode !== undefined && oldNode.children.status !== 'active' ? undefined : oldNode.children;
-        if (oldChild !== undefined) {
-            node.children = updateVNode(node, norm(node.children), oldChild, parentId);
-        } else {
-            node.children = mountVNode(node, norm(node.children), parentId, null);
-        }
     } else {
         node.children = updateVNode(node, norm(node.children), oldNode.children, parentId);
     }
@@ -105,7 +98,7 @@ function updateDom(node: VDomNodeCreated, oldNode: VDomNode, parentId: ID): VDom
     }
     for (let i = 0; i < len; i++) {
         const oldChild = oldNode.children[i];
-        node.children[i] = updateVNode(node, norm(node.children[i]), oldChild, parentId);
+        node.children[i] = updateVNode(node, norm(node.children[i]), oldChild, node.id);
     }
     for (let i = len; i < node.children.length; i++) {
         node.children[i] = mountVNode(node, norm(node.children[i]), node.id, null);
