@@ -31,22 +31,24 @@ function Data({ms}: {ms: number}) {
 }
 
 render(
-    <Suspense timeout={1000} fallback={<div>My Loading...</div>}>
-        <div class="header">123</div>
-    </Suspense>,
-    '#root',
-);
-
-render(
-    <Suspense timeout={1000} fallback={<div>My Loading...</div>}>
-        <div class="header">
-            123
-            <Data ms={200} />
+    <Suspense timeout={0} fallback={<div>My Loading...</div>}>
+        <div class="wrapper">
             <Data ms={3000} />
         </div>
     </Suspense>,
     '#root',
 );
+
+// render(
+//     <Suspense timeout={1000} fallback={<div>My Loading...</div>}>
+//         <div class="header">
+//             123
+//             <Data ms={200} />
+//             <Data ms={3000} />
+//         </div>
+//     </Suspense>,
+//     '#root',
+// );
 
 // render(
 //     <Suspense timeout={1000} fallback={<div>My Loading...</div>}>

@@ -60,7 +60,6 @@ function render(node: VInput, htmlId: string) {
     commitUpdating();
     // console.log('after render state', toJSON(newNode));
     // console.log(JSON.stringify(toJSON(newNode), null, 2));
-    visitEachNode(newNode, n => assert(n.status === 'active'));
 }
 
 function unmountComponentAtNode(htmlId: string) {
@@ -82,16 +81,13 @@ function unmountComponentAtNode(htmlId: string) {
     commitUpdating();
 }
 
-function shouldCancel(node: VNode | VNodeCreated) {
-    // const suspenseContent = findSuspenseShield(node);
-    // if (suspenseContent === undefined) return false;
-    // const suspense = suspenseContent.parentComponent.parentComponent.parentComponent;
-    // return suspense.state.components.size > 0 && suspense.status !== 'active'; // || node.errorBoundary.state.errors.length > 0;
-    return rootSuspended;
-}
-
 function transactionStart() {
     now = Date.now();
+    for (const [, root] of roots) {
+        visitEachNode(root, node => {
+            assert(node.status === 'active');
+        });
+    }
 }
 
 function commitUpdating() {
@@ -99,7 +95,7 @@ function commitUpdating() {
     for (const {newChild, node} of updatedComponents) {
         assert(node.status === 'active');
         assert(newChild.status === 'active');
-        if (!shouldCancel(node)) {
+        if (!rootSuspended) {
             (node as VComponentNodeCreated).children = newChild;
             if (process.env.NODE_ENV === 'development') {
                 const unmounted = [];
@@ -119,46 +115,29 @@ function commitUpdating() {
     }
     // console.log({maybeRemoved, maybeObsolete, maybeCancelled});
     for (const node of maybeRemoved) {
-        // suspense can remount children 2 times
-        // if (node.status === 'removed') {
-        //     continue;
-        // }
         assert(node.status === 'active');
-        if (!shouldCancel(node)) {
+        if (!rootSuspended) {
             (node as NoReadonly<VNode>).status = 'removed';
             destroyVNode(node);
         }
     }
     for (const node of maybeObsolete) {
-        // suspense can remount children 2 times
-        // if (node.status === 'obsolete') {
-        //     continue;
-        // }
         assert(node.status === 'active' || node.status === 'removed');
-        if (!shouldCancel(node)) {
+        if (!rootSuspended) {
             (node as NoReadonly<VNode>).status = 'obsolete';
             destroyVNode(node);
         }
     }
     for (const node of maybeCancelled) {
         assert(node.status === 'active');
-        if (shouldCancel(node)) {
+        if (rootSuspended) {
             node.status = 'cancelled';
             destroyVNode(node);
-        } else {
-            // if (node.kind === componentKind) {
-            //     node.state.vNode = node;
-            // }
         }
     }
     for (const {newParent, node} of maybeUpdatedParent) {
-        // suspense can remount children 2 times
-        // if (node.status === 'removed' || node.status === 'obsolete') {
-        //     continue;
-        // }
-
         assert(node.status === 'active');
-        if (!shouldCancel(node)) {
+        if (!rootSuspended) {
             (node as VNodeCreated).parentComponent = newParent;
         }
     }
@@ -174,6 +153,12 @@ function commitUpdating() {
     });
     if (filteredCommands.length > 0) {
         sendCommands(filteredCommands);
+    }
+
+    for (const [, root] of roots) {
+        visitEachNode(root, node => {
+            assert(node.status === 'active');
+        });
     }
 
     commandList = [];

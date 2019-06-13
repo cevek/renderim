@@ -1,8 +1,9 @@
 function mountVNode(parentNode: ParentComponent, node: VNodeCreated, parentId: ID, beforeId: ID | null): VNode {
     if (node.status === 'active') {
-        node = cloneVNode(node);
+        node = cloneVNode(node, undefined, false);
     }
     assert(node.status === 'created');
+    assert(!maybeCancelled.includes(node));
     maybeCancelled.push(node);
     node.parentComponent = parentNode;
     if (node.kind === componentKind) {
@@ -33,13 +34,7 @@ function mountVNode(parentNode: ParentComponent, node: VNodeCreated, parentId: I
 function mountComponent(node: VComponentNodeCreated, parentId: ID, beforeId: ID | null): VComponentNodeCreated {
     node.id = parentId;
     runComponent(node);
-    if (node.type === ErrorBoundary) {
-        node = handleErrorBoundary(node as VErrorBoundaryNodeCreated, undefined, parentId, beforeId);
-    } else if (node.type === Suspense) {
-        node = handleSuspense(node as VSuspenseNodeCreated, undefined, parentId, beforeId);
-    } else {
-        node.children = mountVNode(node, norm(node.children), parentId, beforeId);
-    }
+    node.children = mountVNode(node, norm(node.children), parentId, beforeId);
     return node;
 }
 

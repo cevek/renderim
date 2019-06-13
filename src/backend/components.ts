@@ -50,11 +50,18 @@ function Suspense(props: SuspenseProps) {
     const {state} = getCurrentComponentNode() as VSuspenseNodeCreated;
     const showFallback = state !== undefined && state.components.size > 0 && state.timeoutAt <= now;
     const fallback = showFallback ? props.fallback : null;
-    return createElement(Fragment, {}, fallback, props.children);
+    let vDomChild = ensureVDomNode(props.children);
+    if (showFallback) {
+        vDomChild = cloneVNode(vDomChild, {...vDomChild.props, hidden: true}, false);
+    }
+    return createElement(Fragment, {}, fallback, vDomChild);
 }
 
-
 function ErrorBoundary(props: ErrorBoundaryProps) {
+    const {state} = getCurrentComponentNode() as VErrorBoundaryNodeCreated;
+    if (state.errors.length > 0) {
+        return props.fallback({errors: state.errors});
+    }
     return props.children;
 }
 

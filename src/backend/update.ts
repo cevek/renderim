@@ -1,16 +1,3 @@
-function mountOrUpdate(
-    parentNode: ParentComponent,
-    node: VNodeCreated,
-    oldNode: VNode | undefined,
-    parentId: ID,
-    beforeId: ID | null,
-) {
-    if (oldNode === undefined) {
-        return mountVNode(parentNode, node, parentId, beforeId);
-    }
-    return updateVNode(parentNode, node, oldNode, parentId);
-}
-
 function replaceVNode<T extends VNode>(parentNode: ParentComponent, node: VNodeCreated, oldNode: VNode, parentId: ID) {
     const newNode = mountVNode(parentNode, node, parentId, findChildVDom(oldNode).id);
     removeVNode(oldNode, true);
@@ -24,7 +11,7 @@ function updateVNode(parentNode: ParentComponent, node: VNodeCreated, oldNode: V
         return oldNode;
     }
     if (node.status === 'active') {
-        node = cloneVNode(node);
+        node = cloneVNode(node, undefined, false);
     }
     assert(node.status === 'created');
     node.parentComponent = parentNode;
@@ -54,6 +41,8 @@ function afterUpdate<T extends VNode>(node: VNodeCreated) {
     return node as T;
 }
 function beforeUpdate(node: VNodeCreated, oldNode: VNode) {
+    assert(!maybeObsolete.includes(oldNode));
+    assert(!maybeCancelled.includes(node));
     maybeObsolete.push(oldNode);
     maybeCancelled.push(node);
 }
@@ -68,13 +57,7 @@ function updateComponent(node: VComponentNodeCreated, oldNode: VComponentNode, p
     node.id = parentId;
     node.state = oldNode.state;
     runComponent(node);
-    if (node.type === ErrorBoundary) {
-        node = handleErrorBoundary(node as VErrorBoundaryNodeCreated, oldNode.children, parentId, null);
-    } else if (node.type === Suspense) {
-        node = handleSuspense(node as VSuspenseNodeCreated, oldNode.children, parentId, null);
-    } else {
-        node.children = updateVNode(node, norm(node.children), oldNode.children, parentId);
-    }
+    node.children = updateVNode(node, norm(node.children), oldNode.children, parentId);
     return afterUpdate(node);
 }
 

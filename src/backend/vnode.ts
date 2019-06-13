@@ -104,8 +104,12 @@ function norm(value: VInput): VNodeCreated {
         return createVArrayNode(value);
     }
     if (isVNode(value)) {
-        if (value.status === 'cancelled') {
-            return cloneVNode(value);
+        if (
+            value.status === 'cancelled' ||
+            (value as VNode).status === 'obsolete' ||
+            (value as VNode).status === 'removed'
+        ) {
+            return cloneVNode(value, undefined, true);
         }
         assert(value.status === 'created' || value.status === 'active');
         return value;
@@ -123,27 +127,31 @@ function isVNode(value: unknown): value is VNodeCreated {
     return isObj<{kind?: {parent?: {}}}>(value) && isObj(value.kind) && value.kind.parent === kindParent;
 }
 
-function cloneVNode(node: VNodeCreated | VNode, newProps = node.props, deep?: boolean): VNodeCreated {
+function cloneVNode<T extends VNodeCreated>(n: T, newProps = n.props, deep: boolean): T {
+    const node = n as VNodeCreated;
     if (node.kind === componentKind) {
-        return createComponentVNode(node.type, newProps as object, node.key);
+        return createComponentVNode(node.type, newProps as object, node.key) as T;
     }
     if (node.kind === domKind) {
         const children = deep
             ? (node as VDomNodeCreated).children.map(node => cloneVNode(norm(node), undefined, true))
             : (node.children as VInput[]);
-        return createDomVNode(node.type, newProps as Attrs, node.key, children);
+        return createDomVNode(node.type, newProps as Attrs, node.key, children) as T;
     }
     if (node.kind === arrayKind) {
         const children = deep
             ? (node as VArrayNodeCreated).children.map(node => cloneVNode(norm(node), undefined, true))
             : (node.children as VInput[]);
-        return createVArrayNode(children);
+        return createVArrayNode(children) as T;
     }
     if (node.kind === portalKind) {
-        return createVPortalNode(node.type, deep ? cloneVNode(norm(node.children), undefined, true) : node.children);
+        return createVPortalNode(
+            node.type,
+            deep ? cloneVNode(norm(node.children), undefined, true) : node.children,
+        ) as T;
     }
     if (node.kind === textKind) {
-        return createVTextNode(node.children);
+        return createVTextNode(node.children) as T;
     }
     return never(node);
 }

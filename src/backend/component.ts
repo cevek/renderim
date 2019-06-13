@@ -26,7 +26,7 @@ function runComponent(node: VComponentNodeCreated) {
 function restartComponent(node: VComponentNode): boolean {
     // (node as VNodeCreated).status === 'cancelled' ||
     if (node.status === 'removed' || node.status === 'obsolete') return false;
-    console.log('restart', node);
+    console.log('restart', node.type.name, node);
     assert(node.status === 'active');
     visitEachNode(node, n => assert(n.status === 'active'));
     currentComponent = node;
@@ -35,35 +35,6 @@ function restartComponent(node: VComponentNode): boolean {
     const newChild = updateVNode(node, newChildren, node.children, node.id) as VComponentNode;
     updatedComponents.push({newChild, node});
     return true;
-}
-
-function handleErrorBoundary(
-    node: VErrorBoundaryNodeCreated,
-    oldChild: VNode | undefined,
-    parentId: ID,
-    beforeId: ID | null,
-) {
-    assert(node.status === 'created');
-    if (node.state.errors.length > 0) {
-        assert(typeof node.parentComponent !== 'string');
-        node.children = mountOrUpdate(
-            node,
-            createComponentVNode(node.props.fallback, {errors: node.state.errors}),
-            oldChild,
-            parentId,
-            beforeId,
-        );
-    }
-    if (node.state.errors.length === 0) {
-        node.children = mountOrUpdate(node, norm(node.children), oldChild, parentId, beforeId);
-    }
-    return node;
-}
-
-function handleSuspense(node: VSuspenseNodeCreated, oldChild: VNode | undefined, parentId: ID, beforeId: ID | null) {
-    assert(node.status === 'created');
-    node.children = mountOrUpdate(node, norm(node.children), oldChild, parentId, beforeId);
-    return node;
 }
 
 function setPromiseToParentSuspense(component: VComponentNodeCreated, promise: Promise<unknown>) {
@@ -76,6 +47,7 @@ function setPromiseToParentSuspense(component: VComponentNodeCreated, promise: P
         globalSuspense.version++;
         globalSuspense.components.set(component, promise);
         resolveSuspensePromises(globalSuspense).then(() => {
+            console.log('will restart global suspense state, promises resolved', globalSuspense);
             restartSuspense(globalSuspense, undefined);
         });
         return;
@@ -88,6 +60,7 @@ function setPromiseToParentSuspense(component: VComponentNodeCreated, promise: P
         if (suspense.props.timeout === 0) {
             setTimeout(() => {
                 transactionStart();
+                console.log('will restart suspense component, timeout = 0');
                 restartComponent(suspense as VComponentNode);
                 commitUpdating();
             });
@@ -104,6 +77,7 @@ function setPromiseToParentSuspense(component: VComponentNodeCreated, promise: P
         );
     }
     resolveSuspensePromises(state).then(() => {
+        console.log('will restart suspense state, promises resolved', state);
         restartSuspense(state, suspense);
     });
 }
@@ -114,13 +88,17 @@ function restartSuspense(state: SuspenseState, suspense: VSuspenseNodeCreated | 
     for (const [component] of state.components) {
         restartComponent(component as VComponentNode);
     }
+    commitUpdating();
+    transactionStart();
     if (state.version === lastVersion) {
         state.components.clear();
         if (suspense !== undefined) {
+            console.log('will restart suspense component, promises resolved');
             restartComponent(suspense as VComponentNode);
         }
     }
     commitUpdating();
+    console.log('restartSuspense done');
 }
 
 function resolveSuspensePromises(state: SuspenseState): Promise<void> {
@@ -138,7 +116,7 @@ function addErrorToParentBoundary(component: VComponentNodeCreated, error: Error
     errorBoundary.state.errors.push(error);
     assert(errorBoundary.status === 'active' || errorBoundary.status === 'created');
     assert(component.status === 'created');
-    Promise.resolve().then(() => {
+    setTimeout(() => {
         transactionStart();
         restartComponent(errorBoundary as VComponentNode);
         commitUpdating();
