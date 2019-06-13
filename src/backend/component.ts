@@ -26,11 +26,9 @@ function runComponent(node: VComponentNodeCreated) {
 function restartComponent(node: VComponentNode): boolean {
     // (node as VNodeCreated).status === 'cancelled' ||
     if (node.status === 'removed' || node.status === 'obsolete') return false;
-    const oldNode = node as VComponentNode;
     console.log('restart', node);
     assert(node.status === 'active');
     visitEachNode(node, n => assert(n.status === 'active'));
-    // assert(typeof node.parentComponent !== 'string');
     currentComponent = node;
     const newChildren = norm(node.type(node.props));
     currentComponent = undefined;
@@ -64,53 +62,7 @@ function handleErrorBoundary(
 
 function handleSuspense(node: VSuspenseNodeCreated, oldChild: VNode | undefined, parentId: ID, beforeId: ID | null) {
     assert(node.status === 'created');
-    // const state = node.state;
-    // const prevPromisesLen = state.promises.length;
-    // const newChild = mountOrUpdate(node, norm(node.children), oldChild, parentId, beforeId);
-    // if (oldChild !== undefined) {
-    // updatedComponents.push({node: node as VComponentNode, newChild});
-    // } else {
     node.children = mountOrUpdate(node, norm(node.children), oldChild, parentId, beforeId);
-    // }
-
-    // if (state.promises.length === 0) {
-    // const newChildren = mountOrUpdate(norm(node.children), oldChild, parentId, beforeId);
-    // node.children = undefined;
-    // if (state.components.size === 0) {
-    //     // node.children = newChildren;
-    // } else {
-    //     const fragmentArray = (node.children as VComponentNodeCreated).children as VArrayNodeCreated;
-    //     const suspenseContent = fragmentArray.children[1] as VComponentNodeCreated;
-    //     assert(suspenseContent.type === SuspenseContent);
-    //     if (oldChild === undefined) {
-    //         // fragmentArray.children[1] = mountVNode(fragmentArray, norm(null), parentId, beforeId);
-    //         // suspenseContent.children = mountVNode(suspenseContent, norm(null), parentId, beforeId);
-    //     } else {
-    //         const oldSuspenseContent = (oldChild.children as VArrayNode).children[1] as VComponentNode;
-    //         assert(oldSuspenseContent.type === SuspenseContent);
-    //         suspenseContent.children = updateVNode(
-    //             suspenseContent,
-    //             oldSuspenseContent.children as VComponentNodeCreated,
-    //             oldSuspenseContent.children,
-    //             parentId,
-    //         );
-    //     }
-    //     // if (state.timeoutAt > Date.now()) {
-    //     //     setPromiseToParentSuspense(
-    //     //         node,
-    //     //         Promise.race([Promise.all(state.promises), sleep(state.timeoutAt - Date.now() + 1)]),
-    //     //     );
-    //     // } else {
-    //     // }
-    // }
-    // }
-    // if (node.children === undefined) {
-    //     if (oldChild === undefined) {
-    //         node.children = mountVNode(norm(null), parentId, beforeId);
-    //     } else {
-    //         node.children = oldChild;
-    //     }
-    // }
     return node;
 }
 
@@ -123,19 +75,24 @@ function setPromiseToParentSuspense(component: VComponentNodeCreated, promise: P
         console.log('add promise to global suspense', promise);
         globalSuspense.version++;
         globalSuspense.components.set(component, promise);
-        resolveSuspensePromises(globalSuspense).then(commitUpdating);
+        resolveSuspensePromises(globalSuspense).then(() => {
+            restartSuspense(globalSuspense, undefined);
+        });
         return;
     }
     const state = suspense.state;
-    if (state.components.has(component)) return;
     console.log('add promise to suspense', suspense, promise);
     assert(suspense.status === 'active' || suspense.status === 'created');
     assert(component.status === 'created');
     if (state.components.size === 0) {
-        // setTimeout(() => {
-        //     // restartComponent(suspense);
-        //     // commitUpdating();
-        // });
+        if (suspense.props.timeout === 0) {
+            setTimeout(() => {
+                transactionStart();
+                restartComponent(suspense as VComponentNode);
+                commitUpdating();
+            });
+        }
+
         state.timeoutAt = now + suspense.props.timeout;
     }
     state.version++;
@@ -147,23 +104,29 @@ function setPromiseToParentSuspense(component: VComponentNodeCreated, promise: P
         );
     }
     resolveSuspensePromises(state).then(() => {
-        restartComponent(suspense as VComponentNode);
-        commitUpdating();
+        restartSuspense(state, suspense);
     });
+}
+
+function restartSuspense(state: SuspenseState, suspense: VSuspenseNodeCreated | undefined) {
+    transactionStart();
+    let lastVersion = state.version;
+    for (const [component] of state.components) {
+        restartComponent(component as VComponentNode);
+    }
+    if (state.version === lastVersion) {
+        state.components.clear();
+        if (suspense !== undefined) {
+            restartComponent(suspense as VComponentNode);
+        }
+    }
+    commitUpdating();
 }
 
 function resolveSuspensePromises(state: SuspenseState): Promise<void> {
     const promises = [...state.components.values()];
     const lastVersion = state.version;
     return Promise.all(promises).then(() => {
-        now = Date.now();
-        if (state.version !== lastVersion) {
-            return resolveSuspensePromises(state);
-        }
-        for (const [component] of state.components) {
-            restartComponent(component as VComponentNode);
-        }
-        state.components.clear();
         if (state.version !== lastVersion) {
             return resolveSuspensePromises(state);
         }
@@ -176,6 +139,7 @@ function addErrorToParentBoundary(component: VComponentNodeCreated, error: Error
     assert(errorBoundary.status === 'active' || errorBoundary.status === 'created');
     assert(component.status === 'created');
     Promise.resolve().then(() => {
+        transactionStart();
         restartComponent(errorBoundary as VComponentNode);
         commitUpdating();
     });

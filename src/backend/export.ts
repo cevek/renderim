@@ -24,6 +24,7 @@ function setParentComponents(node: VNodeCreated, parentComponent: ParentComponen
 }
 
 function render(node: VInput, htmlId: string) {
+    transactionStart();
     const rootId = htmlId as RootId;
     const id = (htmlId as unknown) as ID;
     const rootNode = node as VComponentNodeCreated;
@@ -63,6 +64,7 @@ function render(node: VInput, htmlId: string) {
 }
 
 function unmountComponentAtNode(htmlId: string) {
+    transactionStart();
     const node = roots.get(htmlId as RootId);
     if (node !== undefined) {
         removeVNode(node, true);
@@ -88,9 +90,12 @@ function shouldCancel(node: VNode | VNodeCreated) {
     return rootSuspended;
 }
 
+function transactionStart() {
+    now = Date.now();
+}
+
 function commitUpdating() {
     rootSuspended = false;
-    now = Date.now();
     for (const {newChild, node} of updatedComponents) {
         assert(node.status === 'active');
         assert(newChild.status === 'active');
