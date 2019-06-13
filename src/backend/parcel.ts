@@ -1,3 +1,21 @@
+if (!isObj(self.window)) {
+    (self as {window: {}}).window = {
+        location: {
+            reload() {
+                sendCommands([
+                    {
+                        group: 'RPC',
+                        action: 'call',
+                        obj: windowObj,
+                        path: ['location', 'reload'],
+                        args: [],
+                        callback: transformCallbackBackend(() => {}),
+                    },
+                ]);
+            },
+        },
+    };
+}
 if (!isObj(self.document)) {
     (self as {document: {}}).document = {
         createElement(tagName: string) {
