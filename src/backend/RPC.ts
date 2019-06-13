@@ -4,7 +4,7 @@ function sendCommands(commands: readonly Command[]) {
 
 let callbackId = 0;
 const callbackMap = new Map<string, Function>();
-function transformCallback(callback: Function): RPCCallback {
+function transformCallbackBackend(callback: Function): RPCCallback {
     const callbackWithCommand = callback as CallbackWithCommand;
     if (callbackWithCommand.extractArgs === undefined) {
         callbackWithCommand.extractArgs = [];
@@ -44,7 +44,7 @@ function disposeCallback(callback: Function) {
     callbackWithCommand.command = undefined;
 }
 function transformCallbackOnce(callback: Function): RPCCallback {
-    const command = transformCallback(callback);
+    const command = transformCallbackBackend(callback);
     disposeCallback(callback);
     return command;
 }

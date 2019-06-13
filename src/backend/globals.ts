@@ -17,6 +17,7 @@ let maybeRemoved: VNode[] = [];
 let maybeObsolete: VNode[] = [];
 let updatedComponents: ({node: VComponentNode; newChild: VNode})[] = [];
 let maybeUpdatedParent: ({node: VNode; newParent: ParentComponent})[] = [];
+const windowObj = {} as ID;
 
 const globalSuspense: SuspenseState = {
     version: 0,

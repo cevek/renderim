@@ -5,10 +5,10 @@ function transformArg(command: unknown) {
     return command;
 }
 function transformCallback(command: RPCCallback) {
-    const callback = ((...args: unknown[]) => {
+    const callback = (...args: unknown[]) => {
         sendToBackend([createResult(command.id, args.map((arg, i) => extractProps(arg, command.extractArgs[i])))]);
         return command.returnValue;
-    });
+    };
     return callback;
 }
 
@@ -18,27 +18,30 @@ function sendToBackend(data: RPCResult[]) {
 
 function handleRPCCommand(command: RPCCommand) {
     type Hash = {[key: string]: Hash};
-    const {id, obj, path} = command;
+    const {obj, path} = command;
     let o = (getNode(obj) as unknown) as {[key: string]: unknown};
     const lastPart = path[path.length - 1];
     for (let i = 0; i < path.length - 1; i++) {
         if (isObject<Hash>(o)) {
             o = o[path[i]];
         } else {
-            sendToBackend([createError(id, `${o}.${path[i]} is not an object`)]);
+            sendToBackend([createError(command.callback.id, `${o}.${path[i]} is not an object`)]);
             return;
         }
     }
-    if (command.type === 'call') {
+    if (command.action === 'call') {
         if (typeof o[lastPart] === 'function') {
             const ret = (o[lastPart] as (...args: unknown[]) => void)(...command.args.map(transformArg));
-            sendToBackend([createResult(id, [extractProps(ret, command.extract)])]);
+            console.log('RPC call', command);
+            transformCallback(command.callback)(ret);
         } else {
-            sendToBackend([createError(id, `${o}.${lastPart} is not callable`)]);
+            sendToBackend([createError(command.callback.id, `${o}.${lastPart} is not callable`)]);
         }
-    } else if (command.type === 'read') {
-        sendToBackend([createResult(id, [extractProps(o[lastPart], command.extract)])]);
-    } else if (command.type === 'write') {
+    } else if (command.action === 'read') {
+        console.log('RPC read', command);
+        transformCallback(command.callback)(o[lastPart]);
+    } else if (command.action === 'write') {
+        console.log('RPC write', command);
         o[lastPart] = transformArg(command.value);
     } else {
         nevr(command);

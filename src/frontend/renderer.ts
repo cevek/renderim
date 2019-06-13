@@ -51,9 +51,7 @@ function renderCommands(commands: Command[]) {
     for (let i = 0; i < commands.length; i++) {
         renderCommand(commands[i]);
     }
-    sendToBackend(
-        mountNodes.map(({node, command}) => createResult(command.id, [extractProps(node, command.extractArgs[0])])),
-    );
+    mountNodes.map(({node, command}) => transformCallback(command)(node));
     mountNodes = [];
 }
 
@@ -261,6 +259,8 @@ function renderCommand(command: Command) {
     } else if (command.group === 'custom') {
     } else if (command.group === 'devtools') {
         devTools(command);
+    } else if (command.group === 'RPC') {
+        handleRPCCommand(command);
     } else {
         nevr(command);
     }

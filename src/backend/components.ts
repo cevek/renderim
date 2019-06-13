@@ -36,10 +36,10 @@ function IntersectionObserverElement<T extends DeepPartial<IntersectionObserverE
     const customChild: JSX.CustomChild = {
         name: 'IntersectionObserverElement',
         data: {
-            onVisible: transformCallback(
+            onVisible: transformCallbackBackend(
                 setDataToCallback(onVisible, [onVisibleParams === undefined ? ({} as T) : onVisibleParams]),
             ),
-            onInvisible: onInvisible === undefined ? undefined : transformCallback(onInvisible),
+            onInvisible: onInvisible === undefined ? undefined : transformCallbackBackend(onInvisible),
         },
     };
     (child as NoReadonly<VDomNodeCreated>).props = {...child.props, customChild};

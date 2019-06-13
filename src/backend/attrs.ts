@@ -19,8 +19,8 @@ function updateAttrs(attrs: Attrs, oldAttrs: Attrs): Attrs | undefined {
                         hasChanges = true;
                     }
                 } else if (typeof value === 'function' || typeof oldValue === 'function') {
-                    const newRPCCallback = typeof value === 'function' ? transformCallback(value) : undefined;
-                    const oldRPCCallback = typeof oldValue === 'function' ? transformCallback(oldValue) : undefined;
+                    const newRPCCallback = typeof value === 'function' ? transformCallbackBackend(value) : undefined;
+                    const oldRPCCallback = typeof oldValue === 'function' ? transformCallbackBackend(oldValue) : undefined;
                     const listener: DomListener = {
                         newListener: newRPCCallback && newRPCCallback,
                         oldListener: oldRPCCallback && oldRPCCallback,
@@ -87,7 +87,7 @@ function transformAttrCallbacks(attrs: Attrs): Attrs {
     for (const attr in attrs) {
         const value = attrs[attr];
         if (typeof value === 'function') {
-            const command = transformCallback(value);
+            const command = transformCallbackBackend(value);
             const listener: DomListener = {newListener: command};
             if (newAttrs === undefined) newAttrs = {...attrs};
             newAttrs[attr] = listener;

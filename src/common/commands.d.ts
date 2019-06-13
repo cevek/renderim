@@ -12,7 +12,7 @@ type MountCommand = MountStartCommand | MountEndCommand;
 type CustomCommand = CreateCustomCommand | UpdateCustomCommand | RemoveCustomCommand;
 type LoadCommand = LoadScriptCommand | LoadStyleCommand | UpdateStyleCommand;
 type DevtoolsCommand = UpdateDevtools;
-type Command = TagCommand | TextCommand | MountCommand | CustomCommand | LoadCommand | DevtoolsCommand;
+type Command = TagCommand | TextCommand | MountCommand | CustomCommand | LoadCommand | DevtoolsCommand | RPCCommand;
 
 type MountStartCommand = {
     group: 'mount';
@@ -138,9 +138,16 @@ type DomListener = {oldListener?: RPCCallback; newListener?: RPCCallback};
 type RPCCommand = RPCReadCommand | RPCCallCommand | RPCWriteCommand;
 type RPCCallback = {type: '__fn__'; id: string; extractArgs: object[]; returnValue?: unknown};
 type RPCResult = {type: '__res__'; id: string; isError: boolean; data: unknown[]};
-type RPCReadCommand = {type: 'read'; id: string; obj: ID; path: string[]; extract: object};
-type RPCCallCommand = {type: 'call'; id: string; obj: ID; path: string[]; args: unknown[]; extract: object};
-type RPCWriteCommand = {type: 'write'; id: string; obj: ID; path: string[]; value: unknown};
+type RPCReadCommand = {group: 'RPC'; action: 'read'; callback: RPCCallback; obj: ID; path: string[]};
+type RPCCallCommand = {
+    group: 'RPC';
+    action: 'call';
+    callback: RPCCallback;
+    obj: ID;
+    path: string[];
+    args: unknown[];
+};
+type RPCWriteCommand = {group: 'RPC'; action: 'write'; callback: RPCCallback; obj: ID; path: string[]; value: unknown};
 
 type BoundingClientRect = {
     x: number;
