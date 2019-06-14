@@ -29,10 +29,27 @@ function Data({ms}: {ms: number}) {
     if (val instanceof Promise) throw val;
     return (val as {}) as JSX.Element;
 }
+function MyError(props: {error: any}) {
+    return props.error.message.a.b.c.d;
+}
+function F() {
+    return x.a.b.c;
+}
+var x: any;
+render(
+    <Suspense timeout={0} fallback={<div>My Loading...</div>}>
+        <div class="wrapper">
+            Hello
+            <Data ms={3000} />
+        </div>
+    </Suspense>,
+    '#root',
+);
 
 render(
     <Suspense timeout={0} fallback={<div>My Loading...</div>}>
         <div class="wrapper">
+            Hello
             <Data ms={3000} />
         </div>
     </Suspense>,

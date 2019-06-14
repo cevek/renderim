@@ -46,16 +46,16 @@ function render(node: VInput, htmlId: string) {
     roots.set(rootId, newNode);
     if (oldNode === undefined) {
         addCommand(newNode, {action: 'end', group: 'mount', rootId: rootId});
-        if (process.env.NODE_ENV === 'development') {
-            const devToolsCommand: UpdateDevtools = {
-                action: 'update',
-                group: 'devtools',
-                isRoot: true,
-                unmounted: [],
-                node: convertVNodeToDevToolsJSON(newNode),
-            };
-            commandList.push(devToolsCommand);
-        }
+    }
+    if (process.env.NODE_ENV === 'development') {
+        const devToolsCommand: UpdateDevtools = {
+            action: 'update',
+            group: 'devtools',
+            isRoot: true,
+            unmounted: [],
+            node: convertVNodeToDevToolsJSON(newNode),
+        };
+        commandList.push(devToolsCommand);
     }
     commitUpdating();
     // console.log('after render state', toJSON(newNode));
