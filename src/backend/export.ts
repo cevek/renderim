@@ -60,6 +60,7 @@ function render(node: VInput, htmlId: string) {
     commitUpdating();
     // console.log('after render state', toJSON(newNode));
     // console.log(JSON.stringify(toJSON(newNode), null, 2));
+    return newNode;
 }
 
 function unmountComponentAtNode(htmlId: string) {
@@ -97,6 +98,7 @@ function commitUpdating() {
         assert(newChild.status === 'active');
         if (!rootSuspended) {
             (node as VComponentNodeCreated).children = newChild;
+            hooks.restartComponent(node);
             if (process.env.NODE_ENV === 'development') {
                 const unmounted = [];
                 for (const node of maybeRemoved) {

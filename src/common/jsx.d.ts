@@ -2,7 +2,7 @@ declare global {
     namespace JSX {
         interface InputElementArray extends Array<InputElement>{}
         type InputElement = undefined | null | boolean | string | number | Element | InputElementArray;
-        type Element = {type: string | ((props: object) => InputElement); props: object};
+        type Element = {type: string | ((props: object) => InputElement); props: object; children?: Element | Element[]};
         type CustomChild = {name: string; data: unknown; url?: () => Promise<unknown>};
 
         interface ElementClass {}

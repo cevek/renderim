@@ -1,51 +1,20 @@
-import './base';
-import {render, createElement, Suspense} from 'renderim';
-test('', () => {
-    render(
-        <Suspense timeout={50} fallback={<div>My Loading...</div>}>
+import {createElement, Suspense} from 'renderim';
+import {createLoadData, render, getNextRestartedComponent} from './base';
+
+test('Suspense mount', done => {
+    const LoadData = createLoadData();
+    const rootNode = render(
+        <Suspense timeout={50} fallback={<div>Loading...</div>}>
             <div class="wrapper">
+                <LoadData ms={20} />
                 Hello
-                <Data ms={20} />
             </div>
         </Suspense>,
-        '#root',
     );
-
-    // x(`
-    // +Suspense
-    //    +div
-    //      +"Hello"
-    //      +Data
-    //        +""
-    // `);
-
-    // x(`
-    // Data
-    //   "Data"
-    // `);
-
-    // x(`
-    // Suspense
-    //    div
-    //      "Hello"
-    //      Data
-    //        "Data"
-    // `);
+    expect(rootNode).toMatchSnapshot('root');
+    setTimeout(() => {
+        expect(getNextRestartedComponent()).toMatchSnapshot('Suspense');
+        expect(getNextRestartedComponent()).toMatchSnapshot('Data');
+        done();
+    }, 100);
 });
-
-// var x: any;
-
-const data: {[key: number]: string | Promise<void>} = {};
-function Data({ms}: {ms: number}) {
-    if (data[ms] === undefined) {
-        data[ms] = new Promise(res => {
-            return setTimeout(() => {
-                data[ms] = 'DATA';
-                res();
-            }, ms);
-        });
-    }
-    const val = data[ms];
-    if (val instanceof Promise) throw val;
-    return (val as {}) as JSX.Element;
-}

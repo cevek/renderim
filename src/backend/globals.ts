@@ -8,6 +8,7 @@ const hooks = {
     beforeComponent(node: VComponentNodeCreated) {},
     afterComponent(node: VComponentNodeCreated) {},
     unmountComponent(node: VComponentNode | VComponentNodeCreated) {},
+    restartComponent(node: VComponentNode | VComponentNodeCreated) {},
 };
 
 let rootSuspended = false;

@@ -21,7 +21,7 @@ declare module 'renderim' {
         } | null,
         ...children: JSX.InputElement[]
     ): JSX.Element;
-    export function render(node: JSX.Element, htmlId: string): void;
+    export function render(node: JSX.Element, htmlId: string): JSX.Element;
     export function unmountComponentAtNode(htmlId: string): void;
 
     export function withPreventDefault(cb: () => void): () => void;
@@ -40,5 +40,5 @@ declare module 'renderim' {
         props: {children: JSX.InputElement} & IntersectionObserverElementProps<T>,
     ): JSX.Element;
 
-    export function setHook(type: 'beforeComponent' | 'afterComponent' | 'unmountComponent', value: (node: JSX.Element) => void): void;
+    export function setHook(type: 'beforeComponent' | 'afterComponent' | 'unmountComponent' | 'restartComponent', value: (node: JSX.Element) => void): void;
 }

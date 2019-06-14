@@ -1,0 +1,31 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Suspense mount: Data 1`] = `
+"<Suspense>
+   <Fragment>
+      <div>
+         <Data>
+            data
+         </Data>
+         Hello
+      </div>
+   </Fragment>
+</Suspense>"
+`;
+
+exports[`Suspense mount: Suspense 1`] = `
+"<Data>
+   data
+</Data>"
+`;
+
+exports[`Suspense mount: root 1`] = `
+"<Suspense>
+   <Fragment>
+      <div>
+         <Data/>
+         Hello
+      </div>
+   </Fragment>
+</Suspense>"
+`;
