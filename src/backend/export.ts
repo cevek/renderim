@@ -100,7 +100,9 @@ function commitUpdating() {
             if (process.env.NODE_ENV === 'development') {
                 const unmounted = [];
                 for (const node of maybeRemoved) {
-                    unmounted.push(getPersistId(node));
+                    if (!rootSuspended) {
+                        unmounted.push(getPersistId(node));
+                    }
                 }
                 const devToolsCommand: UpdateDevtools = {
                     action: 'update',
@@ -156,9 +158,15 @@ function commitUpdating() {
     }
 
     for (const [, root] of roots) {
-        visitEachNode(root, node => {
-            assert(node.status === 'active');
-        });
+        if (root.status === 'removed') {
+            visitEachNode(root, node => {
+                assert(node.status === 'removed');
+            });
+        } else {
+            visitEachNode(root, node => {
+                assert(node.status === 'active');
+            });
+        }
     }
 
     commandList = [];

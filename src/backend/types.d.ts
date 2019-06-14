@@ -112,7 +112,7 @@ type VPortalNode = {
 
 type CallbackWithCommand = ((...args: unknown[]) => void) & {command?: RPCCallback; extractArgs?: object[]};
 
-type ErrorBoundaryProps = {children: VInput; fallback: (props: {errors: Error[]}) => VInput};
+type ErrorBoundaryProps = {children: VInput; fallback: (error: Error) => VInput};
 type ErrorBoundaryState = {componentId: number; errors: Error[]};
 type VErrorBoundaryNodeCreated = VComponentNodeCreated & {props: ErrorBoundaryProps; state: ErrorBoundaryState};
 

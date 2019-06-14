@@ -1,13 +1,14 @@
 function runComponent(node: VComponentNodeCreated) {
-    assert(node.status === 'created');
+    assert(node.status === 'created' || node.status === 'active');
     currentComponent = node;
+    let newChildren;
     try {
         hooks.beforeComponent(node);
-        node.children = norm(node.type(node.props));
+        newChildren = norm(node.type(node.props));
         hooks.afterComponent(node);
     } catch (err) {
         hooks.afterComponent(node);
-        node.children = norm(undefined);
+        newChildren = norm(undefined);
         if (err instanceof Promise) {
             setPromiseToParentSuspense(node, err);
         } else if (err instanceof AssertError) {
@@ -21,6 +22,7 @@ function runComponent(node: VComponentNodeCreated) {
     } finally {
         currentComponent = undefined;
     }
+    return newChildren;
 }
 
 function restartComponent(node: VComponentNode): boolean {
@@ -29,9 +31,7 @@ function restartComponent(node: VComponentNode): boolean {
     console.log('restart', node.type.name, node);
     assert(node.status === 'active');
     visitEachNode(node, n => assert(n.status === 'active'));
-    currentComponent = node;
-    const newChildren = norm(node.type(node.props));
-    currentComponent = undefined;
+    const newChildren = runComponent(node as VComponentNodeCreated);
     const newChild = updateVNode(node, newChildren, node.children, node.id) as VComponentNode;
     updatedComponents.push({newChild, node});
     return true;
@@ -113,14 +113,23 @@ function resolveSuspensePromises(state: SuspenseState): Promise<void> {
 
 function addErrorToParentBoundary(component: VComponentNodeCreated, error: Error) {
     const errorBoundary = findErrorBoundary(component);
-    errorBoundary.state.errors.push(error);
-    assert(errorBoundary.status === 'active' || errorBoundary.status === 'created');
-    assert(component.status === 'created');
-    setTimeout(() => {
-        transactionStart();
-        restartComponent(errorBoundary as VComponentNode);
-        commitUpdating();
-    });
+    if (errorBoundary === undefined) {
+        setTimeout(() => {
+            const rootId = findRootId(component);
+            unmountComponentAtNode(rootId);
+        });
+        return;
+    }
+    if (errorBoundary.state.errors.length === 0) {
+        errorBoundary.state.errors.push(error);
+        assert(errorBoundary.status === 'active' || errorBoundary.status === 'created');
+        assert(component.status === 'created');
+        setTimeout(() => {
+            transactionStart();
+            restartComponent(errorBoundary as VComponentNode);
+            commitUpdating();
+        });
+    }
 }
 
 function findSuspenseShield(node: VNode | VNodeCreated) {
@@ -152,7 +161,6 @@ function findErrorBoundary(node: VNode | VNodeCreated) {
         if (n.type === ErrorBoundary) return n as VErrorBoundaryNodeCreated;
         n = n.parentComponent;
     }
-    return never();
 }
 
 function findRootId(node: VNode | VNodeCreated): RootId {

@@ -56,8 +56,8 @@ function updateComponent(node: VComponentNodeCreated, oldNode: VComponentNode, p
     beforeUpdate(node, oldNode);
     node.id = parentId;
     node.state = oldNode.state;
-    runComponent(node);
-    node.children = updateVNode(node, norm(node.children), oldNode.children, parentId);
+    const newChildren = runComponent(node);
+    node.children = updateVNode(node, newChildren, oldNode.children, parentId);
     return afterUpdate(node);
 }
 

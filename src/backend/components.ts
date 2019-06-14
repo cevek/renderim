@@ -60,7 +60,7 @@ function Suspense(props: SuspenseProps) {
 function ErrorBoundary(props: ErrorBoundaryProps) {
     const {state} = getCurrentComponentNode() as VErrorBoundaryNodeCreated;
     if (state.errors.length > 0) {
-        return props.fallback({errors: state.errors});
+        return props.fallback(state.errors[0]);
     }
     return props.children;
 }

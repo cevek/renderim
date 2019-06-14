@@ -33,8 +33,8 @@ function mountVNode(parentNode: ParentComponent, node: VNodeCreated, parentId: I
 
 function mountComponent(node: VComponentNodeCreated, parentId: ID, beforeId: ID | null): VComponentNodeCreated {
     node.id = parentId;
-    runComponent(node);
-    node.children = mountVNode(node, norm(node.children), parentId, beforeId);
+    const newChildren = runComponent(node);
+    node.children = mountVNode(node, newChildren, parentId, beforeId);
     return node;
 }
 
