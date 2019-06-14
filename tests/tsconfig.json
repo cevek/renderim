@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+        "target": "esnext",
+        "jsx": "react",
+        "noEmit": true,
+        "jsxFactory": "createElement",
+        "strict": true,
+        "esModuleInterop": true
+    }
+}
