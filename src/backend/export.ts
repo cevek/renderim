@@ -231,3 +231,4 @@ exports.setHook = function setHook<K extends keyof typeof hooks>(type: K, value:
     hooks[type] = value;
 };
 exports.IntersectionObserverElement = IntersectionObserverElement;
+exports.getNodeRootId = findRootId;

@@ -40,5 +40,6 @@ declare module 'renderim' {
         props: {children: JSX.InputElement} & IntersectionObserverElementProps<T>,
     ): JSX.Element;
 
+    export function getNodeRootId(node: JSX.Element): string;
     export function setHook(type: 'beforeComponent' | 'afterComponent' | 'unmountComponent' | 'restartComponent', value: (node: JSX.Element) => void): void;
 }

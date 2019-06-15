@@ -1,20 +1,20 @@
 /// <reference path="../src/backend/export.d.ts" />
-import {setHook, render as Render} from 'renderim';
+import {setHook, render as Render, getNodeRootId} from 'renderim';
 self.postMessage = () => {};
 
 setHook('beforeComponent', () => {});
 setHook('afterComponent', () => {});
 
-const queue: JSX.Element[] = [];
+const queue = new Map<string, Item[]>();
 setHook('restartComponent', node => {
-    queue.push(node);
+    const rootId = getNodeRootId(node);
+    let q = queue.get(getNodeRootId(node));
+    if (q === undefined) {
+        q = [];
+        queue.set(rootId, q);
+    }
+    q.push(makeTree(node) as Item);
 });
-
-export function getNextRestartedComponent() {
-    const el = queue.shift();
-    if (el === undefined) throw new Error('No next restarted component');
-    return treeToString(makeTree(el));
-}
 
 type Item = {type: string; props: object; children: (Item | string)[]};
 function makeTree(node: JSX.Element): Item | string {
@@ -46,9 +46,17 @@ function treeToString(item: Item | string, level = 0): string {
     return `${ident}<${item.type}>\n${children.join('\n')}\n${ident}</${item.type}>`;
 }
 
+let globalId = 0;
 export function render(node: JSX.Element) {
-    const tree = makeTree(Render(node, '#root'));
-    return treeToString(tree);
+    globalId++;
+    function getNextRestartedComponent() {
+        const el = queue.get('#' + globalId)!.shift();
+        if (el === undefined) return;
+        return treeToString(el);
+    }
+
+    const tree = makeTree(Render(node, '#' + globalId));
+    return {tree: treeToString(tree), getNextRestartedComponent};
 }
 
 export function createLoadData() {
