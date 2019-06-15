@@ -86,6 +86,9 @@ function restartSuspense(state: SuspenseState, suspense: VSuspenseNodeCreated | 
     transactionStart();
     let lastVersion = state.version;
     for (const [component] of state.components) {
+        if (component.type === Suspense && (component as VSuspenseNodeCreated).state.components.size === 0) {
+            continue;
+        }
         restartComponent(component as VComponentNode);
     }
     commitUpdating();
