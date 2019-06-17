@@ -12,6 +12,7 @@ const hooks = {
 };
 
 let rootSuspended = false;
+let isUpdating = false;
 let now = Date.now();
 let maybeCancelled: VNodeCreated[] = [];
 let maybeRemoved: VNode[] = [];
@@ -26,6 +27,8 @@ const globalSuspense: SuspenseState = {
     components: new Map(),
     componentId: 0,
 };
+
+const globalErrorHandlers: ((node: VNode | VNodeCreated, error: Error, isUpdating: boolean) => boolean)[] = [];
 
 let isCustomUrlCall = false;
 const GCVNodes = process.env.NODE_ENV === 'development' ? new WeakSet<VNodeCreated | VNode>() : undefined;

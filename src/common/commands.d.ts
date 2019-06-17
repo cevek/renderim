@@ -1,10 +1,10 @@
 /// <reference path="./jsx.d.ts" />
+/// <reference path="./types.d.ts" />
 
 type RootId = 'RootId';
 type ID = {id: 'ID'} & number;
 type Attrs = {readonly [key: string]: unknown; customChild?: JSX.CustomChild};
 type Styles = {[key: string]: string};
-type DeepPartial<T> = {[P in keyof T]?: DeepPartial<T[P]>};
 
 type TagCommand = CreateTagCommand | UpdateTagCommand | MoveTagCommand | RemoveTagCommand;
 type TextCommand = CreateTextCommand | UpdateTextCommand | MoveTextCommand | RemoveTextCommand;
@@ -156,17 +156,6 @@ type BoundingClientRect = {
     height: number;
 };
 
-type IntersectionObserverElementCallbackParams = {
-    intersectionRatio: number;
-    boundingClientRect: BoundingClientRect;
-    intersectionRect: BoundingClientRect;
-    rootBounds: BoundingClientRect;
-};
-type IntersectionObserverElementProps<T extends DeepPartial<IntersectionObserverElementCallbackParams>> = {
-    onVisible: (params: T) => void;
-    onInvisible?: () => void;
-    onVisibleParams?: T;
-};
 
 interface DevToolsNode {
     readonly _id: ID;

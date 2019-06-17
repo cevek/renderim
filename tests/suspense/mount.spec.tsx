@@ -13,8 +13,9 @@ test('fast load', done => {
     );
     expect(result.tree).toMatchSnapshot('1.root');
     setTimeout(() => {
-        expect(result.getNextRestartedComponent()).toMatchSnapshot('2.Data');
-        expect(result.getNextRestartedComponent()).toMatchSnapshot('3.Suspense result');
+        expect(result.getNextRestartedComponent()).toMatchSnapshot('2.Suspense result');
+        expect(result.getNextRestartedComponent()).toMatchSnapshot('3.Data');
+        expect(result.getNextRestartedComponent()).toMatchSnapshot('4.Suspense result');
         expect(result.getNextRestartedComponent()).toBeUndefined();
         done();
     }, 100);
@@ -33,8 +34,8 @@ test('zero timeout', done => {
     expect(result.tree).toMatchSnapshot('1.root');
     setTimeout(() => {
         expect(result.getNextRestartedComponent()).toMatchSnapshot('2.Suspense with loading');
-        expect(result.getNextRestartedComponent()).toMatchSnapshot('3.Data');
-        expect(result.getNextRestartedComponent()).toMatchSnapshot('4.Suspense result');
+        expect(result.getNextRestartedComponent()).toMatchSnapshot('3.Suspense with loading2');
+        expect(result.getNextRestartedComponent()).toMatchSnapshot('4.Data');
         expect(result.getNextRestartedComponent()).toBeUndefined();
         done();
     }, 100);
@@ -53,8 +54,9 @@ test('slow load', done => {
     expect(result.tree).toMatchSnapshot('1.root');
     setTimeout(() => {
         expect(result.getNextRestartedComponent()).toMatchSnapshot('2.Suspense with loading');
-        expect(result.getNextRestartedComponent()).toMatchSnapshot('3.Data');
-        expect(result.getNextRestartedComponent()).toMatchSnapshot('4.Suspense result');
+        expect(result.getNextRestartedComponent()).toMatchSnapshot('3.Suspense with loading2');
+        expect(result.getNextRestartedComponent()).toMatchSnapshot('4.Data');
+        expect(result.getNextRestartedComponent()).toMatchSnapshot('5.Suspense result');
         expect(result.getNextRestartedComponent()).toBeUndefined();
         done();
     }, 100);

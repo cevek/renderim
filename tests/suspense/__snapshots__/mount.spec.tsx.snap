@@ -2,118 +2,160 @@
 
 exports[`fast load: 1.root 1`] = `
 "<Suspense>
-   <Fragment>
-      <div>
-         <Data/>
-         Hello
-      </div>
-   </Fragment>
+   <Boundary>
+      <Fragment>
+         <div>
+            <Data/>
+            Hello
+         </div>
+      </Fragment>
+   </Boundary>
 </Suspense>"
 `;
 
-exports[`fast load: 2.Data 1`] = `
+exports[`fast load: 2.Suspense result 1`] = `
+"<Suspense>
+   <Boundary>
+      <Fragment>
+         <div>
+            <Data/>
+            Hello
+         </div>
+      </Fragment>
+   </Boundary>
+</Suspense>"
+`;
+
+exports[`fast load: 3.Data 1`] = `
 "<Data>
    data
 </Data>"
 `;
 
-exports[`fast load: 3.Suspense result 1`] = `
+exports[`fast load: 4.Suspense result 1`] = `
 "<Suspense>
-   <Fragment>
-      <div>
-         <Data>
-            data
-         </Data>
-         Hello
-      </div>
-   </Fragment>
+   <Boundary>
+      <Fragment>
+         <div>
+            <Data>
+               data
+            </Data>
+            Hello
+         </div>
+      </Fragment>
+   </Boundary>
 </Suspense>"
 `;
 
 exports[`slow load: 1.root 1`] = `
 "<Suspense>
-   <Fragment>
-      <div>
-         <Data/>
-         Hello
-      </div>
-   </Fragment>
+   <Boundary>
+      <Fragment>
+         <div>
+            <Data/>
+            Hello
+         </div>
+      </Fragment>
+   </Boundary>
 </Suspense>"
 `;
 
 exports[`slow load: 2.Suspense with loading 1`] = `
 "<Suspense>
-   <Fragment>
-      <div>
-         Loading...
-      </div>
-      <div>
-         <Data/>
-         Hello
-      </div>
-   </Fragment>
+   <Boundary>
+      <Fragment>
+         <div>
+            <Data/>
+            Hello
+         </div>
+      </Fragment>
+   </Boundary>
 </Suspense>"
 `;
 
-exports[`slow load: 3.Data 1`] = `
+exports[`slow load: 3.Suspense with loading2 1`] = `
+"<Suspense>
+   <Boundary>
+      <Fragment>
+         <div>
+            Loading...
+         </div>
+         <div>
+            <Data/>
+            Hello
+         </div>
+      </Fragment>
+   </Boundary>
+</Suspense>"
+`;
+
+exports[`slow load: 4.Data 1`] = `
 "<Data>
    data
 </Data>"
 `;
 
-exports[`slow load: 4.Suspense result 1`] = `
+exports[`slow load: 5.Suspense result 1`] = `
 "<Suspense>
-   <Fragment>
-      <div>
-         <Data>
-            data
-         </Data>
-         Hello
-      </div>
-   </Fragment>
+   <Boundary>
+      <Fragment>
+         <div>
+            <Data>
+               data
+            </Data>
+            Hello
+         </div>
+      </Fragment>
+   </Boundary>
 </Suspense>"
 `;
 
 exports[`zero timeout: 1.root 1`] = `
 "<Suspense>
-   <Fragment>
-      <div>
-         <Data/>
-         Hello
-      </div>
-   </Fragment>
+   <Boundary>
+      <Fragment>
+         <div>
+            <Data/>
+            Hello
+         </div>
+      </Fragment>
+   </Boundary>
 </Suspense>"
 `;
 
 exports[`zero timeout: 2.Suspense with loading 1`] = `
 "<Suspense>
-   <Fragment>
-      <div>
-         Loading...
-      </div>
-      <div>
-         <Data/>
-         Hello
-      </div>
-   </Fragment>
+   <Boundary>
+      <Fragment>
+         <div>
+            Loading...
+         </div>
+         <div>
+            <Data/>
+            Hello
+         </div>
+      </Fragment>
+   </Boundary>
 </Suspense>"
 `;
 
-exports[`zero timeout: 3.Data 1`] = `
+exports[`zero timeout: 3.Suspense with loading2 1`] = `
 "<Data>
    data
 </Data>"
 `;
 
-exports[`zero timeout: 4.Suspense result 1`] = `
+exports[`zero timeout: 4.Data 1`] = `
 "<Suspense>
-   <Fragment>
-      <div>
-         <Data>
-            data
-         </Data>
-         Hello
-      </div>
-   </Fragment>
+   <Boundary>
+      <Fragment>
+         <div>
+            <Data>
+               data
+            </Data>
+            Hello
+         </div>
+      </Fragment>
+   </Boundary>
 </Suspense>"
 `;

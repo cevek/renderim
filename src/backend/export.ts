@@ -38,12 +38,12 @@ function render(node: VInput, htmlId: string) {
 
     const oldNode = roots.get(rootId);
     assert(commandList.length === 0);
+    isUpdating = oldNode !== undefined;
     if (oldNode === undefined) {
         addCommand(rootNode, {action: 'start', group: 'mount', rootId: rootId});
     }
     const newNode =
         oldNode === undefined ? mountVNode(rootId, rootNode, id, null) : updateVNode(rootId, rootNode, oldNode, id);
-    roots.set(rootId, newNode);
     if (oldNode === undefined) {
         addCommand(newNode, {action: 'end', group: 'mount', rootId: rootId});
     }
@@ -57,7 +57,14 @@ function render(node: VInput, htmlId: string) {
         };
         commandList.push(devToolsCommand);
     }
+    if (!rootSuspended) {
+        roots.set(rootId, newNode);
+    }
     commitUpdating();
+
+    // if ((newNode as VNodeCreated).status === 'cancelled') {
+    //     roots.delete(rootId, newNode);
+    // }
     // console.log('after render state', toJSON(newNode));
     // console.log(JSON.stringify(toJSON(newNode), null, 2));
     return newNode;
@@ -83,6 +90,7 @@ function unmountComponentAtNode(htmlId: string) {
 }
 
 function transactionStart() {
+    rootSuspended = false;
     now = Date.now();
     for (const [, root] of roots) {
         visitEachNode(root, node => {
@@ -92,7 +100,6 @@ function transactionStart() {
 }
 
 function commitUpdating() {
-    rootSuspended = false;
     for (const {newChild, node} of updatedComponents) {
         assert(node.status === 'active');
         assert(newChild.status === 'active');
@@ -170,13 +177,13 @@ function commitUpdating() {
             });
         }
     }
-
     commandList = [];
     updatedComponents = [];
     maybeObsolete = [];
     maybeRemoved = [];
     maybeCancelled = [];
     maybeUpdatedParent = [];
+    rootSuspended = false;
 }
 
 function destroyVNode(node: VNodeCreated | VNode) {
@@ -208,6 +215,7 @@ function getCurrentComponentNode() {
 }
 
 exports.Suspense = Suspense;
+// exports.RootSuspense = RootSuspense;
 exports.Portal = Portal;
 exports.ErrorBoundary = ErrorBoundary;
 exports.Fragment = Fragment;

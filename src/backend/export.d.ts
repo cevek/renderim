@@ -1,3 +1,4 @@
+/// <reference path="../common/types.d.ts" />
 /// <reference path="../common/jsx.d.ts" />
 declare module 'renderim' {
     export function Fragment(props: {children: JSX.InputElement}): JSX.Element;
@@ -7,6 +8,7 @@ declare module 'renderim' {
     export function Portal(props: {container: string; children: JSX.InputElement}): JSX.Element;
     export function ErrorBoundary(props: {children: JSX.InputElement; fallback: (error: Error) => JSX.Element}): JSX.Element;
     export function Suspense(props: {children: JSX.InputElement; hideIfSuspended?: boolean; timeout: number; fallback: JSX.Element}): JSX.Element;
+    export function RootSuspense(props: {children: JSX.InputElement;}): JSX.Element;
     export function restartComponent(node: JSX.Element): boolean;
     export function createContext<T>(
         defaultValue: T,

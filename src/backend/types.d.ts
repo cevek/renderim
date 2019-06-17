@@ -112,9 +112,7 @@ type VPortalNode = {
 
 type CallbackWithCommand = ((...args: unknown[]) => void) & {command?: RPCCallback; extractArgs?: object[]};
 
-type ErrorBoundaryProps = {children: VInput; fallback: (error: Error) => VInput};
 type ErrorBoundaryState = {componentId: number; errors: Error[]};
-type VErrorBoundaryNodeCreated = VComponentNodeCreated & {props: ErrorBoundaryProps; state: ErrorBoundaryState};
 
 type SuspenseState = {
     componentId: number;
@@ -122,5 +120,7 @@ type SuspenseState = {
     version: number;
     components: Map<VComponentNodeCreated, Promise<unknown>>;
 };
-type SuspenseProps = {children: VInput; hideIfSuspended?: boolean; timeout: number; fallback: VInput};
-type VSuspenseNodeCreated = VComponentNodeCreated & {props: SuspenseProps; state: SuspenseState};
+type VComponentType<ComponentFn extends ComponentFun, State extends VComponentNode['state'] = VComponentNode['state']> = VComponentNodeCreated & {
+    props: Parameters<ComponentFn>[0];
+    state: State;
+};

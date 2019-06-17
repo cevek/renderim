@@ -9,15 +9,22 @@ function runComponent(node: VComponentNodeCreated) {
     } catch (err) {
         hooks.afterComponent(node);
         newChildren = norm(undefined);
-        if (err instanceof Promise) {
-            setPromiseToParentSuspense(node, err);
-        } else if (err instanceof AssertError) {
-            throw err;
-        } else {
-            new Promise(() => {
-                node.type(node.props);
-            });
-            addErrorToParentBoundary(node, err);
+        let foundHandler = false;
+        let n = node.parentComponent;
+        while (typeof n !== 'string') {
+            if (n.type === Boundary && is<VComponentType<typeof Boundary>>(n)) {
+                try {
+                    if (n.props.onCatch(err, node, isUpdating)) {
+                        foundHandler = true;
+                        break;
+                    }
+                } catch (err2) {
+                    err = err2;
+                }
+            }
+            n = n.parentComponent;
+        }
+        if (!foundHandler) {
         }
     } finally {
         currentComponent = undefined;
@@ -25,9 +32,20 @@ function runComponent(node: VComponentNodeCreated) {
     return newChildren;
 }
 
+function getParents(node: VNode | VNodeCreated) {
+    let n = node.parentComponent;
+    const parents: (VNode | VNodeCreated)[] = [];
+    while (typeof n !== 'string') {
+        parents.push(n);
+        n = n.parentComponent;
+    }
+    return parents;
+}
+
 function restartComponent(node: VComponentNode): boolean {
+    isUpdating = true;
     // (node as VNodeCreated).status === 'cancelled' ||
-    if (node.status === 'removed' || node.status === 'obsolete') return false;
+    if (node.status === 'removed' || node.status === 'obsolete' || (node as VNodeCreated).status === 'cancelled') return false;
     console.log('restart', node.type.name, node);
     assert(node.status === 'active');
     visitEachNode(node, n => assert(n.status === 'active'));
@@ -37,56 +55,51 @@ function restartComponent(node: VComponentNode): boolean {
     return true;
 }
 
-function setPromiseToParentSuspense(component: VComponentNodeCreated, promise: Promise<unknown>) {
-    if (!rootSuspended && findSuspenseShield(component) === undefined) {
-        rootSuspended = true;
-    }
-    const suspense = findSuspense(component);
-    if (suspense === undefined) {
-        console.log('add promise to global suspense', promise);
-        globalSuspense.version++;
-        globalSuspense.components.set(component, promise);
-        resolveSuspensePromises(globalSuspense).then(() => {
-            console.log('will restart global suspense state, promises resolved', globalSuspense);
-            restartSuspense(globalSuspense, undefined);
-        });
-        return;
-    }
+function setPromiseToParentSuspense(
+    component: VComponentNodeCreated,
+    suspense: VComponentType<typeof Suspense, SuspenseState>,
+    promise: Promise<unknown>,
+) {
     const state = suspense.state;
-    console.log('add promise to suspense', suspense, promise);
-    assert(suspense.status === 'active' || suspense.status === 'created');
     assert(component.status === 'created');
     if (state.components.size === 0) {
-        if (suspense.props.timeout === 0) {
-            setTimeout(() => {
-                transactionStart();
-                console.log('will restart suspense component, timeout = 0');
-                restartComponent(suspense as VComponentNode);
-                commitUpdating();
-            });
-        }
-
         state.timeoutAt = now + suspense.props.timeout;
     }
     state.version++;
     state.components.set(component, promise);
-    if (state.timeoutAt > now) {
-        setPromiseToParentSuspense(
-            suspense,
-            Promise.race([Promise.all([...state.components.values()]), sleep(state.timeoutAt - now + 1)]),
-        );
-    }
     resolveSuspensePromises(state).then(() => {
         console.log('will restart suspense state, promises resolved', state);
         restartSuspense(state, suspense);
     });
+
+    if (state.timeoutAt > now) {
+        const parentSuspense = getParents(suspense).find(parent => parent.type === Suspense);
+        const promise = Promise.race([Promise.all([...state.components.values()]), sleep(state.timeoutAt - now + 1)]);
+        if (parentSuspense === undefined) {
+            if (isUpdating) {
+                rootSuspended = true;
+                console.log('root suspended');
+            }
+            globalSuspense.version++;
+            globalSuspense.components.set(suspense, promise);
+            resolveSuspensePromises(globalSuspense).then(() => {
+                console.log('will restart global suspense state, promises resolved', state);
+                restartSuspense(globalSuspense, undefined);
+            });
+        } else {
+            throw promise;
+        }
+    }
 }
 
-function restartSuspense(state: SuspenseState, suspense: VSuspenseNodeCreated | undefined) {
+function restartSuspense(state: SuspenseState, suspense: VComponentType<typeof Suspense> | undefined) {
     transactionStart();
     let lastVersion = state.version;
     for (const [component] of state.components) {
-        if (component.type === Suspense && (component as VSuspenseNodeCreated).state.components.size === 0) {
+        if (
+            component.type === Suspense &&
+            (component as VComponentType<typeof Suspense, SuspenseState>).state.components.size === 0
+        ) {
             continue;
         }
         restartComponent(component as VComponentNode);
@@ -114,57 +127,57 @@ function resolveSuspensePromises(state: SuspenseState): Promise<void> {
     });
 }
 
-function addErrorToParentBoundary(component: VComponentNodeCreated, error: Error) {
-    const errorBoundary = findErrorBoundary(component);
-    if (errorBoundary === undefined) {
-        setTimeout(() => {
-            const rootId = findRootId(component);
-            unmountComponentAtNode(rootId);
-        });
-        return;
-    }
-    if (errorBoundary.state.errors.length === 0) {
-        errorBoundary.state.errors.push(error);
-        assert(errorBoundary.status === 'active' || errorBoundary.status === 'created');
-        assert(component.status === 'created');
-        setTimeout(() => {
-            transactionStart();
-            restartComponent(errorBoundary as VComponentNode);
-            commitUpdating();
-        });
-    }
-}
+// function addErrorToParentBoundary(component: VComponentNodeCreated, error: Error) {
+//     const errorBoundary = findErrorBoundary(component);
+//     if (errorBoundary === undefined) {
+//         setTimeout(() => {
+//             const rootId = findRootId(component);
+//             unmountComponentAtNode(rootId);
+//         });
+//         return;
+//     }
+//     if (errorBoundary.state.errors.length === 0) {
+//         errorBoundary.state.errors.push(error);
+//         assert(errorBoundary.status === 'active' || errorBoundary.status === 'created');
+//         assert(component.status === 'created');
+//         setTimeout(() => {
+//             transactionStart();
+//             restartComponent(errorBoundary as VComponentNode);
+//             commitUpdating();
+//         });
+//     }
+// }
 
-function findSuspenseShield(node: VNode | VNodeCreated) {
-    let n = node.parentComponent;
-    while (typeof n !== 'string') {
-        if (
-            n.type === Suspense &&
-            is<VSuspenseNodeCreated>(n) &&
-            (n.state.components.size === 0 || n.state.timeoutAt < now)
-        ) {
-            return n;
-        }
-        n = n.parentComponent;
-    }
-}
-function findSuspense(node: VNode | VNodeCreated) {
-    let n = node.parentComponent;
-    while (typeof n !== 'string') {
-        if (n.type === Suspense && is<VSuspenseNodeCreated>(n)) {
-            return n;
-        }
-        n = n.parentComponent;
-    }
-}
+// function findSuspenseShield(node: VNode | VNodeCreated) {
+//     let n = node.parentComponent;
+//     while (typeof n !== 'string') {
+//         if (
+//             n.type === Suspense &&
+//             is<VSuspenseNodeCreated>(n) &&
+//             (n.state.components.size === 0 || n.state.timeoutAt < now)
+//         ) {
+//             return n;
+//         }
+//         n = n.parentComponent;
+//     }
+// }
+// function findSuspense(node: VNode | VNodeCreated) {
+//     let n = node.parentComponent;
+//     while (typeof n !== 'string') {
+//         if (n.type === Suspense && is<VSuspenseNodeCreated>(n)) {
+//             return n;
+//         }
+//         n = n.parentComponent;
+//     }
+// }
 
-function findErrorBoundary(node: VNode | VNodeCreated) {
-    let n = node.parentComponent;
-    while (typeof n !== 'string') {
-        if (n.type === ErrorBoundary) return n as VErrorBoundaryNodeCreated;
-        n = n.parentComponent;
-    }
-}
+// function findErrorBoundary(node: VNode | VNodeCreated) {
+//     let n = node.parentComponent;
+//     while (typeof n !== 'string') {
+//         if (n.type === ErrorBoundary) return n as VErrorBoundaryNodeCreated;
+//         n = n.parentComponent;
+//     }
+// }
 
 function findRootId(node: VNode | VNodeCreated): RootId {
     let n = node.parentComponent;

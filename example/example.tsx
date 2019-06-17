@@ -2,6 +2,7 @@ import R, {
     Suspense,
     createContext,
     ErrorBoundary,
+    RootSuspense,
     Portal,
     Fragment,
     render,
@@ -37,7 +38,7 @@ function F() {
 }
 var x: any;
 render(
-    <Suspense timeout={0} fallback={<div>My Loading...</div>}>
+    <Suspense timeout={1000} fallback={<div>My Loading...</div>}>
         <div class="wrapper">
             Hello
             <Data ms={3000} />
@@ -46,15 +47,15 @@ render(
     '#root',
 );
 
-render(
-    <Suspense timeout={0} fallback={<div>My Loading...</div>}>
-        <div class="wrapper">
-            Hello
-            <Data ms={3000} />
-        </div>
-    </Suspense>,
-    '#root',
-);
+// render(
+//     <Suspense timeout={1000} fallback={<div>My Loading...</div>}>
+//         <div class="wrapper">
+//             Hello
+//             <Data ms={3000} />
+//         </div>
+//     </Suspense>,
+//     '#root',
+// );
 
 // render(
 //     <Suspense timeout={1000} fallback={<div>My Loading...</div>}>
