@@ -32,9 +32,9 @@ function runComponent(node: VComponentNodeCreated) {
     return newChildren;
 }
 
-function getParents(node: VNode | VNodeCreated) {
+function getParents(node: VNodeCreated) {
     let n = node.parentComponent;
-    const parents: (VNode | VNodeCreated)[] = [];
+    const parents: VNodeCreated[] = [];
     while (typeof n !== 'string') {
         parents.push(n);
         n = n.parentComponent;
@@ -44,12 +44,11 @@ function getParents(node: VNode | VNodeCreated) {
 
 function restartComponent(node: VComponentNode): boolean {
     isUpdating = true;
-    // (node as VNodeCreated).status === 'cancelled' ||
-    if (node.status === 'removed' || node.status === 'obsolete' || (node as VNodeCreated).status === 'cancelled') return false;
+    if (node.status === 'removed' || node.status === 'obsolete' || node.status === 'cancelled') return false;
     console.log('restart', node.type.name, node);
     assert(node.status === 'active');
     visitEachNode(node, n => assert(n.status === 'active'));
-    const newChildren = runComponent(node as VComponentNodeCreated);
+    const newChildren = runComponent(node);
     const newChild = updateVNode(node, newChildren, node.children, node.id) as VComponentNode;
     updatedComponents.push({newChild, node});
     return true;
@@ -66,7 +65,7 @@ function setPromiseToParentSuspense(
         state.timeoutAt = now + suspense.props.timeout;
     }
     state.version++;
-    state.components.set(component, promise);
+    state.components.set(component as VComponentNode, promise);
     resolveSuspensePromises(state).then(() => {
         console.log('will restart suspense state, promises resolved', state);
         restartSuspense(state, suspense);
@@ -102,7 +101,7 @@ function restartSuspense(state: SuspenseState, suspense: VComponentType<typeof S
         ) {
             continue;
         }
-        restartComponent(component as VComponentNode);
+        restartComponent(component);
     }
     commitUpdating();
     transactionStart();
@@ -110,7 +109,7 @@ function restartSuspense(state: SuspenseState, suspense: VComponentType<typeof S
         state.components.clear();
         if (suspense !== undefined) {
             console.log('will restart suspense component, promises resolved');
-            restartComponent(suspense as VComponentNode);
+            restartComponent(suspense);
         }
     }
     commitUpdating();
@@ -127,59 +126,7 @@ function resolveSuspensePromises(state: SuspenseState): Promise<void> {
     });
 }
 
-// function addErrorToParentBoundary(component: VComponentNodeCreated, error: Error) {
-//     const errorBoundary = findErrorBoundary(component);
-//     if (errorBoundary === undefined) {
-//         setTimeout(() => {
-//             const rootId = findRootId(component);
-//             unmountComponentAtNode(rootId);
-//         });
-//         return;
-//     }
-//     if (errorBoundary.state.errors.length === 0) {
-//         errorBoundary.state.errors.push(error);
-//         assert(errorBoundary.status === 'active' || errorBoundary.status === 'created');
-//         assert(component.status === 'created');
-//         setTimeout(() => {
-//             transactionStart();
-//             restartComponent(errorBoundary as VComponentNode);
-//             commitUpdating();
-//         });
-//     }
-// }
-
-// function findSuspenseShield(node: VNode | VNodeCreated) {
-//     let n = node.parentComponent;
-//     while (typeof n !== 'string') {
-//         if (
-//             n.type === Suspense &&
-//             is<VSuspenseNodeCreated>(n) &&
-//             (n.state.components.size === 0 || n.state.timeoutAt < now)
-//         ) {
-//             return n;
-//         }
-//         n = n.parentComponent;
-//     }
-// }
-// function findSuspense(node: VNode | VNodeCreated) {
-//     let n = node.parentComponent;
-//     while (typeof n !== 'string') {
-//         if (n.type === Suspense && is<VSuspenseNodeCreated>(n)) {
-//             return n;
-//         }
-//         n = n.parentComponent;
-//     }
-// }
-
-// function findErrorBoundary(node: VNode | VNodeCreated) {
-//     let n = node.parentComponent;
-//     while (typeof n !== 'string') {
-//         if (n.type === ErrorBoundary) return n as VErrorBoundaryNodeCreated;
-//         n = n.parentComponent;
-//     }
-// }
-
-function findRootId(node: VNode | VNodeCreated): RootId {
+function findRootId(node: VNodeCreated): RootId {
     let n = node.parentComponent;
     while (typeof n !== 'string') {
         n = n.parentComponent;

@@ -54,7 +54,7 @@ if (process.env.NODE_ENV === 'development') {
             currentElement = {type: '#array', props: {}};
             children = node.children.map(convertVNodeToDevToolsJSON);
         } else if (node.kind === portalKind) {
-            throw never();
+            currentElement = {type: '#portal', props: {}};
         } else if (node.kind === textKind) {
             currentElement = String(node.children);
             stringText = String(node.children);

@@ -21,7 +21,9 @@ function mountVNode(parentNode: ParentComponent, node: VNodeCreated, parentId: I
             text: node.children,
         });
     } else if (node.kind === arrayKind) {
-        mountChildren(node, parentId, beforeId);
+        for (let i = 0; i < node.children.length; i++) {
+            mountChild(node, i, parentId, beforeId);
+        }
     } else if (node.kind === portalKind) {
         node.children = mountVNode(node, norm(node.children), node.type, null);
     } else {
@@ -50,7 +52,9 @@ function mountVDom(node: VDomNodeCreated, parentId: ID, beforeId: ID | null) {
         attrs: transformAttrCallbacks(node.props),
         tag: node.type,
     });
-    mountChildren(node, node.id, null);
+    for (let i = 0; i < node.children.length; i++) {
+        mountChild(node, i, node.id, null);
+    }
     if (node.type === 'select') {
         updateSelectValue(node);
     }
@@ -67,8 +71,6 @@ function mountVDom(node: VDomNodeCreated, parentId: ID, beforeId: ID | null) {
     return node;
 }
 
-function mountChildren(node: VChildrenNodeCreated, parentId: ID, beforeId: ID | null) {
-    for (let i = 0; i < node.children.length; i++) {
-        node.children[i] = mountVNode(node, norm(node.children[i]), parentId, beforeId);
-    }
+function mountChild(node: VDomNodeCreated | VArrayNodeCreated, i: number, parentId: ID, beforeId: ID | null) {
+    (node as VNodeCreatedChildren).children[i] = mountVNode(node, norm(node.children[i]), parentId, beforeId);
 }

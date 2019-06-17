@@ -33,32 +33,32 @@ function sleep(ms: number) {
 
 function noop() {}
 
-function addCommand(node: VNode | VNodeCreated, command: Command) {
+function addCommand(node: VNodeCreated, command: Command) {
     const comandWithVNode = command as CommandWithParentVNode;
     comandWithVNode.vNode = node;
     commandList.push(command);
 }
 
-function toJSON(node: VNode): unknown {
-    const {key, suspense, errorBoundary, state, kind, type, props, id, ...other} = node as any;
-    other.kind = kind.constructor.name;
-    if (type) {
-        other.type = typeof type === 'string' ? type : type.name;
-    }
-    if (Array.isArray(node.children)) {
-        other.children = node.children.map(val => toJSON(val as VNode));
-    } else if (typeof node.children !== 'string') {
-        other.children = toJSON(node.children as any);
-    }
-    return other;
-}
+// function toJSON(node: VNode): unknown {
+//     const {key, suspense, errorBoundary, state, kind, type, props, id, ...other} = node as any;
+//     other.kind = kind.constructor.name;
+//     if (type) {
+//         other.type = typeof type === 'string' ? type : type.name;
+//     }
+//     if (Array.isArray(node.children)) {
+//         other.children = node.children.map(val => toJSON(val as VNode));
+//     } else if (typeof node.children !== 'string') {
+//         other.children = toJSON(node.children as any);
+//     }
+//     return other;
+// }
 
 function ensureObject<T extends object>(value: T | null | undefined | number | string | boolean | symbol): T {
     if (isObj<T>(value)) return value;
     return {} as T;
 }
 
-function visitEachNode(node: VNode | VNodeCreated, cb: (node: VNode | VNodeCreated) => void): void {
+function visitEachNode(node: VNodeCreated, cb: (node: VNodeCreated) => void): void {
     cb(node);
     if (node.kind === componentKind) {
         return visitEachNode(node.children as VNode, cb);

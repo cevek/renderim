@@ -1,19 +1,17 @@
-function createElement(
-    type: string | ComponentFun,
-    props: {[key: string]: unknown} | null,
+function createElement<T extends object>(
+    type: string | ((props: T) => VInput),
+    p: T | null,
     ...children: VInput[]
 ): VNodeCreated {
-    props = ensureObject(props);
+    let props = ensureObject(p) as {[key: string]: unknown};
     const key = props.key as string | undefined;
     if (typeof type === 'string') {
         return createDomVNode(type, props, key, children);
     } else if (typeof type === 'function') {
         if (children.length > 0) {
-            const propsChildren = children.length === 1 ? children[0] : children;
-            if (props === null) props = {children: propsChildren};
-            else props.children = propsChildren;
-        } else if (props === null) props = {};
-        return createComponentVNode(type, props, key);
+            props.children = children.length === 1 ? children[0] : children;
+        }
+        return createComponentVNode(type as (props: object) => VInput, props, key);
     } else {
         throw new AssertError('Component type is empty: ' + type);
     }
@@ -28,14 +26,6 @@ function render(node: VInput, htmlId: string) {
     const rootId = htmlId as RootId;
     const id = (htmlId as unknown) as ID;
     const rootNode = node as VComponentNodeCreated;
-    // const rootNode = createComponentVNode(ErrorBoundary, {
-    //     children: createElement(Suspense, {fallback: '', hideIfSuspended: false, timeout: 0}, node),
-    //     fallback: (props: {errors: Error[]}) => {
-    //         console.error(props.errors);
-    //         return 'Something went wrong';
-    //     },
-    // });
-
     const oldNode = roots.get(rootId);
     assert(commandList.length === 0);
     isUpdating = oldNode !== undefined;
@@ -61,12 +51,6 @@ function render(node: VInput, htmlId: string) {
         roots.set(rootId, newNode);
     }
     commitUpdating();
-
-    // if ((newNode as VNodeCreated).status === 'cancelled') {
-    //     roots.delete(rootId, newNode);
-    // }
-    // console.log('after render state', toJSON(newNode));
-    // console.log(JSON.stringify(toJSON(newNode), null, 2));
     return newNode;
 }
 
@@ -128,14 +112,14 @@ function commitUpdating() {
     for (const node of maybeRemoved) {
         assert(node.status === 'active');
         if (!rootSuspended) {
-            (node as NoReadonly<VNode>).status = 'removed';
+            (node as VNodeCreated).status = 'removed';
             destroyVNode(node);
         }
     }
     for (const node of maybeObsolete) {
         assert(node.status === 'active' || node.status === 'removed');
         if (!rootSuspended) {
-            (node as NoReadonly<VNode>).status = 'obsolete';
+            (node as VNodeCreated).status = 'obsolete';
             destroyVNode(node);
         }
     }
@@ -186,7 +170,7 @@ function commitUpdating() {
     rootSuspended = false;
 }
 
-function destroyVNode(node: VNodeCreated | VNode) {
+function destroyVNode(node: VNodeCreated) {
     if (node.kind === domKind) {
         disposeVDomNodeCallbacks(node);
     }
@@ -198,7 +182,7 @@ function destroyVNode(node: VNodeCreated | VNode) {
     }
 }
 
-function disposeVDomNodeCallbacks(node: VDomNodeCreated | VDomNode) {
+function disposeVDomNodeCallbacks(node: VDomNodeCreated) {
     assert(node.status === 'removed' || node.status === 'cancelled' || node.status === 'obsolete');
     const attrs = node.props;
     for (const attr in attrs) {
@@ -215,7 +199,6 @@ function getCurrentComponentNode() {
 }
 
 exports.Suspense = Suspense;
-// exports.RootSuspense = RootSuspense;
 exports.Portal = Portal;
 exports.ErrorBoundary = ErrorBoundary;
 exports.Fragment = Fragment;

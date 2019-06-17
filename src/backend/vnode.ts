@@ -29,8 +29,8 @@ function createDomVNode(type: string, attrs: Attrs, key: string | undefined, chi
 }
 
 function createComponentVNode<Props extends object>(
-    type: (props: Props) => VInput,
-    props: Props,
+    type: (props: object) => VInput,
+    props: object,
     key?: string,
 ): VComponentNodeCreated {
     const componentId = nodeIdCounter++;
@@ -60,7 +60,7 @@ function createComponentVNode<Props extends object>(
         key: key,
         kind: componentKind,
         props,
-        type: type as ComponentFun,
+        type,
         state,
         parentComponent: undefined!,
     };
@@ -104,11 +104,7 @@ function norm(value: VInput): VNodeCreated {
         return createVArrayNode(value);
     }
     if (isVNode(value)) {
-        if (
-            value.status === 'cancelled' ||
-            (value as VNode).status === 'obsolete' ||
-            (value as VNode).status === 'removed'
-        ) {
+        if (value.status === 'cancelled' || value.status === 'obsolete' || value.status === 'removed') {
             return cloneVNode(value, undefined, true);
         }
         assert(value.status === 'created' || value.status === 'active');
@@ -161,7 +157,7 @@ function ensureVDomNode(node: VInput) {
     return node;
 }
 
-function getPersistId(node: VNode | VNodeCreated | RootId): ID {
+function getPersistId(node: VNodeCreated | RootId): ID {
     if (typeof node === 'string') return (node as unknown) as ID;
     if (node.kind === componentKind) {
         return node.state.componentId as ID;

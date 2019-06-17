@@ -2,13 +2,13 @@ let nodeIdCounter = 0;
 let vNodeIdCounter = 0;
 let commandList: Command[] = [];
 const roots = new Map<RootId, VNode>();
-let currentComponent: VComponentNode | VComponentNodeCreated | undefined;
+let currentComponent: VComponentNodeCreated | undefined;
 
 const hooks = {
     beforeComponent(node: VComponentNodeCreated) {},
     afterComponent(node: VComponentNodeCreated) {},
-    unmountComponent(node: VComponentNode | VComponentNodeCreated) {},
-    restartComponent(node: VComponentNode | VComponentNodeCreated) {},
+    unmountComponent(node: VComponentNodeCreated) {},
+    restartComponent(node: VComponentNodeCreated) {},
 };
 
 let rootSuspended = false;
@@ -17,7 +17,7 @@ let now = Date.now();
 let maybeCancelled: VNodeCreated[] = [];
 let maybeRemoved: VNode[] = [];
 let maybeObsolete: VNode[] = [];
-let updatedComponents: ({node: VComponentNode; newChild: VNode})[] = [];
+let updatedComponents: ({node: VComponentNode; newChild: VNodeCreated})[] = [];
 let maybeUpdatedParent: ({node: VNode; newParent: ParentComponent})[] = [];
 const windowObj = {} as ID;
 
@@ -27,8 +27,6 @@ const globalSuspense: SuspenseState = {
     components: new Map(),
     componentId: 0,
 };
-
-const globalErrorHandlers: ((node: VNode | VNodeCreated, error: Error, isUpdating: boolean) => boolean)[] = [];
 
 let isCustomUrlCall = false;
 const GCVNodes = process.env.NODE_ENV === 'development' ? new WeakSet<VNodeCreated | VNode>() : undefined;

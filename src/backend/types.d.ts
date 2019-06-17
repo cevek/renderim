@@ -2,12 +2,8 @@ type VNode = VComponentNode | VDomNode | VTextNode | VPortalNode | VArrayNode;
 type VNodeCreated = VComponentNodeCreated | VDomNodeCreated | VTextNodeCreated | VPortalNodeCreated | VArrayNodeCreated;
 
 type VInput = undefined | null | boolean | string | number | VNodeCreated | {[key: number]: VInput};
-type CommandWithParentVNode = Command & {vNode?: VNode | VNodeCreated};
-type ComponentFun = (props: any) => VInput;
-type VNodeStatus = 'active' | 'obsolete' | 'removed';
-type VChildrenNode = VDomNode | VArrayNode;
-type VChildrenNodeCreated = VDomNodeCreated | VArrayNodeCreated;
-type NoReadonly<T> = {-readonly [P in keyof T]: T[P]};
+type CommandWithParentVNode = Command & {vNode?: VNodeCreated};
+type VNodeStatus = 'active' | 'obsolete' | 'removed' | 'created' | 'cancelled';
 
 type ParentComponent =
     | VComponentNode
@@ -24,14 +20,14 @@ type VComponentNodeCreated = Omit<VComponentNode, 'id' | 'children' | 'parentCom
     children: VInput;
     parentComponent: ParentComponent;
     state: {componentId: number};
-    status: 'created' | 'active' | 'cancelled';
+    status: VNodeStatus;
 };
 type VComponentNode = {
     readonly _id: number;
     readonly status: VNodeStatus;
     readonly id: ID;
     readonly kind: 'component';
-    readonly type: ComponentFun;
+    readonly type: (props: object) => VInput;
     readonly props: object;
     readonly key: string | undefined;
     readonly children: VNode;
@@ -40,9 +36,9 @@ type VComponentNode = {
 };
 type VDomNodeCreated = Omit<VDomNode, 'id' | 'children' | 'parentComponent' | 'status'> & {
     id: ID;
-    children: VInput[];
+    children: readonly VInput[];
     parentComponent: ParentComponent;
-    status: 'created' | 'active' | 'cancelled';
+    status: VNodeStatus;
 };
 type VDomNode = {
     readonly _id: number;
@@ -60,7 +56,7 @@ type VTextNodeCreated = Omit<VTextNode, 'id' | 'children' | 'parentComponent' | 
     id: ID;
     children: string;
     parentComponent: ParentComponent;
-    status: 'created' | 'active' | 'cancelled';
+    status: VNodeStatus;
 };
 type VTextNode = {
     readonly _id: number;
@@ -74,11 +70,14 @@ type VTextNode = {
     readonly state: undefined;
     readonly parentComponent: ParentComponent;
 };
-type VArrayNodeCreated = Omit<VArrayNode, 'children' | 'parentComponent' | 'status' | 'state'> & {
+type VNodeCreatedChildren = Omit<VNode, 'children'> & {
     children: VInput[];
+};
+type VArrayNodeCreated = Omit<VArrayNode, 'children' | 'parentComponent' | 'status' | 'state'> & {
+    children: readonly VInput[];
     parentComponent: ParentComponent;
     state: number;
-    status: 'created' | 'active' | 'cancelled';
+    status: VNodeStatus;
 };
 type VArrayNode = {
     readonly _id: number;
@@ -88,14 +87,14 @@ type VArrayNode = {
     readonly type: undefined;
     readonly props: undefined;
     readonly key: undefined;
-    readonly children: readonly VNode[];
+    readonly children: VNode[];
     readonly state: number;
     readonly parentComponent: ParentComponent;
 };
 type VPortalNodeCreated = Omit<VPortalNode, 'children' | 'parentComponent' | 'status'> & {
     children: VInput;
     parentComponent: ParentComponent;
-    status: 'created' | 'active' | 'cancelled';
+    status: VNodeStatus;
 };
 type VPortalNode = {
     readonly _id: number;
@@ -118,9 +117,12 @@ type SuspenseState = {
     componentId: number;
     timeoutAt: number;
     version: number;
-    components: Map<VComponentNodeCreated, Promise<unknown>>;
+    components: Map<VComponentNode, Promise<unknown>>;
 };
-type VComponentType<ComponentFn extends ComponentFun, State extends VComponentNode['state'] = VComponentNode['state']> = VComponentNodeCreated & {
+type VComponentType<
+    ComponentFn extends (props: never) => VInput,
+    State extends VComponentNode['state'] = VComponentNode['state']
+> = VComponentNode & {
     props: Parameters<ComponentFn>[0];
     state: State;
 };

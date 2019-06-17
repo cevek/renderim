@@ -29,7 +29,7 @@ function removeVNode(node: VNode, realRemove: boolean) {
     }
 }
 
-function removeChildren(node: VChildrenNode, realRemove: boolean) {
+function removeChildren(node: VDomNode | VArrayNode, realRemove: boolean) {
     for (let i = 0; i < node.children.length; i++) {
         const child = node.children[i];
         removeVNode(child, realRemove);

@@ -1,11 +1,11 @@
-function lazy<P, T extends (props: P) => VInput>(cmp: () => Promise<{default: T}>) {
-    let component: T;
+function lazy<Props extends object>(cmp: () => Promise<{default: (props: Props) => VInput}>) {
+    let component: (props: Props) => VInput;
     let error: Error | undefined;
     const promise = cmp().then(m => (component = m.default), e => (error = e));
-    return function Lazy(props: P) {
+    return function Lazy(props: Props) {
         if (error !== undefined) throw error;
         if (component === undefined) throw promise;
-        return createElement((component as unknown) as ComponentFun, props as {});
+        return createElement(component, props);
     };
 }
 
@@ -42,8 +42,7 @@ function IntersectionObserverElement<T extends DeepPartial<IntersectionObserverE
             onInvisible: onInvisible === undefined ? undefined : transformCallbackBackend(onInvisible),
         },
     };
-    (child as NoReadonly<VDomNodeCreated>).props = {...child.props, customChild};
-    return child;
+    return cloneVNode(child, {...child.props, customChild}, false);
 }
 
 function Suspense(props: {children: VInput; timeout: number; fallback: VInput}) {
@@ -54,35 +53,19 @@ function Suspense(props: {children: VInput; timeout: number; fallback: VInput}) 
     const vDomChild = ensureVDomNode(props.children);
     const children = cloneVNode(vDomChild, {...vDomChild.props, hidden: state.components.size > 0}, false);
     return createElement(Boundary, {
-        onCatch: (err: Promise<unknown>, node: VComponentNodeCreated) => {
+        onCatch: (err, node) => {
             if (err instanceof Promise) {
                 setTimeout(() => {
                     transactionStart();
-                    restartComponent(currentNode as VComponentNode);
+                    restartComponent(currentNode);
                     commitUpdating();
                 });
                 setPromiseToParentSuspense(node, currentNode, err);
                 return true;
             }
+            return false;
         },
-
-        // onRootCatch: (err: Promise<unknown>, node: VComponentNodeCreated, isUpdating: boolean) => {
-        //     if (err instanceof Promise) {
-        //         if (isUpdating) {
-        //             rootSuspended = true;
-        //             console.log('root suspended');
-        //         }
-        //         globalSuspense.version++;
-        //         globalSuspense.components.set(node, err);
-        //         resolveSuspensePromises(globalSuspense).then(() => {
-        //             console.log('will restart global suspense state, promises resolved', state);
-        //             restartSuspense(globalSuspense, undefined);
-        //         });
-        //         return true;
-        //     }
-        //     return false;
-        // },
-        children: createElement(Fragment, {}, fallback, children),
+        children: [fallback, children],
     });
 }
 
@@ -91,7 +74,7 @@ function ErrorBoundary(props: {children: VInput; fallback: (error: Error) => VIn
     const state = currentNode.state;
     const children = state.errors.length > 0 ? props.fallback(state.errors[0]) : props.children;
     return createElement(Boundary, {
-        onCatch: (err: Error, node: VComponentNode) => {
+        onCatch: (err, node) => {
             if (err instanceof Error) {
                 state.errors.push(err);
                 new Promise(() => {
@@ -99,7 +82,7 @@ function ErrorBoundary(props: {children: VInput; fallback: (error: Error) => VIn
                 });
                 setTimeout(() => {
                     transactionStart();
-                    restartComponent(currentNode as VComponentNode);
+                    restartComponent(currentNode);
                     commitUpdating();
                 });
                 return true;
@@ -118,7 +101,7 @@ function Portal(props: {container: string; children: VInput}) {
 }
 type BoundaryProps = {
     children: VInput;
-    onCatch: (err: Error, node: VComponentNode | VComponentNodeCreated, isUpdating: boolean) => boolean;
+    onCatch: (err: Error, node: VComponentNodeCreated, isUpdating: boolean) => boolean;
 };
 function Boundary(props: BoundaryProps) {
     return props.children;
