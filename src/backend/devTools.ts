@@ -21,7 +21,7 @@ if (process.env.NODE_ENV === 'development') {
             }
             return newObj;
         }
-        if (typeof props === 'function') return {__fn: `${props.name}`};
+        if (typeof props === 'function') return {__fn: `${(props as Function).name}`};
         return props;
     }
     convertVNodeToDevToolsJSON = function convertVNodeToDevToolsJSON(node: VNode): DevToolsNode {

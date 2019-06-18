@@ -2,9 +2,11 @@
     "extends": "../../tsconfig.json",
     "compilerOptions": {
         "noEmit": false,
+        "noLib": true,
         "outFile": "../../dist/backend.js"
     },
     "include": [
+        "lib.d.ts",
         "../common/commands.d.ts",
         "../common/jsx.d.ts",
         "RPC.ts",

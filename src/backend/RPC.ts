@@ -55,7 +55,7 @@ function transformCallbackOnce(callback: Function): RPCCallback {
 // }
 
 self.addEventListener('message', msg => {
-    const data: RPCResult[] = msg.data;
+    const data = msg.data as RPCResult[];
     if (Array.isArray(data)) {
         for (const item of data) {
             if (isObj<RPCResult>(item) && item.type === '__res__') {
