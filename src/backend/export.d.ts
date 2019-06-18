@@ -7,7 +7,7 @@ declare module 'renderim' {
     export function Portal(props: {container: string; children: JSX.InputElement}): JSX.Element;
     export function ErrorBoundary(props: {
         children: JSX.InputElement;
-        fallback: (error: Error) => JSX.Element;
+        fallback: (error: Error) => JSX.Element | string;
     }): JSX.Element;
     export function Suspense(props: {
         children: JSX.InputElement;
