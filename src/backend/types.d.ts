@@ -23,6 +23,7 @@ interface VBase {
 }
 
 interface ComponentState {
+    node: VComponentNodeCreated;
     componentId: number;
     errored: boolean;
 }

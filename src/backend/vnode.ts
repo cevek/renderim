@@ -34,12 +34,13 @@ function createComponentVNode<Props extends object>(
     key?: string,
 ): VComponentNodeCreated {
     const componentId = nodeIdCounter++;
-    let state = undefined;
+    let state;
     if (type === ErrorBoundary) {
         const val: ErrorBoundaryState = {
             componentId,
             errored: false,
             errors: [],
+            node: undefined!,
         };
         state = val;
     } else if (type === Suspense) {
@@ -48,13 +49,14 @@ function createComponentVNode<Props extends object>(
             version: 0,
             errored: false,
             timeoutAt: 0.0,
+            node: undefined!,
             components: new Map(),
         };
         state = val;
     } else {
-        state = {componentId, errored: false};
+        state = {componentId, errored: false, node: undefined!};
     }
-    return {
+    const node: VComponentNodeCreated = {
         _id: vNodeIdCounter++,
         status: 'created',
         id: undefined!,
@@ -66,6 +68,8 @@ function createComponentVNode<Props extends object>(
         state,
         parentComponent: undefined!,
     };
+    node.state.node = node;
+    return node;
 }
 
 function createVArrayNode(arr: VInput[]): VArrayNodeCreated {

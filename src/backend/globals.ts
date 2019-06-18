@@ -17,11 +17,12 @@ let now = Date.now();
 let maybeCancelled: VNodeCreated[] = [];
 let maybeRemoved: VNode[] = [];
 let maybeObsolete: VNode[] = [];
-let updatedComponents: ({node: VComponentNode; newChild: VNodeCreated})[] = [];
+let updatedComponents: ({node: VComponentNode; isRestart: boolean; newChild: VNodeCreated})[] = [];
 let maybeUpdatedParent: ({node: VNode; newParent: ParentComponent})[] = [];
 const windowObj = {} as ID;
 
 const globalSuspense: SuspenseState = {
+    node: undefined!,
     version: 0,
     timeoutAt: 0,
     components: new Map(),

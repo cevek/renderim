@@ -84,27 +84,28 @@ function transactionStart() {
 }
 
 function commitUpdating() {
-    for (const {newChild, node} of updatedComponents) {
+    for (const {newChild, isRestart, node} of updatedComponents) {
         assert(node.status === 'active');
         assert(newChild.status === 'active');
         if (!rootSuspended) {
-            (node as VComponentNodeCreated).children = newChild;
-            hooks.restartComponent(node);
-            if (process.env.NODE_ENV === 'development') {
-                const unmounted = [];
-                for (const node of maybeRemoved) {
-                    if (!rootSuspended) {
+            node.state.node = node;
+            if (isRestart) {
+                (node as VComponentNodeCreated).children = newChild;
+                hooks.restartComponent(node);
+                if (process.env.NODE_ENV === 'development') {
+                    const unmounted = [];
+                    for (const node of maybeRemoved) {
                         unmounted.push(getPersistId(node));
                     }
+                    const devToolsCommand: UpdateDevtools = {
+                        action: 'update',
+                        group: 'devtools',
+                        isRoot: false,
+                        unmounted: unmounted,
+                        node: convertVNodeToDevToolsJSON(node),
+                    };
+                    commandList.push(devToolsCommand);
                 }
-                const devToolsCommand: UpdateDevtools = {
-                    action: 'update',
-                    group: 'devtools',
-                    isRoot: false,
-                    unmounted: unmounted,
-                    node: convertVNodeToDevToolsJSON(node),
-                };
-                commandList.push(devToolsCommand);
             }
         }
     }

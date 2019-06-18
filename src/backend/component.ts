@@ -51,7 +51,7 @@ function restartComponent(node: VComponentNode): boolean {
     visitEachNode(node, n => assert(n.status === 'active'));
     const newChildren = runComponent(node);
     const newChild = updateVNode(node, newChildren, node.children, node.id) as VComponentNode;
-    updatedComponents.push({newChild, node});
+    updatedComponents.push({newChild, node, isRestart: true});
     return true;
 }
 
