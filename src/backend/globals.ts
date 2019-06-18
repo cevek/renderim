@@ -25,6 +25,7 @@ const globalSuspense: SuspenseState = {
     version: 0,
     timeoutAt: 0,
     components: new Map(),
+    errored: false,
     componentId: 0,
 };
 

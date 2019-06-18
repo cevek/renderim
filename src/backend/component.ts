@@ -9,6 +9,7 @@ function runComponent(node: VComponentNodeCreated) {
     } catch (err) {
         hooks.afterComponent(node);
         newChildren = norm(undefined);
+        node.state.errored = true;
         let foundHandler = false;
         let n = node.parentComponent;
         while (typeof n !== 'string') {

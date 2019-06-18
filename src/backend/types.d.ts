@@ -24,6 +24,7 @@ interface VBase {
 
 interface ComponentState {
     componentId: number;
+    errored: boolean;
 }
 
 interface VComponentNodeCreated extends VBase {
@@ -111,14 +112,15 @@ type VNodeCreatedChildren = Omit<VNodeCreated, 'children'> & {
 
 type CallbackWithCommand = ((...args: unknown[]) => void) & {command?: RPCCallback; extractArgs?: object[]};
 
-type ErrorBoundaryState = {componentId: number; errors: Error[]};
+interface ErrorBoundaryState extends ComponentState {
+    errors: Error[];
+}
 
-type SuspenseState = {
-    componentId: number;
+interface SuspenseState extends ComponentState {
     timeoutAt: number;
     version: number;
     components: Map<VComponentNode, Promise<unknown>>;
-};
+}
 type VComponentType<
     ComponentFn extends (props: never) => VInput,
     State extends VComponentNode['state'] = VComponentNode['state']

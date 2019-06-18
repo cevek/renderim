@@ -11,9 +11,10 @@ interface Array<T> {
     indexOf(value: T): number;
     [Symbol.iterator](): IterableIterator<T>;
 }
-declare const Symbol: {
-    iterator: symbol;
-};
+declare function Symbol(name: string): symbol;
+declare namespace Symbol {
+    const iterator: symbol;
+}
 declare class Error {
     constructor(name: string);
 }

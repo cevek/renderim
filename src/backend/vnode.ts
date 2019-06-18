@@ -38,6 +38,7 @@ function createComponentVNode<Props extends object>(
     if (type === ErrorBoundary) {
         const val: ErrorBoundaryState = {
             componentId,
+            errored: false,
             errors: [],
         };
         state = val;
@@ -45,12 +46,13 @@ function createComponentVNode<Props extends object>(
         const val: SuspenseState = {
             componentId,
             version: 0,
+            errored: false,
             timeoutAt: 0.0,
             components: new Map(),
         };
         state = val;
     } else {
-        state = {componentId};
+        state = {componentId, errored: false};
     }
     return {
         _id: vNodeIdCounter++,

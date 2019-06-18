@@ -106,3 +106,12 @@ type BoundaryProps = {
 function Boundary(props: BoundaryProps) {
     return props.children;
 }
+
+// function ClientScript(props: {src: () => Promise<unknown>}) {
+//     const customChild: JSX.CustomChild = {
+//         url: props.src,
+//         data: {},
+//     };
+
+//     return createElement(Command, {});
+// }
