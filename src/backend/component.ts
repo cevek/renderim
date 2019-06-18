@@ -56,17 +56,16 @@ function restartComponent(node: VComponentNode): boolean {
 }
 
 function setPromiseToParentSuspense(
-    component: VComponentNodeCreated,
+    componentState: ComponentState,
     suspense: VComponentType<typeof Suspense, SuspenseState>,
     promise: Promise<unknown>,
 ) {
     const state = suspense.state;
-    assert(component.status === 'created');
     if (state.components.size === 0) {
         state.timeoutAt = now + suspense.props.timeout;
     }
     state.version++;
-    state.components.set(component as VComponentNode, promise);
+    state.components.set(componentState, promise);
     resolveSuspensePromises(state).then(() => {
         console.log('will restart suspense state, promises resolved', state);
         restartSuspense(state, suspense);
@@ -81,7 +80,7 @@ function setPromiseToParentSuspense(
                 console.log('root suspended');
             }
             globalSuspense.version++;
-            globalSuspense.components.set(suspense, promise);
+            globalSuspense.components.set(suspense.state, promise);
             resolveSuspensePromises(globalSuspense).then(() => {
                 console.log('will restart global suspense state, promises resolved', state);
                 restartSuspense(globalSuspense, undefined);
@@ -95,14 +94,11 @@ function setPromiseToParentSuspense(
 function restartSuspense(state: SuspenseState, suspense: VComponentType<typeof Suspense> | undefined) {
     transactionStart();
     let lastVersion = state.version;
-    for (const [component] of state.components) {
-        if (
-            component.type === Suspense &&
-            (component as VComponentType<typeof Suspense, SuspenseState>).state.components.size === 0
-        ) {
+    for (const [componentState] of state.components) {
+        if (componentState.node.type === Suspense && (componentState as SuspenseState).components.size === 0) {
             continue;
         }
-        restartComponent(component);
+        restartComponent(componentState.node);
     }
     commitUpdating();
     transactionStart();

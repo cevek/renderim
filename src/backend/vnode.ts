@@ -68,7 +68,7 @@ function createComponentVNode<Props extends object>(
         state,
         parentComponent: undefined!,
     };
-    node.state.node = node;
+    node.state.node = node as VComponentNode;
     return node;
 }
 

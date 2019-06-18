@@ -60,7 +60,7 @@ function Suspense(props: {children: VInput; timeout: number; fallback: VInput}) 
                     restartComponent(currentNode);
                     commitUpdating();
                 });
-                setPromiseToParentSuspense(node, currentNode, err);
+                setPromiseToParentSuspense(node.state, currentNode, err);
                 return true;
             }
             return false;

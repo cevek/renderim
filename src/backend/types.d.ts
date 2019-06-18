@@ -23,7 +23,7 @@ interface VBase {
 }
 
 interface ComponentState {
-    node: VComponentNodeCreated;
+    node: VComponentNode;
     componentId: number;
     errored: boolean;
 }
@@ -120,7 +120,7 @@ interface ErrorBoundaryState extends ComponentState {
 interface SuspenseState extends ComponentState {
     timeoutAt: number;
     version: number;
-    components: Map<VComponentNode, Promise<unknown>>;
+    components: Map<ComponentState, Promise<unknown>>;
 }
 type VComponentType<
     ComponentFn extends (props: never) => VInput,
