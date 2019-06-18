@@ -15,98 +15,98 @@ type ParentComponent =
     | VPortalNode
     | VPortalNodeCreated
     | RootId;
-type VComponentNodeCreated = Omit<VComponentNode, 'id' | 'children' | 'parentComponent' | 'status' | 'state'> & {
-    id: ID;
-    children: VInput;
-    parentComponent: ParentComponent;
-    state: {componentId: number};
-    status: VNodeStatus;
-};
-type VComponentNode = {
+
+interface VBase {
     readonly _id: number;
-    readonly status: VNodeStatus;
-    readonly id: ID;
+    status: VNodeStatus;
+    parentComponent: ParentComponent;
+}
+
+interface ComponentState {
+    componentId: number;
+}
+
+interface VComponentNodeCreated extends VBase {
     readonly kind: 'component';
     readonly type: (props: object) => VInput;
     readonly props: object;
     readonly key: string | undefined;
-    readonly children: VNode;
-    readonly state: {componentId: number};
-    readonly parentComponent: ParentComponent;
-};
-type VDomNodeCreated = Omit<VDomNode, 'id' | 'children' | 'parentComponent' | 'status'> & {
     id: ID;
-    children: readonly VInput[];
-    parentComponent: ParentComponent;
-    status: VNodeStatus;
-};
-type VDomNode = {
-    readonly _id: number;
-    readonly status: VNodeStatus;
+    children: VInput;
+    state: ComponentState;
+}
+interface VComponentNode extends VComponentNodeCreated {
     readonly id: ID;
+    readonly children: VNode;
+    readonly status: VNodeStatus;
+    readonly state: ComponentState;
+    readonly parentComponent: ParentComponent;
+}
+
+interface VDomNodeCreated extends VBase {
     readonly kind: 'dom';
     readonly type: string;
     readonly props: Attrs;
     readonly key: string | undefined;
-    readonly children: readonly VNode[];
     readonly state: undefined;
-    readonly parentComponent: ParentComponent;
-};
-type VTextNodeCreated = Omit<VTextNode, 'id' | 'children' | 'parentComponent' | 'status'> & {
     id: ID;
-    children: string;
-    parentComponent: ParentComponent;
-    status: VNodeStatus;
-};
-type VTextNode = {
-    readonly _id: number;
-    readonly status: VNodeStatus;
+    children: readonly VInput[];
+}
+
+interface VDomNode extends VDomNodeCreated {
     readonly id: ID;
+    readonly children: readonly VNode[];
+    readonly parentComponent: ParentComponent;
+    readonly status: VNodeStatus;
+}
+
+interface VTextNodeCreated extends VBase {
     readonly kind: 'text';
     readonly type: undefined;
     readonly props: undefined;
     readonly key: undefined;
-    readonly children: string;
     readonly state: undefined;
+    id: ID;
+    children: string;
+}
+interface VTextNode extends VTextNodeCreated {
+    readonly id: ID;
+    readonly children: string;
     readonly parentComponent: ParentComponent;
-};
-type VNodeCreatedChildren = Omit<VNode, 'children'> & {
-    children: VInput[];
-};
-type VArrayNodeCreated = Omit<VArrayNode, 'children' | 'parentComponent' | 'status' | 'state'> & {
-    children: readonly VInput[];
-    parentComponent: ParentComponent;
-    state: number;
-    status: VNodeStatus;
-};
-type VArrayNode = {
-    readonly _id: number;
     readonly status: VNodeStatus;
+}
+interface VArrayNodeCreated extends VBase {
     readonly id: undefined;
     readonly kind: 'array';
     readonly type: undefined;
     readonly props: undefined;
     readonly key: undefined;
+    children: readonly VInput[];
+    state: number;
+}
+interface VArrayNode extends VArrayNodeCreated {
+    readonly status: VNodeStatus;
     readonly children: VNode[];
     readonly state: number;
     readonly parentComponent: ParentComponent;
-};
-type VPortalNodeCreated = Omit<VPortalNode, 'children' | 'parentComponent' | 'status'> & {
-    children: VInput;
-    parentComponent: ParentComponent;
-    status: VNodeStatus;
-};
-type VPortalNode = {
-    readonly _id: number;
-    readonly status: VNodeStatus;
+}
+interface VPortalNodeCreated extends VBase {
     readonly id: undefined;
     readonly kind: 'portal';
     readonly type: ID;
     readonly props: undefined;
     readonly key: undefined;
-    readonly children: VNode;
     readonly state: undefined;
+    children: VInput;
+}
+interface VPortalNode extends VPortalNodeCreated {
+    readonly children: VNode;
+    readonly status: VNodeStatus;
     readonly parentComponent: ParentComponent;
+}
+
+type VNodeCreatedChildren = Omit<VNodeCreated, 'children'> & {
+    children: VInput[];
 };
 
 type CallbackWithCommand = ((...args: unknown[]) => void) & {command?: RPCCallback; extractArgs?: object[]};
