@@ -148,6 +148,19 @@ function commitUpdating() {
         command.vNode = undefined!;
         return !skip;
     });
+
+    commandList = [];
+    updatedComponents = [];
+    maybeObsolete = [];
+    maybeRemoved = [];
+    maybeCancelled = [];
+    maybeUpdatedParent = [];
+
+    for (const cb of shedule) {
+        cb();
+    }
+    shedule = [];
+
     if (filteredCommands.length > 0) {
         sendCommands(filteredCommands);
     }
@@ -163,12 +176,7 @@ function commitUpdating() {
             });
         }
     }
-    commandList = [];
-    updatedComponents = [];
-    maybeObsolete = [];
-    maybeRemoved = [];
-    maybeCancelled = [];
-    maybeUpdatedParent = [];
+
     rootSuspended = false;
     isMounting = false;
 }

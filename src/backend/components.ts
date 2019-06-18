@@ -55,11 +55,7 @@ function Suspense(props: {children: VInput; timeout: number; fallback: VInput}) 
     return createElement(Boundary, {
         onCatch: (err, node) => {
             if (err instanceof Promise) {
-                setTimeout(() => {
-                    transactionStart();
-                    restartComponent(currentNode);
-                    commitUpdating();
-                });
+                sheduleUpdate(() => restartComponent(currentNode));
                 setPromiseToParentSuspense(node.state, currentNode, err);
                 return true;
             }
@@ -80,11 +76,7 @@ function ErrorBoundary(props: {children: VInput; fallback: (error: Error) => VIn
                 new Promise(() => {
                     node.type(node.props);
                 });
-                setTimeout(() => {
-                    transactionStart();
-                    restartComponent(currentNode);
-                    commitUpdating();
-                });
+                sheduleUpdate(() => restartComponent(currentNode));
                 return true;
             }
             return false;

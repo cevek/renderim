@@ -22,6 +22,8 @@ let maybeUpdatedParent: ({node: VNode; newParent: ParentComponent})[] = [];
 const windowObj = {} as ID;
 const clientLoadedScripts = new Map<string, true | Error>();
 
+let shedule: (() => void)[] = [];
+
 let isCustomUrlCall = false;
 const GCVNodes = process.env.NODE_ENV === 'development' ? new WeakSet<VNodeCreated | VNode>() : undefined;
 ((self as {}) as {GCVNodes: typeof GCVNodes}).GCVNodes = GCVNodes;
