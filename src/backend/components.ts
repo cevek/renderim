@@ -101,7 +101,7 @@ function Portal(props: {container: string; children: VInput}) {
 }
 type BoundaryProps = {
     children: VInput;
-    onCatch: (err: Error, node: VComponentNodeCreated, isUpdating: boolean) => boolean;
+    onCatch: (err: Error, node: VComponentNodeCreated) => boolean;
 };
 function Boundary(props: BoundaryProps) {
     return props.children;

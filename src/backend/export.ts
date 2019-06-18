@@ -28,8 +28,8 @@ function render(node: VInput, htmlId: string) {
     const rootNode = node as VComponentNodeCreated;
     const oldNode = roots.get(rootId);
     assert(commandList.length === 0);
-    isUpdating = oldNode !== undefined;
     if (oldNode === undefined) {
+        isMounting = true;
         addCommand(rootNode, {action: 'start', group: 'mount', rootId: rootId});
     }
     const newNode =
@@ -47,7 +47,7 @@ function render(node: VInput, htmlId: string) {
         };
         commandList.push(devToolsCommand);
     }
-    if (!rootSuspended) {
+    if (oldNode !== undefined && !rootSuspended) {
         roots.set(rootId, newNode);
     }
     commitUpdating();
@@ -84,10 +84,11 @@ function transactionStart() {
 }
 
 function commitUpdating() {
+    const shouldCancel = !isMounting && rootSuspended;
     for (const {newChild, isRestart, node} of updatedComponents) {
         assert(node.status === 'active');
         assert(newChild.status === 'active');
-        if (!rootSuspended) {
+        if (!shouldCancel) {
             node.state.node = node;
             if (isRestart) {
                 (node as VComponentNodeCreated).children = newChild;
@@ -112,28 +113,28 @@ function commitUpdating() {
     // console.log({maybeRemoved, maybeObsolete, maybeCancelled});
     for (const node of maybeRemoved) {
         assert(node.status === 'active');
-        if (!rootSuspended) {
+        if (!shouldCancel) {
             (node as VNodeCreated).status = 'removed';
             destroyVNode(node);
         }
     }
     for (const node of maybeObsolete) {
         assert(node.status === 'active' || node.status === 'removed');
-        if (!rootSuspended) {
+        if (!shouldCancel) {
             (node as VNodeCreated).status = 'obsolete';
             destroyVNode(node);
         }
     }
     for (const node of maybeCancelled) {
         assert(node.status === 'active');
-        if (rootSuspended) {
+        if (shouldCancel) {
             node.status = 'cancelled';
             destroyVNode(node);
         }
     }
     for (const {newParent, node} of maybeUpdatedParent) {
         assert(node.status === 'active');
-        if (!rootSuspended) {
+        if (!shouldCancel) {
             (node as VNodeCreated).parentComponent = newParent;
         }
     }
@@ -169,6 +170,7 @@ function commitUpdating() {
     maybeCancelled = [];
     maybeUpdatedParent = [];
     rootSuspended = false;
+    isMounting = false;
 }
 
 function destroyVNode(node: VNodeCreated) {

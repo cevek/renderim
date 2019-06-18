@@ -12,7 +12,7 @@ const hooks = {
 };
 
 let rootSuspended = false;
-let isUpdating = false;
+let isMounting = false;
 let now = Date.now();
 let maybeCancelled: VNodeCreated[] = [];
 let maybeRemoved: VNode[] = [];

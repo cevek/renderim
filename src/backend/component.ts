@@ -15,7 +15,7 @@ function runComponent(node: VComponentNodeCreated) {
         while (typeof n !== 'string') {
             if (n.type === Boundary && is<VComponentType<typeof Boundary>>(n)) {
                 try {
-                    if (n.props.onCatch(err, node, isUpdating)) {
+                    if (n.props.onCatch(err, node)) {
                         foundHandler = true;
                         break;
                     }
@@ -44,7 +44,6 @@ function getParents(node: VNodeCreated) {
 }
 
 function restartComponent(node: VComponentNode): boolean {
-    isUpdating = true;
     if (node.status === 'removed' || node.status === 'obsolete' || node.status === 'cancelled') return false;
     console.log('restart', node.type.name, node);
     assert(node.status === 'active');
@@ -75,10 +74,8 @@ function setPromiseToParentSuspense(
         const parentSuspense = getParents(suspense).find(parent => parent.type === Suspense);
         const promise = Promise.race([Promise.all([...state.components.values()]), sleep(state.timeoutAt - now + 1)]);
         if (parentSuspense === undefined) {
-            if (isUpdating) {
-                rootSuspended = true;
-                console.log('root suspended');
-            }
+            rootSuspended = true;
+            // console.log('root suspended');
             globalSuspense.version++;
             globalSuspense.components.set(suspense.state, promise);
             resolveSuspensePromises(globalSuspense).then(() => {
