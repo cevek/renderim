@@ -54,6 +54,7 @@ declare function importScripts(src: string): void;
 declare class Promise<T> {
     constructor(val: (resolve: (val?: T) => void, reject: (val?: unknown) => void) => void);
     then<R>(fn: (val: T) => Promise<R> | R, rej?: (err: Error) => R): Promise<R>;
+    catch<R>(rej: (err: Error) => R): Promise<R>;
     static race(arr: Promise<unknown>[]): Promise<unknown>;
     static all(arr: Promise<unknown>[]): Promise<unknown>;
 }

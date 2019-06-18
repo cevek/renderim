@@ -39,6 +39,7 @@ function createComponentVNode<Props extends object>(
         const val: ErrorBoundaryState = {
             componentId,
             errored: false,
+            fallbackRendered: false,
             errors: [],
             node: undefined!,
         };

@@ -144,6 +144,7 @@ function commitUpdating(): void {
     maybeRemoved = [];
     maybeCancelled = [];
     maybeUpdatedParent = [];
+    rootSuspended = false;
 
     if (shedule.length > 0) {
         const cb = shedule.shift()!;
@@ -178,7 +179,6 @@ function commitUpdating(): void {
         }
     }
 
-    rootSuspended = false;
     isMounting = false;
 }
 

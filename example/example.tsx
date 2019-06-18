@@ -32,7 +32,7 @@ function Data({ms}: {ms: number}) {
     return (val as {}) as JSX.Element;
 }
 function MyError(props: {error: any}) {
-    return props.error.message.a.b.c.d;
+    return props.error.message//.a.b.c.d;
 }
 function F() {
     return x.a.b.c;
@@ -42,21 +42,23 @@ render(
     <Suspense timeout={1000} fallback={<div>My Loading...</div>}>
         <div class="wrapper">
             Hello
-            <Data ms={3000} />
+            <ErrorBoundary fallback={err => <MyError error={err} />}>
+                <F />
+            </ErrorBoundary>
         </div>
     </Suspense>,
     '#root',
 );
 
-render(
-    <Suspense timeout={1000} fallback={<div>My Loading...</div>}>
-        <div class="wrapper">
-            Hello
-            <Data ms={3000} />
-        </div>
-    </Suspense>,
-    '#root',
-);
+// render(
+//     <Suspense timeout={1000} fallback={<div>My Loading...</div>}>
+//         <div class="wrapper">
+//             Hello
+//             <Data ms={3000} />
+//         </div>
+//     </Suspense>,
+//     '#root',
+// );
 
 // render(
 //     <Suspense timeout={1000} fallback={<div>My Loading...</div>}>

@@ -69,14 +69,20 @@ function ErrorBoundary(props: {children: VInput; fallback: (error: Error) => VIn
     const currentNode = getCurrentComponentNode() as VComponentType<typeof ErrorBoundary, ErrorBoundaryState>;
     const state = currentNode.state;
     const children = state.errors.length > 0 ? props.fallback(state.errors[0]) : props.children;
+    if (state.errors.length > 0) {
+        state.fallbackRendered = true;
+    }
     return createElement(Boundary, {
         onCatch: (err, node) => {
             if (err instanceof Error) {
-                state.errors.push(err);
-                new Promise(() => {
-                    node.type(node.props);
-                });
-                sheduleUpdate(() => restartComponent(state));
+                if (state.fallbackRendered) {
+                    throw err;
+                }
+                if (state.errors.length === 0) {
+                    state.errors.push(err);
+                    new Promise(() => node.type(node.props)).catch(() => {});
+                    sheduleUpdate(() => restartComponent(state));
+                }
                 return true;
             }
             return false;

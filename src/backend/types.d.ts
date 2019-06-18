@@ -115,6 +115,7 @@ type CallbackWithCommand = ((...args: unknown[]) => void) & {command?: RPCCallba
 
 interface ErrorBoundaryState extends ComponentState {
     errors: Error[];
+    fallbackRendered: boolean;
 }
 
 interface SuspenseState extends ComponentState {
