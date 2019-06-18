@@ -21,15 +21,6 @@ let updatedComponents: ({node: VComponentNode; isRestart: boolean; newChild: VNo
 let maybeUpdatedParent: ({node: VNode; newParent: ParentComponent})[] = [];
 const windowObj = {} as ID;
 
-const globalSuspense: SuspenseState = {
-    node: undefined!,
-    version: 0,
-    timeoutAt: 0,
-    components: new Map(),
-    errored: false,
-    componentId: 0,
-};
-
 let isCustomUrlCall = false;
 const GCVNodes = process.env.NODE_ENV === 'development' ? new WeakSet<VNodeCreated | VNode>() : undefined;
 ((self as {}) as {GCVNodes: typeof GCVNodes}).GCVNodes = GCVNodes;

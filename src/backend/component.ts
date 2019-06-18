@@ -72,18 +72,10 @@ function setPromiseToParentSuspense(
 
     if (state.timeoutAt > now) {
         const parentSuspense = getParents(suspense).find(parent => parent.type === Suspense);
-        const promise = Promise.race([Promise.all([...state.components.values()]), sleep(state.timeoutAt - now + 1)]);
         if (parentSuspense === undefined) {
             rootSuspended = true;
-            // console.log('root suspended');
-            globalSuspense.version++;
-            globalSuspense.components.set(suspense.state, promise);
-            resolveSuspensePromises(globalSuspense).then(() => {
-                console.log('will restart global suspense state, promises resolved', state);
-                restartSuspense(globalSuspense, undefined);
-            });
         } else {
-            throw promise;
+            throw Promise.race([Promise.all([...state.components.values()]), sleep(state.timeoutAt - now + 1)]);;
         }
     }
 }
