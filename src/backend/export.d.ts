@@ -3,6 +3,7 @@
 declare module 'renderim' {
     export function Fragment(props: {children: JSX.InputElement}): JSX.Element;
     export function lazy<P>(cmp: () => Promise<{default: (props: P) => JSX.InputElement}>): (props: P) => JSX.Element;
+    export function ClientScript(props: {src: string | (() => Promise<unknown>)}): JSX.Element;
     export function Portal(props: {container: string; children: JSX.InputElement}): JSX.Element;
     export function ErrorBoundary(props: {
         children: JSX.InputElement;

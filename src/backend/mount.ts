@@ -58,14 +58,13 @@ function mountVDom(node: VDomNodeCreated, parentId: ID, beforeId: ID | null) {
     if (node.type === 'select') {
         updateSelectValue(node);
     }
-    if (props.customChild !== undefined) {
+    if (props.withCommand !== undefined) {
         addCommand(node, {
             action: 'create',
             group: 'custom',
             parentId: node.id,
-            data: props.customChild.data,
-            name: props.customChild.name,
-            url: customUrl(props.customChild),
+            data: props.withCommand.data,
+            name: props.withCommand.name,
         });
     }
     return node;

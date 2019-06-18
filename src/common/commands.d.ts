@@ -3,7 +3,7 @@
 
 type RootId = 'RootId';
 type ID = {id: 'ID'} & number;
-type Attrs = {readonly [key: string]: unknown; customChild?: JSX.CustomChild};
+type Attrs = {readonly [key: string]: unknown; withCommand?: JSX.AttrsCommand};
 type Styles = {[key: string]: string};
 
 type TagCommand = CreateTagCommand | UpdateTagCommand | MoveTagCommand | RemoveTagCommand;
@@ -90,7 +90,6 @@ type CreateCustomCommand = {
     parentId: ID;
     name: string;
     data: unknown;
-    url?: string;
 };
 type UpdateCustomCommand = {
     group: 'custom';

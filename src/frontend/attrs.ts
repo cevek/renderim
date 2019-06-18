@@ -119,7 +119,7 @@ function setAttrs(node: HTMLElement, id: ID, attrs: Attrs, tagName: string, isUp
             (node as HTMLInputElement).value = value as string;
         } else if (attr === 'checked' && tagName === 'input') {
             (node as HTMLInputElement).checked = value as boolean;
-        } else if (attr === 'customChild') {
+        } else if (attr === 'withCommand') {
         } else if (isObject(value)) {
             console.warn(`Tag attribute value <${tagName} ${attr}> is object`, value);
         } else {

@@ -20,6 +20,7 @@ let maybeObsolete: VNode[] = [];
 let updatedComponents: ({node: VComponentNode; isRestart: boolean; newChild: VNodeCreated})[] = [];
 let maybeUpdatedParent: ({node: VNode; newParent: ParentComponent})[] = [];
 const windowObj = {} as ID;
+const clientLoadedScripts = new Map<string, true | Error>();
 
 let isCustomUrlCall = false;
 const GCVNodes = process.env.NODE_ENV === 'development' ? new WeakSet<VNodeCreated | VNode>() : undefined;

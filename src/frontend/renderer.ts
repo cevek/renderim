@@ -109,19 +109,19 @@ function createDom(command: CreateTagCommand) {
     }
     setNode(command.id, node, true);
     (node as NodeWithCommand)._command = command;
-    const {customChild} = command.attrs;
-    if (customChild !== undefined) {
-        handleCustomChild(node, customChild);
+    const {withCommand} = command.attrs;
+    if (withCommand !== undefined) {
+        handleWithCommand(node, withCommand);
     }
 }
 
-function handleCustomChild(node: HTMLElement, customChild: JSX.CustomChild) {
-    if (customChild.name === 'IntersectionObserverContainer') {
+function handleWithCommand(node: HTMLElement, withCommand: JSX.AttrsCommand) {
+    if (withCommand.name === 'IntersectionObserverContainer') {
         (node as NodeWithCommand)._observer = new IntersectionObserver(
             entries => {
                 for (const entry of entries) {
                     const command = (entry.target as NodeWithCommand)._command as CreateTagCommand;
-                    const elementProps = command.attrs.customChild!.data as {
+                    const elementProps = command.attrs.withCommand!.data as {
                         onVisible: RPCCallback;
                         onInvisible?: RPCCallback;
                     };
@@ -138,9 +138,9 @@ function handleCustomChild(node: HTMLElement, customChild: JSX.CustomChild) {
                     }
                 }
             },
-            customChild.data as IntersectionObserverInit,
+            withCommand.data as IntersectionObserverInit,
         );
-    } else if (customChild.name === 'IntersectionObserverElement') {
+    } else if (withCommand.name === 'IntersectionObserverElement') {
         findRootObserver(node).observe(node);
     }
 }

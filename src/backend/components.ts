@@ -19,11 +19,11 @@ function IntersectionObserverContainer({
     threshold?: string | number;
 }) {
     const child = ensureVDomNode(children);
-    const customChild: JSX.CustomChild = {
+    const withCommand: JSX.AttrsCommand = {
         name: 'IntersectionObserverContainer',
         data: {rootMargin, threshold},
     };
-    return cloneVNode(child, {...child.props, customChild}, false);
+    return cloneVNode(child, {...child.props, withCommand}, false);
 }
 
 function IntersectionObserverElement<T extends DeepPartial<IntersectionObserverElementCallbackParams>>({
@@ -33,7 +33,7 @@ function IntersectionObserverElement<T extends DeepPartial<IntersectionObserverE
     onInvisible,
 }: {children: VDomNodeCreated} & IntersectionObserverElementProps<T>) {
     const child = ensureVDomNode(children);
-    const customChild: JSX.CustomChild = {
+    const withCommand: JSX.AttrsCommand = {
         name: 'IntersectionObserverElement',
         data: {
             onVisible: transformCallbackBackend(
@@ -42,7 +42,7 @@ function IntersectionObserverElement<T extends DeepPartial<IntersectionObserverE
             onInvisible: onInvisible === undefined ? undefined : transformCallbackBackend(onInvisible),
         },
     };
-    return cloneVNode(child, {...child.props, customChild}, false);
+    return cloneVNode(child, {...child.props, withCommand}, false);
 }
 
 function Suspense(props: {children: VInput; timeout: number; fallback: VInput}) {
@@ -107,11 +107,27 @@ function Boundary(props: BoundaryProps) {
     return props.children;
 }
 
-// function ClientScript(props: {src: () => Promise<unknown>}) {
-//     const customChild: JSX.CustomChild = {
-//         url: props.src,
-//         data: {},
-//     };
-
-//     return createElement(Command, {});
-// }
+function ClientScript(props: {src: string | (() => Promise<unknown>)}) {
+    const href = getClientScriptUrl(props.src);
+    const res = clientLoadedScripts.get(href);
+    if (res === true) return null;
+    if (res instanceof Error) throw res;
+    let resolve!: () => void;
+    const promise = new Promise(res => (resolve = res));
+    sendCommands([
+        {
+            group: 'script',
+            action: 'load',
+            url: href,
+            onLoad: transformCallbackOnce(() => {
+                resolve();
+                clientLoadedScripts.set(href, true);
+            }),
+            onError: transformCallbackOnce(() => {
+                resolve();
+                clientLoadedScripts.set(href, new Error('Loading script error'));
+            }),
+        },
+    ]);
+    throw promise;
+}

@@ -94,14 +94,13 @@ function updateDom(node: VDomNodeCreated, oldNode: VDomNode, parentId: ID): VDom
     if (diffAttrs !== undefined && node.type === 'select') {
         updateSelectValue(node);
     }
-    if (props.customChild !== undefined) {
+    if (props.withCommand !== undefined) {
         addCommand(node, {
             action: 'update',
             group: 'custom',
             parentId: node.id,
-            data: props.customChild.data,
-            name: props.customChild.name,
-            url: customUrl(props.customChild),
+            data: props.withCommand.data,
+            name: props.withCommand.name,
         });
     }
     return afterUpdate(node);

@@ -5,13 +5,13 @@ function removeVNode(node: VNode, realRemove: boolean) {
         removeVNode(node.children, realRemove);
     } else if (node.kind === domKind) {
         const props = node.props as JSX.IntrinsicElements[string];
-        if (props.customChild !== undefined) {
+        if (props.withCommand !== undefined) {
             addCommand(node, {
                 action: 'remove',
                 group: 'custom',
                 parentId: node.id,
-                data: node.props,
-                name: node.type,
+                data: props.withCommand.data,
+                name: props.withCommand.name,
             });
         }
         removeChildren(node, false);

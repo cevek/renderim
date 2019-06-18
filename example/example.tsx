@@ -11,6 +11,7 @@ import R, {
     IntersectionObserverElement,
     withPreventDefault,
     withTargetValue,
+    ClientScript,
 } from 'renderim';
 import './example.scss';
 const MyLazy = lazy(() => import('./lazy'));
@@ -40,6 +41,20 @@ var x: any;
 render(
     <Suspense timeout={1000} fallback={<div>My Loading...</div>}>
         <div class="wrapper">
+            Hello
+            <Data ms={3000} />
+        </div>
+    </Suspense>,
+    '#root',
+);
+
+render(
+    <Suspense timeout={1000} fallback={<div>My Loading...</div>}>
+        <div class="wrapper">
+            {/* <ClientScript src={() => import('https://google.maps.api')} /> */}
+            <ClientScript src="https://google.maps.api" />
+            <div withCommand={{name: 'map', data: {}}} />
+            <div withCommand={{name: 'map', data: {}}} />
             Hello
             <Data ms={3000} />
         </div>
@@ -184,7 +199,7 @@ render(
 //                     </IntersectionObserverElement>
 //                 </div>
 //             </IntersectionObserverContainer>
-//             {/* <div customChild={{name: 'foo', data: {}, url: () => import('./@babel/core')}} /> */}
+//             {/* <div withCommand={{name: 'foo', data: {}, url: () => import('./@babel/core')}} /> */}
 //         </div>
 //     </Suspense>,
 //     '#root',

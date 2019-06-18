@@ -85,11 +85,13 @@ function visitEachNode(node: VNodeCreated, cb: (node: VNodeCreated) => void): vo
     return never(node);
 }
 
-function customUrl(customChild: JSX.CustomChild) {
+function getClientScriptUrl(src: string | (() => Promise<unknown>)) {
     isCustomUrlCall = true;
-    const url = typeof customChild.url === 'function' ? ((customChild.url() as unknown) as string) : undefined;
-    isCustomUrlCall = false;
-    return url;
+    try {
+        return typeof src === 'string' ? src : ((src() as unknown) as string);
+    } finally {
+        isCustomUrlCall = false;
+    }
 }
 
 function isObj<T extends object>(obj: unknown): obj is T {
