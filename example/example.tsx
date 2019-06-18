@@ -51,10 +51,6 @@ render(
 render(
     <Suspense timeout={1000} fallback={<div>My Loading...</div>}>
         <div class="wrapper">
-            {/* <ClientScript src={() => import('https://google.maps.api')} /> */}
-            <ClientScript src="https://google.maps.api" />
-            <div withCommand={{name: 'map', data: {}}} />
-            <div withCommand={{name: 'map', data: {}}} />
             Hello
             <Data ms={3000} />
         </div>

@@ -1,5 +1,6 @@
 
 interface Array<T> {
+    shift(): T | undefined;
     [key: number]: T;
     readonly length: number;
     map<R>(fn: (val: T, i: number) => R): R[];

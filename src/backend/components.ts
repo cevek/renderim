@@ -47,7 +47,7 @@ function IntersectionObserverElement<T extends DeepPartial<IntersectionObserverE
 
 function Suspense(props: {children: VInput; timeout: number; fallback: VInput}) {
     const currentNode = getCurrentComponentNode() as VComponentType<typeof Suspense, SuspenseState>;
-    const {state} = currentNode;
+    const state = currentNode.state;
     const showFallback = state.components.size > 0 && state.timeoutAt <= now;
     const fallback = showFallback ? props.fallback : null;
     const vDomChild = ensureVDomNode(props.children);
@@ -55,7 +55,7 @@ function Suspense(props: {children: VInput; timeout: number; fallback: VInput}) 
     return createElement(Boundary, {
         onCatch: (err, node) => {
             if (err instanceof Promise) {
-                sheduleUpdate(() => restartComponent(currentNode));
+                sheduleUpdate(() => restartComponent(state));
                 setPromiseToParentSuspense(node.state, currentNode, err);
                 return true;
             }
@@ -76,7 +76,7 @@ function ErrorBoundary(props: {children: VInput; fallback: (error: Error) => VIn
                 new Promise(() => {
                     node.type(node.props);
                 });
-                sheduleUpdate(() => restartComponent(currentNode));
+                sheduleUpdate(() => restartComponent(state));
                 return true;
             }
             return false;

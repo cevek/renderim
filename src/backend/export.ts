@@ -47,7 +47,7 @@ function render(node: VInput, htmlId: string) {
         };
         commandList.push(devToolsCommand);
     }
-    if (oldNode !== undefined && !rootSuspended) {
+    if (oldNode === undefined || !rootSuspended) {
         roots.set(rootId, newNode);
     }
     commitUpdating();
@@ -83,7 +83,7 @@ function transactionStart() {
     }
 }
 
-function commitUpdating() {
+function commitUpdating(): void {
     const shouldCancel = !isMounting && rootSuspended;
     for (const {newChild, isRestart, node} of updatedComponents) {
         assert(node.status === 'active');
@@ -138,6 +138,19 @@ function commitUpdating() {
             (node as VNodeCreated).parentComponent = newParent;
         }
     }
+
+    updatedComponents = [];
+    maybeObsolete = [];
+    maybeRemoved = [];
+    maybeCancelled = [];
+    maybeUpdatedParent = [];
+
+    if (shedule.length > 0) {
+        const cb = shedule.shift()!;
+        cb();
+        return commitUpdating();
+    }
+
     const filteredCommands = (commandList as CommandWithParentVNode[]).filter(command => {
         const vNode = command.vNode;
         if (vNode === undefined) return true;
@@ -148,19 +161,7 @@ function commitUpdating() {
         command.vNode = undefined!;
         return !skip;
     });
-
     commandList = [];
-    updatedComponents = [];
-    maybeObsolete = [];
-    maybeRemoved = [];
-    maybeCancelled = [];
-    maybeUpdatedParent = [];
-
-    for (const cb of shedule) {
-        cb();
-    }
-    shedule = [];
-
     if (filteredCommands.length > 0) {
         sendCommands(filteredCommands);
     }

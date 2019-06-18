@@ -43,7 +43,8 @@ function getParents(node: VNodeCreated) {
     return parents;
 }
 
-function restartComponent(node: VComponentNode): boolean {
+function restartComponent(state: ComponentState): boolean {
+    const node = state.node;
     if (node.status === 'removed' || node.status === 'obsolete' || node.status === 'cancelled') return false;
     console.log('restart', node.type.name, node);
     assert(node.status === 'active');
@@ -65,41 +66,48 @@ function setPromiseToParentSuspense(
     }
     state.version++;
     state.components.set(componentState, promise);
+    const version = state.version;
     resolveSuspensePromises(state).then(() => {
         console.log('will restart suspense state, promises resolved', state);
-        restartSuspense(state, suspense);
+        restartSuspense(state, version);
     });
 
     if (state.timeoutAt > now) {
         const parentSuspense = getParents(suspense).find(parent => parent.type === Suspense);
+        const sleepPromise = sleep(state.timeoutAt - now + 1);
         if (parentSuspense === undefined) {
             rootSuspended = true;
+            sleepPromise.then(() => {
+                if (state.version === version && state.components.size > 0) {
+                    transactionStart();
+                    restartComponent(state);
+                    commitUpdating();
+                }
+            });
         } else {
-            throw Promise.race([Promise.all([...state.components.values()]), sleep(state.timeoutAt - now + 1)]);;
+            throw Promise.race([Promise.all([...state.components.values()]), sleepPromise]);
         }
     }
 }
 
-function restartSuspense(state: SuspenseState, suspense: VComponentType<typeof Suspense> | undefined) {
+function restartSuspense(state: SuspenseState, version: number) {
+    if (state.components.size === 0 || version !== state.version) return;
     transactionStart();
     let lastVersion = state.version;
     for (const [componentState] of state.components) {
         if (componentState.node.type === Suspense && (componentState as SuspenseState).components.size === 0) {
             continue;
         }
-        restartComponent(componentState.node);
+        restartComponent(componentState);
     }
     commitUpdating();
-    transactionStart();
     if (state.version === lastVersion) {
         state.components.clear();
-        if (suspense !== undefined) {
-            console.log('will restart suspense component, promises resolved');
-            restartComponent(suspense);
-        }
+        transactionStart();
+        restartComponent(state);
+        commitUpdating();
+        console.log('restartSuspense done');
     }
-    commitUpdating();
-    console.log('restartSuspense done');
 }
 
 function resolveSuspensePromises(state: SuspenseState): Promise<void> {
