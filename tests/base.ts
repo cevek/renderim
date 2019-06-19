@@ -4,16 +4,10 @@ self.postMessage = () => {};
 
 setHook('beforeComponent', () => {});
 setHook('afterComponent', () => {});
-
+console.log = () => {};
 const queue = new Map<string, Item[]>();
 setHook('restartComponent', node => {
-    const rootId = getNodeRootId(node);
-    let q = queue.get(getNodeRootId(node));
-    if (q === undefined) {
-        q = [];
-        queue.set(rootId, q);
-    }
-    q.push(makeTree(node) as Item);
+    queue.get(getNodeRootId(node))!.push(makeTree(node) as Item);
 });
 
 type Item = {type: string; props: object; children: (Item | string)[]};
@@ -49,13 +43,17 @@ function treeToString(item: Item | string, level = 0): string {
 let globalId = 0;
 export function render(node: JSX.Element) {
     globalId++;
+    const rootId = '#' + globalId;
+    queue.set(rootId, []);
     function getNextRestartedComponent() {
-        const el = queue.get('#' + globalId)!.shift();
+        const el = queue.get(rootId)!.shift();
         if (el === undefined) return;
         return treeToString(el);
     }
 
-    const tree = makeTree(Render(node, '#' + globalId));
+    const root = Render(node, '#' + globalId);
+    if (root === undefined) return {tree: undefined, getNextRestartedComponent};
+    const tree = makeTree(root);
     return {tree: treeToString(tree), getNextRestartedComponent};
 }
 

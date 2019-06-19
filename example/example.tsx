@@ -31,23 +31,32 @@ function Data({ms}: {ms: number}) {
     if (val instanceof Promise) throw val;
     return (val as {}) as JSX.Element;
 }
-function MyError(props: {error: any}) {
-    return props.error.message//.a.b.c.d;
+
+function FallbackWithError(props: {error: any}) {
+    return props.error.message.a.b.c.d;
 }
-function F() {
+function Errored2() {
+    var x = {} as {a: {b: {c: JSX.Element}}};
     return x.a.b.c;
 }
-var x: any;
+
 render(
-    <Suspense timeout={1000} fallback={<div>My Loading...</div>}>
-        <div class="wrapper">
-            Hello
-            <ErrorBoundary fallback={err => <MyError error={err} />}>
-                <F />
-            </ErrorBoundary>
-        </div>
-    </Suspense>,
+    <div>
+        Hello
+        <ErrorBoundary fallback={err => <FallbackWithError error={err} />}>
+            <Errored2 />
+        </ErrorBoundary>
+    </div>,
     '#root',
+);
+render(
+    <div>
+        Hello
+        <ErrorBoundary fallback={err => <FallbackWithError error={err} />}>
+            <Errored2 />
+        </ErrorBoundary>
+    </div>,
+    '#root2',
 );
 
 // render(

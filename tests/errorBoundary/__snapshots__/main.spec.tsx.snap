@@ -1,0 +1,57 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Error in fallback with parent boundary : 1.root 1`] = `
+"<div>
+   Hello
+   <ErrorBoundary>
+      <Boundary>
+         foo
+      </Boundary>
+   </ErrorBoundary>
+</div>"
+`;
+
+exports[`Error in fallback with parent boundary : 2.Inner ErrorBoundary 1`] = `"<ErrorBoundary/>"`;
+
+exports[`Error in fallback with parent boundary : 3.Outer ErrorBoundary 1`] = `
+"<ErrorBoundary>
+   <Boundary>
+      foo
+   </Boundary>
+</ErrorBoundary>"
+`;
+
+exports[`Error in fallback without parent boundary: 1.ErrorBoundary 1`] = `
+"<ErrorBoundary>
+   <Boundary>
+      <FallbackWithError/>
+   </Boundary>
+</ErrorBoundary>"
+`;
+
+exports[`Error in inner fallback component with parent boundary: 1.root 1`] = `
+"<div>
+   Hello
+   <ErrorBoundary>
+      <Boundary>
+         Cannot read property 'b' of undefined
+      </Boundary>
+   </ErrorBoundary>
+</div>"
+`;
+
+exports[`Error in inner fallback component with parent boundary: 2.Inner ErrorBoundary 1`] = `
+"<ErrorBoundary>
+   <Boundary>
+      <FallbackWithError/>
+   </Boundary>
+</ErrorBoundary>"
+`;
+
+exports[`Error in inner fallback component with parent boundary: 3.Outer ErrorBoundary 1`] = `
+"<ErrorBoundary>
+   <Boundary>
+      Cannot read property 'b' of undefined
+   </Boundary>
+</ErrorBoundary>"
+`;
