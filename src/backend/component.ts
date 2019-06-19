@@ -3,32 +3,19 @@ function runComponent(node: VComponentNodeCreated) {
     currentComponent = node;
     let newChildren;
     try {
+        const prevErrored = node.state.errored;
+        node.state.errored = false;
         hooks.beforeComponent(node);
         newChildren = norm(node.type(node.props));
         hooks.afterComponent(node);
+        if (prevErrored) {
+            processBoundarySubcomponentErrorGone(node);
+        }
     } catch (err) {
         hooks.afterComponent(node);
         newChildren = norm(undefined);
         node.state.errored = true;
-        let foundHandler = false;
-        let n = node.parentComponent;
-        while (typeof n !== 'string') {
-            if (n.type === Boundary && is<VComponentType<typeof Boundary>>(n)) {
-                try {
-                    if (n.props.onCatch(err, node)) {
-                        foundHandler = true;
-                        break;
-                    }
-                } catch (err2) {
-                    err = err2;
-                }
-            }
-            n = n.parentComponent;
-        }
-        if (!foundHandler) {
-            console.error(err);
-            scheduleUpdate(() => unmount(findRootId(node)));
-        }
+        processBoundarySubcomponentError(node, err);
     } finally {
         currentComponent = undefined;
     }
@@ -128,4 +115,56 @@ function findRootId(node: VNodeCreated): RootId {
         n = n.parentComponent;
     }
     return n;
+}
+
+function processBoundarySubcomponentRemoved(node: VComponentNodeCreated) {
+    let n = node.parentComponent;
+    while (typeof n !== 'string') {
+        if (n.type === Boundary && n.status !== 'removed' && is<VComponentType<typeof Boundary>>(n)) {
+            try {
+                if (typeof n.props.onSubcomponentRemoved === 'function' && n.props.onSubcomponentRemoved(node)) {
+                    break;
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        n = n.parentComponent;
+    }
+}
+function processBoundarySubcomponentErrorGone(node: VComponentNodeCreated) {
+    let n = node.parentComponent;
+    while (typeof n !== 'string') {
+        if (n.type === Boundary && is<VComponentType<typeof Boundary>>(n)) {
+            try {
+                if (typeof n.props.onSubcomponentErrorGone === 'function' && n.props.onSubcomponentErrorGone(node)) {
+                    break;
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        n = n.parentComponent;
+    }
+}
+function processBoundarySubcomponentError(node: VComponentNodeCreated, err: Error) {
+    let foundHandler = false;
+    let n = node.parentComponent;
+    while (typeof n !== 'string') {
+        if (n.type === Boundary && is<VComponentType<typeof Boundary>>(n)) {
+            try {
+                if (n.props.onCatch(err, node)) {
+                    foundHandler = true;
+                    break;
+                }
+            } catch (err2) {
+                err = err2;
+            }
+        }
+        n = n.parentComponent;
+    }
+    if (!foundHandler) {
+        console.error(err);
+        scheduleUpdate(() => unmount(findRootId(node)));
+    }
 }

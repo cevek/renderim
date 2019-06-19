@@ -118,6 +118,9 @@ function commitUpdating(): void {
     for (const node of maybeRemoved) {
         assert(node.status === 'active');
         if (!shouldCancel) {
+            if (node.kind === componentKind) {
+                processBoundarySubcomponentRemoved(node);
+            }
             (node as VNodeCreated).status = 'removed';
             destroyVNode(node);
         }

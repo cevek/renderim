@@ -100,6 +100,8 @@ function Portal(props: {container: string; children: VInput}) {
 type BoundaryProps = {
     children: VInput;
     onCatch: (err: Error, node: VComponentNodeCreated) => boolean;
+    onSubcomponentErrorGone?: (node: VComponentNodeCreated) => boolean;
+    onSubcomponentRemoved?: (node: VComponentNodeCreated) => boolean;
 };
 function Boundary(props: BoundaryProps) {
     return props.children;
