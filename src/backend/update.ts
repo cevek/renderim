@@ -56,10 +56,25 @@ function updateComponent(node: VComponentNodeCreated, oldNode: VComponentNode, p
     beforeUpdate(node, oldNode);
     node.id = parentId;
     node.state = oldNode.state;
-    const newChildren = runComponent(node);
+    const newChildren = shouldComponentUpdate(node.props, oldNode.props) ? runComponent(node) : oldNode.children;
     node.children = updateVNode(node, newChildren, oldNode.children, parentId);
     updatedComponents.push({newChild: node.children, node: node as VComponentNode, isRestart: false});
     return afterUpdate(node);
+}
+
+function shouldComponentUpdate(newProps: object, oldProps: object) {
+    type Hash = {[key: string]: unknown};
+    const oldPropKeys: (string | undefined)[] = Object.keys(oldProps);
+    for (const key in newProps) {
+        const pos = oldPropKeys.indexOf(key);
+        if (pos === -1) return true;
+        oldPropKeys[pos] = undefined;
+        if ((newProps as Hash)[key] !== (oldProps as Hash)[key]) return true;
+    }
+    for (const key of oldPropKeys) {
+        if (key !== undefined) return true;
+    }
+    return false;
 }
 
 function updateDom(node: VDomNodeCreated, oldNode: VDomNode, parentId: ID): VDomNode {
