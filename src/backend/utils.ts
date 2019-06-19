@@ -135,6 +135,6 @@ function is<T>(val: unknown): val is T {
     return true;
 }
 
-function sheduleUpdate(cb: () => void) {
-    shedule.push(cb);
+function scheduleUpdate(cb: () => void) {
+    schedule.push(cb);
 }

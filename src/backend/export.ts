@@ -51,12 +51,16 @@ function render(node: VInput, htmlId: string) {
         roots.set(rootId, newNode);
     }
     commitUpdating();
-    return newNode;
+    return newNode.status === 'removed' ? undefined : newNode;
 }
 
 function unmountComponentAtNode(htmlId: string) {
     transactionStart();
-    const node = roots.get(htmlId as RootId);
+    unmount(htmlId as RootId);
+    commitUpdating();
+}
+function unmount(htmlId: RootId) {
+    const node = roots.get(htmlId);
     if (node !== undefined) {
         removeVNode(node, true);
         if (process.env.NODE_ENV === 'development') {
@@ -69,8 +73,8 @@ function unmountComponentAtNode(htmlId: string) {
             };
             commandList.push(devToolsCommand);
         }
+        roots.delete(htmlId);
     }
-    commitUpdating();
 }
 
 function transactionStart() {
@@ -146,8 +150,8 @@ function commitUpdating(): void {
     maybeUpdatedParent = [];
     rootSuspended = false;
 
-    if (shedule.length > 0) {
-        const cb = shedule.shift()!;
+    if (schedule.length > 0) {
+        const cb = schedule.shift()!;
         cb();
         return commitUpdating();
     }
@@ -238,3 +242,4 @@ exports.IntersectionObserverElement = IntersectionObserverElement;
 exports.ClientScript = ClientScript;
 
 exports.getNodeRootId = findRootId;
+exports.scheduleUpdate = scheduleUpdate;

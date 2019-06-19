@@ -30,7 +30,7 @@ declare module 'renderim' {
         } | null,
         ...children: JSX.InputElement[]
     ): JSX.Element;
-    export function render(node: JSX.Element, htmlId: string): JSX.Element;
+    export function render(node: JSX.Element, htmlId: string): JSX.Element | undefined;
     export function unmountComponentAtNode(htmlId: string): void;
 
     export function withPreventDefault(cb: () => void): () => void;
@@ -50,6 +50,7 @@ declare module 'renderim' {
     ): JSX.Element;
 
     export function getNodeRootId(node: JSX.Element): string;
+    export function scheduleUpdate(cb: () => void): void;
     export function setHook(
         type: 'beforeComponent' | 'afterComponent' | 'unmountComponent' | 'restartComponent',
         value: (node: JSX.Element) => void,

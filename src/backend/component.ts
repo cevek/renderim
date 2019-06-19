@@ -26,10 +26,8 @@ function runComponent(node: VComponentNodeCreated) {
             n = n.parentComponent;
         }
         if (!foundHandler) {
-            setTimeout(() => {
-                unmountComponentAtNode(findRootId(node));
-                throw err;
-            });
+            console.error(err);
+            scheduleUpdate(() => unmount(findRootId(node)));
         }
     } finally {
         currentComponent = undefined;

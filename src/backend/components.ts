@@ -55,7 +55,7 @@ function Suspense(props: {children: VInput; timeout: number; fallback: VInput}) 
     return createElement(Boundary, {
         onCatch: (err, node) => {
             if (err instanceof Promise) {
-                sheduleUpdate(() => restartComponent(state));
+                scheduleUpdate(() => restartComponent(state));
                 setPromiseToParentSuspense(node.state, currentNode, err);
                 return true;
             }
@@ -81,7 +81,7 @@ function ErrorBoundary(props: {children: VInput; fallback: (error: Error) => VIn
                 if (state.errors.length === 0) {
                     state.errors.push(err);
                     new Promise(() => node.type(node.props)).catch(() => {});
-                    sheduleUpdate(() => restartComponent(state));
+                    scheduleUpdate(() => restartComponent(state));
                 }
                 return true;
             }

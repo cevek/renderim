@@ -1,4 +1,3 @@
-
 interface Array<T> {
     shift(): T | undefined;
     [key: number]: T;
@@ -39,7 +38,7 @@ declare class Map<K, V> {
     [Symbol.iterator](): IterableIterator<[K, V]>;
 }
 declare class Object {
-    static keys(val: object): string[];
+    static keys<T extends object>(val: T): (keyof T)[];
 }
 declare class WeakSet<V> {
     add(value: V): void;
@@ -61,7 +60,11 @@ declare class Promise<T> {
 declare function String(val: unknown): string;
 declare function setTimeout(fn: () => void, ms?: number): void;
 
-declare const console: {log(...args: unknown[]): void; warn(...args: unknown[]): void};
+declare const console: {
+    log(...args: unknown[]): void;
+    warn(...args: unknown[]): void;
+    error(...args: unknown[]): void;
+};
 
 type Parameters<T extends (...args: any) => any> = T extends (...args: infer P) => any ? P : never;
 type Omit<T, K extends keyof any> = Pick<T, Exclude<keyof T, K>>;
