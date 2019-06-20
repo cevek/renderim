@@ -33,3 +33,5 @@ const domKind = ({kind: 'dom', parent: kindParent} as unknown) as 'dom';
 const textKind = ({kind: 'text', parent: kindParent} as unknown) as 'text';
 const arrayKind = ({kind: 'array', parent: kindParent} as unknown) as 'array';
 const portalKind = ({kind: 'portal', parent: kindParent} as unknown) as 'portal';
+
+const CancellationToken = {cancellationToken: true};

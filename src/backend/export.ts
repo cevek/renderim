@@ -217,6 +217,10 @@ function getCurrentComponentNode() {
     return currentComponent;
 }
 
+function cancelUpdating() {
+    rootSuspended = true;
+}
+
 exports.Suspense = Suspense;
 exports.Portal = Portal;
 exports.ErrorBoundary = ErrorBoundary;
@@ -246,3 +250,5 @@ exports.ClientScript = ClientScript;
 
 exports.getNodeRootId = findRootId;
 exports.scheduleUpdate = scheduleUpdate;
+exports.CancellationToken = CancellationToken;
+exports.cancelUpdating = cancelUpdating;

@@ -15,7 +15,11 @@ function runComponent(node: VComponentNodeCreated) {
         hooks.afterComponent(node);
         newChildren = norm(undefined);
         node.state.errored = true;
-        processBoundarySubcomponentError(node, err);
+        if (err === CancellationToken) {
+            cancelUpdating();
+        } else {
+            processBoundarySubcomponentError(node, err);
+        }
     } finally {
         currentComponent = undefined;
     }
@@ -65,7 +69,6 @@ function setPromiseToParentSuspense(
         const parentSuspense = getParents(suspense).find(parent => parent.type === Suspense);
         const sleepPromise = sleep(state.timeoutAt - now + 1);
         if (parentSuspense === undefined) {
-            rootSuspended = true;
             sleepPromise.then(() => {
                 if (state.version === version && state.components.size > 0) {
                     transactionStart();
@@ -73,6 +76,7 @@ function setPromiseToParentSuspense(
                     commitUpdating();
                 }
             });
+            cancelUpdating();
         } else {
             throw Promise.race([Promise.all([...state.components.values()]), sleepPromise]);
         }

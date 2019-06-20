@@ -39,6 +39,8 @@ declare module 'renderim' {
     export function withTargetChecked(cb: (value: boolean) => void): () => void;
     export function withEventData<T extends object>(cb: (value: T) => void, shape: T): () => void;
 
+    export const CancellationToken: {readonly cancellationToken: 'cancellationToken'};
+
     export function IntersectionObserverContainer(props: {
         children: JSX.InputElement;
         rootMargin?: string;
@@ -51,6 +53,7 @@ declare module 'renderim' {
 
     export function getNodeRootId(node: JSX.Element): string;
     export function scheduleUpdate(cb: () => void): void;
+    export function cancelUpdating(): void;
     export function setHook(
         type: 'beforeComponent' | 'afterComponent' | 'unmountComponent' | 'restartComponent',
         value: (node: JSX.Element) => void,
