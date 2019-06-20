@@ -3,6 +3,7 @@
     "version": "1.0.0",
     "description": "",
     "main": "index.js",
+    "typings": "index.d.ts",
     "scripts": {
         "build": "tsc -b src/backend src/frontend",
         "watch": "tsc -b src/backend src/frontend -w",

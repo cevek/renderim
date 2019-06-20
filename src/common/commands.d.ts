@@ -1,5 +1,4 @@
-/// <reference path="./jsx.d.ts" />
-/// <reference path="./types.d.ts" />
+/// <reference path="../../jsx.d.ts" />
 
 type RootId = 'RootId';
 type ID = {id: 'ID'} & number;

@@ -8,3 +8,5 @@ bench.html
 bb
 x.tsx
 exp.ts
+!index.js
+!client.js

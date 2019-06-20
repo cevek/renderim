@@ -8,7 +8,7 @@
     "include": [
         "lib.d.ts",
         "../common/commands.d.ts",
-        "../common/jsx.d.ts",
+        "../../jsx.d.ts",
         "RPC.ts",
         "parcel.ts",
         "types.d.ts",

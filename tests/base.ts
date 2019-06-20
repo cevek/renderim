@@ -1,4 +1,4 @@
-/// <reference path="../src/backend/export.d.ts" />
+/// <reference path="../index.d.ts" />
 import {setHook, render as Render, getNodeRootId} from 'renderim';
 self.postMessage = () => {};
 

@@ -26,18 +26,23 @@ function IntersectionObserverContainer({
     return cloneVNode(child, {...child.props, withCommand}, false);
 }
 
-function IntersectionObserverElement<T extends DeepPartial<IntersectionObserverElementCallbackParams>>({
+function IntersectionObserverElement({
     children,
     onVisible,
     onVisibleParams,
     onInvisible,
-}: {children: VDomNodeCreated} & IntersectionObserverElementProps<T>) {
+}: {
+    children: VDomNodeCreated;
+    onVisible: (params: object) => void;
+    onInvisible?: () => void;
+    onVisibleParams?: object;
+}) {
     const child = ensureVDomNode(children);
     const withCommand: JSX.AttrsCommand = {
         name: 'IntersectionObserverElement',
         data: {
             onVisible: transformCallbackBackend(
-                setDataToCallback(onVisible, [onVisibleParams === undefined ? ({} as T) : onVisibleParams]),
+                setDataToCallback(onVisible, [onVisibleParams === undefined ? {} : onVisibleParams]),
             ),
             onInvisible: onInvisible === undefined ? undefined : transformCallbackBackend(onInvisible),
         },

@@ -1,5 +1,7 @@
-/// <reference path="../common/types.d.ts" />
-/// <reference path="../common/jsx.d.ts" />
+/// <reference path="./jsx.d.ts" />
+interface Window {
+    registerWorker(worker: Worker): void;
+}
 declare module 'renderim' {
     export function Fragment(props: {children: JSX.InputElement}): JSX.Element;
     export function lazy<P>(cmp: () => Promise<{default: (props: P) => JSX.InputElement}>): (props: P) => JSX.Element;
@@ -58,4 +60,18 @@ declare module 'renderim' {
         type: 'beforeComponent' | 'afterComponent' | 'unmountComponent' | 'restartComponent' | 'cancelComponent',
         value: (node: JSX.Element) => void,
     ): void;
+
+    type DeepPartial<T> = {[P in keyof T]?: DeepPartial<T[P]>};
+
+    type IntersectionObserverElementCallbackParams = {
+        intersectionRatio: number;
+        boundingClientRect: BoundingClientRect;
+        intersectionRect: BoundingClientRect;
+        rootBounds: BoundingClientRect;
+    };
+    type IntersectionObserverElementProps<T extends DeepPartial<IntersectionObserverElementCallbackParams>> = {
+        onVisible: (params: T) => void;
+        onInvisible?: () => void;
+        onVisibleParams?: T;
+    };
 }
