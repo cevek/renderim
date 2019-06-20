@@ -5,8 +5,6 @@ dist
 !jest.config.js
 bench.html
 .cache
-bb
 x.tsx
-exp.ts
 !index.js
 !client.js
