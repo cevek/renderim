@@ -246,6 +246,7 @@ type InputType = BaseInput &
               | {value: string; defaultValue?: never; onInput: () => void}
               | {value?: never; defaultValue: string; onInput?: () => void; onChange?: () => void}));
 type Base = {
+    ref?: () => void,
     class?: string;
     title?: string;
     id?: string;
