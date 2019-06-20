@@ -55,7 +55,7 @@ declare module 'renderim' {
     export function scheduleUpdate(cb: () => void): void;
     export function cancelUpdating(): void;
     export function setHook(
-        type: 'beforeComponent' | 'afterComponent' | 'unmountComponent' | 'restartComponent',
+        type: 'beforeComponent' | 'afterComponent' | 'unmountComponent' | 'restartComponent' | 'cancelComponent',
         value: (node: JSX.Element) => void,
     ): void;
 }

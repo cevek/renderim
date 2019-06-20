@@ -135,6 +135,9 @@ function commitUpdating(): void {
     for (const node of maybeCancelled) {
         assert(node.status === 'active');
         if (shouldCancel) {
+            if (node.kind === componentKind) {
+                hooks.cancelComponent(node);
+            }
             node.status = 'cancelled';
             destroyVNode(node);
         }
