@@ -246,7 +246,7 @@ exports.setHook = function setHook<K extends keyof typeof hooks>(type: K, value:
 };
 exports.IntersectionObserverElement = IntersectionObserverElement;
 
-exports.ClientScript = ClientScript;
+exports.loadClientScript = loadClientScript;
 
 exports.getNodeRootId = findRootId;
 exports.scheduleUpdate = scheduleUpdate;

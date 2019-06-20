@@ -107,10 +107,10 @@ function Boundary(props: BoundaryProps) {
     return props.children;
 }
 
-function ClientScript(props: {src: string | (() => Promise<unknown>)}) {
-    const href = getClientScriptUrl(props.src);
-    const res = clientLoadedScripts.get(href);
-    if (res === true) return null;
+function loadClientScript(src: string | (() => Promise<unknown>)) {
+    const url = getClientScriptUrl(src);
+    const res = clientLoadedScripts.get(url);
+    if (res === true) return;
     if (res instanceof Error) throw res;
     let resolve!: () => void;
     const promise = new Promise(res => (resolve = res));
@@ -118,14 +118,14 @@ function ClientScript(props: {src: string | (() => Promise<unknown>)}) {
         {
             group: 'script',
             action: 'load',
-            url: href,
+            url: url,
             onLoad: transformCallbackOnce(() => {
                 resolve();
-                clientLoadedScripts.set(href, true);
+                clientLoadedScripts.set(url, true);
             }),
             onError: transformCallbackOnce(() => {
                 resolve();
-                clientLoadedScripts.set(href, new Error('Loading script error'));
+                clientLoadedScripts.set(url, new Error('Script loading error'));
             }),
         },
     ]);
