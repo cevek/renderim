@@ -32,16 +32,16 @@ function handleRPCCommand(command: RPCCommand) {
     if (command.action === 'call') {
         if (typeof o[lastPart] === 'function') {
             const ret = (o[lastPart] as (...args: unknown[]) => void)(...command.args.map(transformArg));
-            console.log('RPC call', command);
+            // console.log('RPC call', command);
             transformCallback(command.callback)(ret);
         } else {
             sendToBackend([createError(command.callback.id, `${o}.${lastPart} is not callable`)]);
         }
     } else if (command.action === 'read') {
-        console.log('RPC read', command);
+        // console.log('RPC read', command);
         transformCallback(command.callback)(o[lastPart]);
     } else if (command.action === 'write') {
-        console.log('RPC write', command);
+        // console.log('RPC write', command);
         o[lastPart] = transformArg(command.value);
     } else {
         nevr(command);

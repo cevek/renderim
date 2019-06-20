@@ -39,7 +39,7 @@ function getParents(node: VNodeCreated) {
 function restartComponent(state: ComponentState): boolean {
     const node = state.node;
     if (node.status === 'removed' || node.status === 'obsolete' || node.status === 'cancelled') return false;
-    console.log('restart', node.type.name, node);
+    // console.log('restart', node.type.name, node);
     assert(node.status === 'active');
     visitEachNode(node, n => assert(n.status === 'active'));
     const newChildren = runComponent(node);
@@ -61,7 +61,7 @@ function setPromiseToParentSuspense(
     state.components.set(componentState, promise);
     const version = state.version;
     resolveSuspensePromises(state).then(() => {
-        console.log('will restart suspense state, promises resolved', state);
+        // console.log('will restart suspense state, promises resolved', state);
         restartSuspense(state, version);
     });
 
@@ -99,7 +99,7 @@ function restartSuspense(state: SuspenseState, version: number) {
         transactionStart();
         restartComponent(state);
         commitUpdating();
-        console.log('restartSuspense done');
+        // console.log('restartSuspense done');
     }
 }
 
