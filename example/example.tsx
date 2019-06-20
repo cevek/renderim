@@ -11,7 +11,7 @@ import R, {
     IntersectionObserverElement,
     withPreventDefault,
     withTargetValue,
-    ClientScript,
+    loadClientScript,
 } from 'renderim';
 import './example.scss';
 const MyLazy = lazy(() => import('./lazy'));
