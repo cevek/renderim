@@ -1,5 +1,5 @@
 function never(val?: never): never {
-    throw new AssertError('Never possible: ' + val);
+    throw new Error('Never possible: ' + val);
 }
 
 function genNodeId() {
@@ -14,12 +14,11 @@ function findChildVDom(node: VNode): VDomNode | VTextNode {
     return never(node);
 }
 
-class AssertError extends Error {}
 function assert(val: boolean) {
-    if (typeof val !== 'boolean') throw new AssertError('Not Boolean');
+    if (typeof val !== 'boolean') throw new Error('Not Boolean');
     if (!val) {
         debugger;
-        throw new AssertError('Assert!');
+        throw new Error('Assert!');
     }
 }
 function nonNull<T>(val: T | undefined): T {

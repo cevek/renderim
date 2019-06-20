@@ -13,7 +13,7 @@ function createElement<T extends object>(
         }
         return createComponentVNode(type as (props: object) => VInput, props, key);
     } else {
-        throw new AssertError('Component type is empty: ' + type);
+        throw new Error('Component type is empty: ' + type);
     }
 }
 

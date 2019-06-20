@@ -160,7 +160,7 @@ function cloneVNode<T extends VNodeCreated>(n: T, newProps = n.props, deep: bool
 }
 
 function ensureVDomNode(node: VInput) {
-    if (!isVNode(node) || node.kind !== domKind) throw new AssertError('Children must be a tag element');
+    if (!isVNode(node) || node.kind !== domKind) throw new Error('Children must be a tag element');
     return node;
 }
 
