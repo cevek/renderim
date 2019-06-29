@@ -2,14 +2,14 @@
     "compilerOptions": {
         "target": "esnext",
         "jsx": "react",
-        "jsxFactory": "R.createElement",
-        "module": "commonjs",
+        "jsxFactory": "createElement",
+        "module": "esnext",
         "strict": true,
         "baseUrl": ".",
         "paths": {
             "renderim": ["../dist/backend.js"]
         },
         "skipLibCheck": true,
-        "esModuleInterop": true
+        "esModuleInterop": false
     }
 }

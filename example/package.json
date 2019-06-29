@@ -17,5 +17,10 @@
     "license": "ISC",
     "devDependencies": {
         "sass": "^1.21.0"
+    },
+    "dependencies": {
+        "@types/highcharts": "^5.0.41",
+        "app": "^0.1.0",
+        "highcharts": "^7.1.2"
     }
 }

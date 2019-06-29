@@ -1,18 +1,5 @@
-import R, {
-    Suspense,
-    createContext,
-    ErrorBoundary,
-    RootSuspense,
-    Portal,
-    Fragment,
-    render,
-    lazy,
-    IntersectionObserverContainer,
-    IntersectionObserverElement,
-    withPreventDefault,
-    withTargetValue,
-    loadClientScript,
-} from 'renderim';
+import {App} from './app/App';
+import {createContext, createElement, lazy, render, Suspense} from 'renderim';
 import './example.scss';
 const MyLazy = lazy(() => import('./lazy'));
 const MyContext = createContext('DefaultContext');
@@ -32,31 +19,15 @@ function Data({ms}: {ms: number}) {
     return (val as {}) as JSX.Element;
 }
 
-function FallbackWithError(props: {error: any}) {
-    return props.error.message.a.b.c.d;
-}
-function Errored2() {
-    var x = {} as {a: {b: {c: JSX.Element}}};
-    return x.a.b.c;
-}
-
 render(
-    <div>
-        Hello
-        <ErrorBoundary fallback={err => <FallbackWithError error={err} />}>
-            <Errored2 />
-        </ErrorBoundary>
-    </div>,
+    <Suspense fallback={<div>Loading...</div>} timeout={1000}>
+        <div>
+            Hello
+            <MyLazy name="foo" />
+            <App />
+        </div>
+    </Suspense>,
     '#root',
-);
-render(
-    <div>
-        Hello
-        <ErrorBoundary fallback={err => <FallbackWithError error={err} />}>
-            <Errored2 />
-        </ErrorBoundary>
-    </div>,
-    '#root2',
 );
 
 // render(
