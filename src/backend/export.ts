@@ -1,6 +1,6 @@
 function createElement<T extends object>(
     type: string | ((props: T) => VInput),
-    p: T | null,
+    p: T & {withCommand?: JSX.AttrsCommand} | null,
     ...children: VInput[]
 ): VNodeCreated {
     let props = ensureObject(p) as {[key: string]: unknown};
@@ -229,6 +229,7 @@ exports.Portal = Portal;
 exports.ErrorBoundary = ErrorBoundary;
 exports.Fragment = Fragment;
 exports.lazy = lazy;
+exports.client = client;
 exports.render = render;
 exports.createElement = createElement;
 exports.createContext = createContext;

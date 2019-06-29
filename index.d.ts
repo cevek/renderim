@@ -5,6 +5,9 @@ interface Window {
 declare module 'renderim' {
     export function Fragment(props: {children: JSX.InputElement}): JSX.Element;
     export function lazy<P>(cmp: () => Promise<{default: (props: P) => JSX.InputElement}>): (props: P) => JSX.Element;
+    export function client<T>(
+        src: () => Promise<{default: (dom: HTMLElement, props: T) => {update(props: T): void; destroy?(): void}}>,
+    ): (props: T & {children?: JSX.Element}) => JSX.Element;
     export function loadClientScript(src: string | (() => Promise<unknown>)): void;
     export function Portal(props: {container: string; children: JSX.InputElement}): JSX.Element;
     export function ErrorBoundary(props: {

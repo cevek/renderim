@@ -15,17 +15,18 @@ const hooks = {
 let rootSuspended = false;
 let isMounting = false;
 let now = Date.now();
+let isForceUpdate = false;
 let maybeCancelled: VNodeCreated[] = [];
 let maybeRemoved: VNode[] = [];
 let maybeObsolete: VNode[] = [];
 let updatedComponents: ({node: VComponentNode; isRestart: boolean; newChild: VNodeCreated})[] = [];
 let maybeUpdatedParent: ({node: VNode; newParent: ParentComponent})[] = [];
 const windowObj = {} as ID;
-const clientLoadedScripts = new Map<string, true | Error>();
+const clientLoadedScripts = new Map<string | number, Promise<unknown> | Error | string>();
 
 const schedule: (() => void)[] = [];
 
-let isCustomUrlCall = false;
+// let isCustomUrlCall = false;
 const GCVNodes = process.env.NODE_ENV === 'development' ? new WeakSet<VNodeCreated | VNode>() : undefined;
 ((self as {}) as {GCVNodes: typeof GCVNodes}).GCVNodes = GCVNodes;
 const kindParent = {type: 'kind'};

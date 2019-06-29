@@ -1,4 +1,4 @@
-Object.defineProperty(window, 'parcelRequire', {value: () => {}});
+// Object.defineProperty(window, 'parcelRequire', {value: () => {}});
 const domMap: Node[] = [];
 const svgNS = 'http://www.w3.org/2000/svg';
 const xlinkNS = 'http://www.w3.org/1999/xlink';
@@ -115,6 +115,11 @@ function createDom(command: CreateTagCommand) {
     }
 }
 
+declare const require: any;
+// const clientScriptsMap = new Map<
+//     string,
+//     {default: (dom: HTMLElement, props: unknown) => {update(props: unknown): void; destroy?(): void}}
+// >();
 function handleWithCommand(node: HTMLElement, withCommand: JSX.AttrsCommand) {
     if (withCommand.name === 'IntersectionObserverContainer') {
         (node as NodeWithCommand)._observer = new IntersectionObserver(
@@ -142,6 +147,26 @@ function handleWithCommand(node: HTMLElement, withCommand: JSX.AttrsCommand) {
         );
     } else if (withCommand.name === 'IntersectionObserverElement') {
         findRootObserver(node).observe(node);
+    } else if (withCommand.name === 'clientComponent') {
+        const data = withCommand.data as {
+            url: string;
+            props: unknown;
+            onError: RPCCallback;
+            onResolve: RPCCallback;
+        };
+        const component = require(data.url);
+        if (component === undefined) throw nevr(data.url as never);
+        new Promise(() => {
+            (node as any).__clientComponent = component.default(node, data.props);
+            transformCallback(data.onResolve)();
+        }).catch(err => {
+            if (err instanceof Promise) {
+                const resolve = transformCallback(data.onResolve);
+                err.then(resolve, resolve);
+            } else {
+                transformCallback(data.onError)({message: err.message, stack: err.stack});
+            }
+        });
     }
 }
 

@@ -84,14 +84,14 @@ function visitEachNode(node: VNodeCreated, cb: (node: VNodeCreated) => void): vo
     return never(node);
 }
 
-function getClientScriptUrl(src: string | (() => Promise<unknown>)) {
-    isCustomUrlCall = true;
-    try {
-        return typeof src === 'string' ? src : ((src() as unknown) as string);
-    } finally {
-        isCustomUrlCall = false;
-    }
-}
+// function getClientScriptUrl(src: string | (() => Promise<unknown>)) {
+//     isCustomUrlCall = true;
+//     try {
+//         return Promise.resolve(typeof src === 'string' ? src : ((src() as unknown) as string));
+//     } finally {
+//         isCustomUrlCall = false;
+//     }
+// }
 
 function isObj<T extends object>(obj: unknown): obj is T {
     return typeof obj === 'object' && obj !== null;

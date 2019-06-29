@@ -44,8 +44,10 @@ function disposeCallback(callback: Function) {
     callbackWithCommand.command = undefined;
 }
 function transformCallbackOnce(callback: Function): RPCCallback {
-    const command = transformCallbackBackend(callback);
-    disposeCallback(callback);
+    const command = transformCallbackBackend((...args: unknown[]) => {
+        callbackMap.delete(command.id);
+        return callback(...args);
+    });
     return command;
 }
 // function createPromise<T>(extractArgs: object[], returnValue?: unknown) {

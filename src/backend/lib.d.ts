@@ -17,6 +17,8 @@ declare namespace Symbol {
 }
 declare class Error {
     constructor(name: string);
+    message: string;
+    stack: string;
 }
 declare function Array(size: number): [];
 declare namespace Array {
@@ -51,8 +53,9 @@ declare const self: {
 };
 declare function importScripts(src: string): void;
 declare class Promise<T> {
+    static resolve<T>(value: T): Promise<T>;
     constructor(val: (resolve: (val?: T) => void, reject: (val?: unknown) => void) => void);
-    then<R>(fn: (val: T) => Promise<R> | R, rej?: (err: Error) => R): Promise<R>;
+    then<R>(fn: (val: T) => Promise<R> | R, rej?: (err: Error) => unknown): Promise<R>;
     catch<R>(rej: (err: Error) => R): Promise<R>;
     static race(arr: Promise<unknown>[]): Promise<unknown>;
     static all(arr: Promise<unknown>[]): Promise<unknown>;
@@ -100,7 +103,9 @@ interface Boolean {}
 interface Number {}
 interface Object {}
 interface RegExp {}
-interface String {}
+interface String {
+    match(regexp: RegExp): string[] | null;
+}
 interface IArguments {}
 interface CallableFunction extends Function {}
 interface NewableFunction extends Function {}

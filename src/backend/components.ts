@@ -1,11 +1,49 @@
 function lazy<Props extends object>(cmp: () => Promise<{default: (props: Props) => VInput}>) {
     let component: (props: Props) => VInput;
     let error: Error | undefined;
-    const promise = cmp().then(m => (component = m.default), e => (error = e));
+    let promise: Promise<unknown> | undefined;
     return function Lazy(props: Props) {
+        if (promise === undefined) {
+            promise = cmp().then(m => (component = m.default), e => (error = e));
+        }
         if (error !== undefined) throw error;
         if (component === undefined) throw promise;
         return createElement(component, props);
+    };
+}
+
+function client<T>(
+    cmp: () => Promise<{default: (node: {}, props: T) => {update(newProps: T): void; destroy?: () => void}}>,
+) {
+    return function ClientComponent(props: T) {
+        const url = loadClientScript(cmp);
+        const onResolve = transformCallbackOnce(() => {
+            // state.promise = 'resolved';
+            // resolve();
+        });
+        const onError = transformCallbackOnce(() => {});
+        // const component = getCurrentComponentNode();
+        // const state = component.state as {promise?: Promise<unknown> | 'resolved'};
+
+        // let resolve: () => void;
+        // if (state.promise === undefined) {
+        //     const promise = new Promise(res => (resolve = res));
+        //     state.promise = promise;
+        //     throw promise;
+        // }
+        // if (state.promise !== 'resolved') throw state.promise;
+
+        return createElement('div', {
+            withCommand: {
+                data: {
+                    url,
+                    props,
+                    onResolve,
+                    onError,
+                },
+                name: 'clientComponent',
+            },
+        });
     };
 }
 
@@ -112,27 +150,38 @@ function Boundary(props: BoundaryProps) {
     return props.children;
 }
 
-function loadClientScript(src: string | (() => Promise<unknown>)) {
-    const url = getClientScriptUrl(src);
-    const res = clientLoadedScripts.get(url);
-    if (res === true) return;
+const clientScripts = new Map<Function | string, Promise<unknown> | Error | string>();
+
+function loadClientScript(src: string | (() => Promise<unknown>)): string {
+    const res = clientScripts.get(src);
+    if (res instanceof Promise) throw res;
     if (res instanceof Error) throw res;
-    let resolve!: () => void;
-    const promise = new Promise(res => (resolve = res));
-    sendCommands([
-        {
-            group: 'script',
-            action: 'load',
-            url: url,
-            onLoad: transformCallbackOnce(() => {
-                resolve();
-                clientLoadedScripts.set(url, true);
-            }),
-            onError: transformCallbackOnce(() => {
-                resolve();
-                clientLoadedScripts.set(url, new Error('Script loading error'));
-            }),
-        },
-    ]);
-    throw promise;
+    if (res !== undefined) return res;
+
+    if (typeof src === 'string') {
+        let resolve!: () => void;
+        const promise = new Promise(res => (resolve = res));
+        const load = () => {
+            clientScripts.set(src, 'loaded');
+            resolve();
+        };
+        sendCommands([
+            {
+                group: 'script',
+                action: 'load',
+                url: src,
+                onLoad: transformCallbackOnce(load),
+                onError: transformCallbackOnce(load),
+            },
+        ]);
+        throw promise;
+    }
+    throw src().catch(err => {
+        const m = err.message.match(/^Cannot find module '(.*?)'$/);
+        if (m !== null) {
+            clientScripts.set(src, m[1]);
+        } else {
+            throw err;
+        }
+    });
 }

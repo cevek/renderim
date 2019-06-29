@@ -44,20 +44,22 @@ if (!isObj(self.document)) {
                             onerror: () => void;
                         }) {
                             if (node.tagName === 'script') {
-                                if (isCustomUrlCall) {
+                                if (node.src.match(/Client/i)) {
                                     sendCommands([
                                         {
                                             group: 'script',
                                             action: 'load',
-                                            url: node.href,
+                                            url: node.src,
                                             onLoad: transformCallbackOnce(node.onload),
                                             onError: transformCallbackOnce(node.onerror),
                                         },
                                     ]);
                                 } else {
                                     try {
-                                        importScripts(node.src);
-                                        node.onload();
+                                        setTimeout(() => {
+                                            importScripts(node.src);
+                                            node.onload();
+                                        });
                                     } catch (e) {
                                         node.onerror();
                                     }
