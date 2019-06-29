@@ -3,8 +3,9 @@ function mountVNode(parentNode: ParentComponent, node: VNodeCreated, parentId: I
         node = cloneVNode(node, undefined, false);
     }
     assert(node.status === 'created');
-    assert(!maybeCancelled.includes(node));
-    maybeCancelled.push(node);
+    // assert(!maybeCancelled.includes(node));
+    updatings.push({kind: 'created', node: node})
+
     node.parentComponent = parentNode;
     if (node.kind === componentKind) {
         node = mountComponent(node, parentId, beforeId);

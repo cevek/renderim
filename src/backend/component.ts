@@ -44,7 +44,8 @@ function restartComponent(state: ComponentState): boolean {
     visitEachNode(node, n => assert(n.status === 'active'));
     const newChildren = runComponent(node);
     const newChild = updateVNode(node, newChildren, node.children, node.id) as VComponentNode;
-    updatedComponents.push({newChild, node, isRestart: true});
+    updatings.push({kind: 'restart', node, newChild});
+    updatings.push({kind: 'updateComponent', node});
     return true;
 }
 
@@ -87,6 +88,7 @@ function restartSuspense(state: SuspenseState, version: number) {
     if (state.components.size === 0 || version !== state.version) return;
     transactionStart();
     let lastVersion = state.version;
+    // const components = [...state.components];
     for (const [componentState] of state.components) {
         if (componentState.node.type === Suspense && (componentState as SuspenseState).components.size === 0) {
             continue;

@@ -1,13 +1,14 @@
 function replaceVNode<T extends VNode>(parentNode: ParentComponent, node: VNodeCreated, oldNode: VNode, parentId: ID) {
-    const newNode = mountVNode(parentNode, node, parentId, findChildVDom(oldNode).id);
+    const beforeId = findChildVDom(oldNode).id;
     removeVNode(oldNode, true);
+    const newNode = mountVNode(parentNode, node, parentId, beforeId);
     return newNode as T;
 }
 
 function updateVNode(parentNode: ParentComponent, node: VNodeCreated, oldNode: VNode, parentId: ID): VNode {
     assert(oldNode.status === 'active');
     if (oldNode === node && getPersistId(oldNode.parentComponent) === getPersistId(parentNode)) {
-        maybeUpdatedParent.push({newParent: parentNode, node: oldNode});
+        updatings.push({kind: 'parent', node: oldNode, newParent: parentNode});
         return oldNode;
     }
     if (node.status === 'active') {
@@ -41,10 +42,10 @@ function afterUpdate<T extends VNode>(node: VNodeCreated) {
     return node as T;
 }
 function beforeUpdate(node: VNodeCreated, oldNode: VNode) {
-    assert(!maybeObsolete.includes(oldNode));
-    assert(!maybeCancelled.includes(node));
-    maybeObsolete.push(oldNode);
-    maybeCancelled.push(node);
+    // assert(!maybeObsolete.includes(oldNode));
+    // assert(!maybeCancelled.includes(node));
+    updatings.push({kind: 'obsolete', node: oldNode});
+    updatings.push({kind: 'created', node});
 }
 
 function updateComponent(node: VComponentNodeCreated, oldNode: VComponentNode, parentId: ID): VComponentNode {
@@ -58,7 +59,7 @@ function updateComponent(node: VComponentNodeCreated, oldNode: VComponentNode, p
     node.state = oldNode.state;
     const newChildren = shouldComponentUpdate(node.props, oldNode.props) ? runComponent(node) : oldNode.children;
     node.children = updateVNode(node, newChildren, oldNode.children, parentId);
-    updatedComponents.push({newChild: node.children, node: node as VComponentNode, isRestart: false});
+    updatings.push({kind: 'updateComponent', node: node as VComponentNode});
     return afterUpdate(node);
 }
 

@@ -16,11 +16,21 @@ let rootSuspended = false;
 let isMounting = false;
 let now = Date.now();
 let isForceUpdate = false;
-let maybeCancelled: VNodeCreated[] = [];
-let maybeRemoved: VNode[] = [];
-let maybeObsolete: VNode[] = [];
-let updatedComponents: ({node: VComponentNode; isRestart: boolean; newChild: VNodeCreated})[] = [];
-let maybeUpdatedParent: ({node: VNode; newParent: ParentComponent})[] = [];
+
+type Update =
+    | {kind: 'created'; node: VNodeCreated}
+    | {kind: 'removed'; node: VNode}
+    | {kind: 'obsolete'; node: VNode}
+    | {kind: 'parent'; node: VNode; newParent: ParentComponent}
+    | {kind: 'updateComponent'; node: VComponentNode}
+    | {kind: 'restart'; node: VComponentNode; newChild: VNodeCreated};
+
+let updatings: Update[] = [];
+// let maybeCancelled: VNodeCreated[] = [];
+// let maybeRemoved: VNode[] = [];
+// let maybeObsolete: VNode[] = [];
+// let updatedComponents: ({node: VComponentNode; isRestart: boolean; newChild: VNodeCreated})[] = [];
+// let maybeUpdatedParent: ({node: VNode; newParent: ParentComponent})[] = [];
 const windowObj = {} as ID;
 const clientLoadedScripts = new Map<string | number, Promise<unknown> | Error | string>();
 

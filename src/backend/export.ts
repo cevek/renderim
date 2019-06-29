@@ -82,6 +82,9 @@ function transactionStart() {
     now = Date.now();
     for (const [, root] of roots) {
         visitEachNode(root, node => {
+            if (node.kind === componentKind) {
+                assert(node.state.node === node);
+            }
             assert(node.status === 'active');
         });
     }
@@ -89,71 +92,71 @@ function transactionStart() {
 
 function commitUpdating(): void {
     const shouldCancel = !isMounting && rootSuspended;
-    for (const {newChild, isRestart, node} of updatedComponents) {
-        assert(node.status === 'active');
-        assert(newChild.status === 'active');
-        if (!shouldCancel) {
-            node.state.node = node;
-            if (isRestart) {
-                (node as VComponentNodeCreated).children = newChild;
-                hooks.restartComponent(node);
-                if (process.env.NODE_ENV === 'development') {
-                    const unmounted = [];
-                    for (const node of maybeRemoved) {
-                        unmounted.push(getPersistId(node));
-                    }
-                    const devToolsCommand: UpdateDevtools = {
-                        action: 'update',
-                        group: 'devtools',
-                        isRoot: false,
-                        unmounted: unmounted,
-                        node: convertVNodeToDevToolsJSON(node),
-                    };
-                    commandList.push(devToolsCommand);
-                }
-            }
+    for (const up of updatings) {
+        const {node} = up;
+        if (node.status === 'obsolete' && up.kind === 'updateComponent') {
+            continue;
         }
-    }
-    // console.log({maybeRemoved, maybeObsolete, maybeCancelled});
-    for (const node of maybeRemoved) {
-        assert(node.status === 'active');
-        if (!shouldCancel) {
+        if (shouldCancel) {
+            if (up.kind === 'created') {
+                const {node} = up;
+                if (node.kind === componentKind) {
+                    hooks.cancelComponent(node);
+                }
+                node.status = 'cancelled';
+                destroyVNode(node);
+            }
+            continue;
+        }
+        if (up.kind !== 'restart') {
+            assert(node.status === 'active');
+        }
+        if (up.kind === 'obsolete') {
+            (node as VNodeCreated).status = 'obsolete';
+            destroyVNode(node);
+        } else if (up.kind === 'removed') {
             if (node.kind === componentKind) {
                 processBoundarySubcomponentRemoved(node);
             }
             (node as VNodeCreated).status = 'removed';
             destroyVNode(node);
-        }
-    }
-    for (const node of maybeObsolete) {
-        assert(node.status === 'active' || node.status === 'removed');
-        if (!shouldCancel) {
-            (node as VNodeCreated).status = 'obsolete';
-            destroyVNode(node);
-        }
-    }
-    for (const node of maybeCancelled) {
-        assert(node.status === 'active');
-        if (shouldCancel) {
-            if (node.kind === componentKind) {
-                hooks.cancelComponent(node);
+        } else if (up.kind === 'restart') {
+            const {newChild} = up;
+            const node = up.node.state.node;
+            assert(node.status === 'active');
+            assert(newChild.status === 'active');
+            (node as VComponentNodeCreated).children = newChild;
+            hooks.restartComponent(node);
+            if (process.env.NODE_ENV === 'development') {
+                const unmounted = [];
+                for (const up2 of updatings) {
+                    if (up2.kind === 'removed') {
+                        unmounted.push(getPersistId(node));
+                    }
+                }
+                const devToolsCommand: UpdateDevtools = {
+                    action: 'update',
+                    group: 'devtools',
+                    isRoot: false,
+                    unmounted: unmounted,
+                    node: convertVNodeToDevToolsJSON(node),
+                };
+                commandList.push(devToolsCommand);
             }
-            node.status = 'cancelled';
-            destroyVNode(node);
-        }
-    }
-    for (const {newParent, node} of maybeUpdatedParent) {
-        assert(node.status === 'active');
-        if (!shouldCancel) {
+        } else if (up.kind === 'updateComponent') {
+            const {node} = up;
+            node.state.node = node;
+        } else if (up.kind === 'parent') {
+            const {newParent} = up;
             (node as VNodeCreated).parentComponent = newParent;
+        } else if (up.kind === 'created') {
+        } else {
+            never(up);
         }
     }
 
-    updatedComponents = [];
-    maybeObsolete = [];
-    maybeRemoved = [];
-    maybeCancelled = [];
-    maybeUpdatedParent = [];
+    const prevUpdatings = updatings;
+    updatings = [];
     rootSuspended = false;
 
     if (schedule.length > 0) {
@@ -184,6 +187,9 @@ function commitUpdating(): void {
             });
         } else {
             visitEachNode(root, node => {
+                if (node.kind === componentKind) {
+                    assert(node.state.node === node);
+                }
                 assert(node.status === 'active');
             });
         }
