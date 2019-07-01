@@ -22,11 +22,12 @@ interface VBase {
     parentComponent: ParentComponent;
 }
 
-interface ComponentState {
+interface ComponentInstance<T = unknown> {
     node: VComponentNode;
     componentId: number;
     errored: boolean;
     trxId: number;
+    state: T;
 }
 
 interface VComponentNodeCreated extends VBase {
@@ -36,13 +37,13 @@ interface VComponentNodeCreated extends VBase {
     readonly key: string | undefined;
     id: ID;
     children: VInput;
-    state: ComponentState;
+    instance: ComponentInstance;
 }
 interface VComponentNode extends VComponentNodeCreated {
     readonly id: ID;
     readonly children: VNode;
     readonly status: VNodeStatus;
-    readonly state: ComponentState;
+    readonly instance: ComponentInstance;
     readonly parentComponent: ParentComponent;
 }
 
@@ -51,7 +52,7 @@ interface VDomNodeCreated extends VBase {
     readonly type: string;
     readonly props: Attrs;
     readonly key: string | undefined;
-    readonly state: undefined;
+    readonly instance: undefined;
     id: ID;
     children: readonly VInput[];
 }
@@ -68,7 +69,7 @@ interface VTextNodeCreated extends VBase {
     readonly type: undefined;
     readonly props: undefined;
     readonly key: undefined;
-    readonly state: undefined;
+    readonly instance: undefined;
     id: ID;
     children: string;
 }
@@ -85,12 +86,12 @@ interface VArrayNodeCreated extends VBase {
     readonly props: undefined;
     readonly key: undefined;
     children: readonly VInput[];
-    state: number;
+    instance: number;
 }
 interface VArrayNode extends VArrayNodeCreated {
     readonly status: VNodeStatus;
     readonly children: VNode[];
-    readonly state: number;
+    readonly instance: number;
     readonly parentComponent: ParentComponent;
 }
 interface VPortalNodeCreated extends VBase {
@@ -99,7 +100,7 @@ interface VPortalNodeCreated extends VBase {
     readonly type: ID;
     readonly props: undefined;
     readonly key: undefined;
-    readonly state: undefined;
+    readonly instance: undefined;
     children: VInput;
 }
 interface VPortalNode extends VPortalNodeCreated {
@@ -114,20 +115,16 @@ type VNodeCreatedChildren = Omit<VNodeCreated, 'children'> & {
 
 type CallbackWithCommand = ((...args: unknown[]) => void) & {command?: RPCCallback; extractArgs?: object[]};
 
-interface ErrorBoundaryState extends ComponentState {
+interface ErrorBoundaryState {
     errors: Error[];
     fallbackRendered: boolean;
 }
 
-interface SuspenseState extends ComponentState {
+interface SuspenseState {
     timeoutAt: number;
     version: number;
-    components: Map<ComponentState, Promise<unknown>>;
+    components: Map<ComponentInstance, Promise<unknown>>;
 }
-type VComponentType<
-    ComponentFn extends (props: never) => VInput,
-    State extends VComponentNode['state'] = VComponentNode['state']
-> = VComponentNode & {
+type VComponentType<ComponentFn extends (props: never) => VInput> = VComponentNode & {
     props: Parameters<ComponentFn>[0];
-    state: State;
 };

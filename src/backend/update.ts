@@ -49,7 +49,7 @@ function beforeUpdate(node: VNodeCreated, oldNode: VNode) {
 }
 
 function updateComponent(node: VComponentNodeCreated, oldNode: VComponentNode, parentId: ID): VComponentNode {
-    assert(node.state.trxId !== GLOBAL_TRX_ID);
+    assert(node.instance.trxId !== GLOBAL_TRX_ID);
     assert(node.status === 'created');
     assert(oldNode.status === 'active');
     if (node.type !== oldNode.type) {
@@ -57,7 +57,7 @@ function updateComponent(node: VComponentNodeCreated, oldNode: VComponentNode, p
     }
     beforeUpdate(node, oldNode);
     node.id = parentId;
-    node.state = oldNode.state;
+    node.instance = oldNode.instance;
     const newChildren = shouldComponentUpdate(node.props, oldNode.props) ? runComponent(node) : oldNode.children;
     node.children = updateVNode(node, newChildren, oldNode.children, parentId);
     GLOBAL_TASKS.push({kind: 'updateComponent', node: node as VComponentNode});

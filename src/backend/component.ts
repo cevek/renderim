@@ -1,11 +1,11 @@
 function runComponent(node: VComponentNodeCreated) {
     assert(node.status === 'created' || node.status === 'active');
-    GLOBAL_CURRENT_COMPONENT = node.state;
-    node.state.trxId = GLOBAL_TRX_ID;
+    GLOBAL_CURRENT_COMPONENT = node.instance;
+    node.instance.trxId = GLOBAL_TRX_ID;
     let newChildren;
     try {
-        const prevErrored = node.state.errored;
-        node.state.errored = false;
+        const prevErrored = node.instance.errored;
+        node.instance.errored = false;
         GLOBAL_HOOKS.beforeComponent(node);
         newChildren = norm(node.type(node.props));
         GLOBAL_HOOKS.afterComponent(node);
@@ -15,7 +15,7 @@ function runComponent(node: VComponentNodeCreated) {
     } catch (err) {
         GLOBAL_HOOKS.afterComponent(node);
         newChildren = norm(undefined);
-        node.state.errored = true;
+        node.instance.errored = true;
         if (err === CancellationToken) {
             cancelUpdating();
         } else {
@@ -37,10 +37,10 @@ function getParents(node: VNodeCreated) {
     return parents;
 }
 
-function restartComponent(state: ComponentState): boolean {
-    const node = state.node;
+function restartComponent(instance: ComponentInstance): boolean {
+    const node = instance.node;
     if (
-        state.trxId === GLOBAL_TRX_ID ||
+        instance.trxId === GLOBAL_TRX_ID ||
         node.status === 'removed' ||
         node.status === 'obsolete' ||
         node.status === 'cancelled'
@@ -58,56 +58,57 @@ function restartComponent(state: ComponentState): boolean {
 }
 
 function setPromiseToParentSuspense(
-    componentState: ComponentState,
-    suspenseState: SuspenseState,
+    component: ComponentInstance,
+    suspenseInstance: ComponentInstance<SuspenseState>,
     timeout: number,
     promise: Promise<unknown>,
 ) {
-    if (suspenseState.components.size === 0) {
-        suspenseState.timeoutAt = GLOBAL_NOW + timeout;
+    const suspense = suspenseInstance.state;
+    if (suspense.components.size === 0) {
+        suspense.timeoutAt = GLOBAL_NOW + timeout;
     }
-    suspenseState.version++;
-    suspenseState.components.set(componentState, promise);
-    const version = suspenseState.version;
-    resolveSuspensePromises(suspenseState).then(() => {
-        // console.log('will restart suspense state, promises resolved', state);
-        restartSuspense(suspenseState, version);
+    suspense.version++;
+    suspense.components.set(component, promise);
+    const version = suspense.version;
+    resolveSuspensePromises(suspense).then(() => {
+        restartSuspense(suspenseInstance, version);
     });
 
-    if (suspenseState.timeoutAt > GLOBAL_NOW) {
-        const parentSuspense = getParents(suspenseState.node).find(parent => parent.type === Suspense);
-        const sleepPromise = sleep(suspenseState.timeoutAt - GLOBAL_NOW + 1);
+    if (suspense.timeoutAt > GLOBAL_NOW) {
+        const parentSuspense = getParents(suspenseInstance.node).find(parent => parent.type === Suspense);
+        const sleepPromise = sleep(suspense.timeoutAt - GLOBAL_NOW + 1);
         if (parentSuspense === undefined) {
             sleepPromise.then(() => {
-                if (suspenseState.version === version && suspenseState.components.size > 0) {
+                if (suspense.version === version && suspense.components.size > 0) {
                     transactionStart();
-                    restartComponent(suspenseState);
+                    restartComponent(suspenseInstance);
                     commitUpdating();
                 }
             });
             cancelUpdating();
         } else {
-            throw Promise.race([Promise.all([...suspenseState.components.values()]), sleepPromise]);
+            throw Promise.race([Promise.all([...suspense.components.values()]), sleepPromise]);
         }
     }
 }
 
-function restartSuspense(state: SuspenseState, version: number) {
+function restartSuspense(instance: ComponentInstance<SuspenseState>, version: number) {
+    const state = instance.state;
     if (state.components.size === 0 || version !== state.version) return;
     transactionStart();
     let lastVersion = state.version;
     // const components = [...state.components];
-    for (const [componentState] of state.components) {
-        if (componentState.node.type === Suspense && (componentState as SuspenseState).components.size === 0) {
+    for (const [component] of state.components) {
+        if (component.node.type === Suspense && (component.state as SuspenseState).components.size === 0) {
             continue;
         }
-        restartComponent(componentState);
+        restartComponent(component);
     }
     commitUpdating();
     if (state.version === lastVersion) {
         state.components.clear();
         transactionStart();
-        restartComponent(state);
+        restartComponent(instance);
         commitUpdating();
         // console.log('restartSuspense done');
     }

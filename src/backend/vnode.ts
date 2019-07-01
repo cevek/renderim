@@ -8,7 +8,7 @@ function createVTextNode(text: string): VTextNodeCreated {
         kind: textKind,
         props: undefined,
         type: undefined,
-        state: undefined,
+        instance: undefined,
         parentComponent: undefined!,
     };
 }
@@ -23,7 +23,7 @@ function createDomVNode(type: string, attrs: Attrs, key: string | undefined, chi
         kind: domKind,
         props: attrs,
         type: type,
-        state: undefined,
+        instance: undefined,
         parentComponent: undefined!,
     };
 }
@@ -34,31 +34,6 @@ function createComponentVNode<Props extends object>(
     key?: string,
 ): VComponentNodeCreated {
     const componentId = GLOBAL_CLIENT_NODE_ID_COUNTER++;
-    let state;
-    if (type === ErrorBoundary) {
-        const val: ErrorBoundaryState = {
-            trxId: -1,
-            componentId,
-            errored: false,
-            fallbackRendered: false,
-            errors: [],
-            node: undefined!,
-        };
-        state = val;
-    } else if (type === Suspense) {
-        const val: SuspenseState = {
-            trxId: -1,
-            componentId,
-            version: 0,
-            errored: false,
-            timeoutAt: 0.0,
-            node: undefined!,
-            components: new Map(),
-        };
-        state = val;
-    } else {
-        state = {trxId: -1, componentId, errored: false, node: undefined!};
-    }
     const node: VComponentNodeCreated = {
         _id: GLOBAL_VNODE_ID_COUNTER++,
         status: 'created',
@@ -68,10 +43,16 @@ function createComponentVNode<Props extends object>(
         kind: componentKind,
         props,
         type,
-        state,
+        instance: {
+            trxId: -1,
+            componentId,
+            errored: false,
+            node: undefined!,
+            state: undefined,
+        },
         parentComponent: undefined!,
     };
-    node.state.node = node as VComponentNode;
+    node.instance.node = node as VComponentNode;
     return node;
 }
 
@@ -85,7 +66,7 @@ function createVArrayNode(arr: VInput[]): VArrayNodeCreated {
         key: undefined,
         props: undefined,
         type: undefined,
-        state: GLOBAL_CLIENT_NODE_ID_COUNTER++,
+        instance: GLOBAL_CLIENT_NODE_ID_COUNTER++,
         parentComponent: undefined!,
     };
 }
@@ -99,7 +80,7 @@ function createVPortalNode(type: ID, children: VInput): VPortalNodeCreated {
         key: undefined,
         props: undefined,
         type: type,
-        state: undefined,
+        instance: undefined,
         parentComponent: undefined!,
     };
 }
@@ -169,13 +150,13 @@ function ensureVDomNode(node: VInput) {
 function getPersistId(node: VNodeCreated | RootId): ID {
     if (typeof node === 'string') return (node as unknown) as ID;
     if (node.kind === componentKind) {
-        return node.state.componentId as ID;
+        return node.instance.componentId as ID;
     }
     if (node.kind === portalKind) {
         return node.type;
     }
     if (node.kind === arrayKind) {
-        return node.state as ID;
+        return node.instance as ID;
     }
     return node.id;
 }

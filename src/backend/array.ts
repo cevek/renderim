@@ -1,6 +1,6 @@
 function updateArray(node: VArrayNodeCreated, oldNode: VArrayNode, parentId: ID): VArrayNode {
     beforeUpdate(node, oldNode);
-    node.state = oldNode.state;
+    node.instance = oldNode.instance;
     const newList = node.children;
     const oldList = oldNode.children;
     const skipHead = updateHead(node, oldNode, parentId);

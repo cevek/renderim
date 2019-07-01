@@ -84,7 +84,7 @@ function transactionStart() {
     for (const [, root] of GLOBAL_ROOTS) {
         visitEachNode(root, node => {
             if (node.kind === componentKind) {
-                assert(node.state.node === node);
+                assert(node.instance.node === node);
             }
             assert(node.status === 'active');
         });
@@ -123,7 +123,7 @@ function commitUpdating(): void {
             destroyVNode(node);
         } else if (up.kind === 'restart') {
             const {newChild} = up;
-            const node = up.node.state.node;
+            const node = up.node.instance.node;
             assert(node.status === 'active');
             assert(newChild.status === 'active');
             (node as VComponentNodeCreated).children = newChild;
@@ -146,7 +146,7 @@ function commitUpdating(): void {
             }
         } else if (up.kind === 'updateComponent') {
             const {node} = up;
-            node.state.node = node;
+            node.instance.node = node;
         } else if (up.kind === 'parent') {
             const {newParent} = up;
             (node as VNodeCreated).parentComponent = newParent;
@@ -177,7 +177,7 @@ function commitUpdating(): void {
         } else {
             visitEachNode(root, node => {
                 if (node.kind === componentKind) {
-                    assert(node.state.node === node);
+                    assert(node.instance.node === node);
                 }
                 assert(node.status === 'active');
             });
@@ -226,9 +226,9 @@ function disposeVDomNodeCallbacks(node: VDomNodeCreated) {
     }
 }
 
-function getCurrentComponent<T extends ComponentState>() {
+function getCurrentComponent<T>() {
     if (GLOBAL_CURRENT_COMPONENT === undefined) throw new Error('No current component');
-    return GLOBAL_CURRENT_COMPONENT as T;
+    return GLOBAL_CURRENT_COMPONENT as ComponentInstance & {state: T};
 }
 
 function cancelUpdating() {

@@ -2,7 +2,7 @@ const GLOBAL_ROOTS = new Map<RootId, VNode>();
 let GLOBAL_CLIENT_NODE_ID_COUNTER = 0;
 let GLOBAL_VNODE_ID_COUNTER = 0;
 let GLOBAL_COMMAND_LIST: Command[] = [];
-let GLOBAL_CURRENT_COMPONENT: ComponentState | undefined;
+let GLOBAL_CURRENT_COMPONENT: ComponentInstance | undefined;
 
 const GLOBAL_HOOKS = {
     beforeComponent(node: VComponentNodeCreated) {},

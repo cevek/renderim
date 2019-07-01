@@ -17,22 +17,8 @@ function client<T>(
 ) {
     return function ClientComponent(props: T) {
         const url = loadClientScript(cmp);
-        const onResolve = transformCallbackOnce(() => {
-            // state.promise = 'resolved';
-            // resolve();
-        });
+        const onResolve = transformCallbackOnce(() => {});
         const onError = transformCallbackOnce(() => {});
-        // const component = getCurrentComponentNode();
-        // const state = component.state as {promise?: Promise<unknown> | 'resolved'};
-
-        // let resolve: () => void;
-        // if (state.promise === undefined) {
-        //     const promise = new Promise(res => (resolve = res));
-        //     state.promise = promise;
-        //     throw promise;
-        // }
-        // if (state.promise !== 'resolved') throw state.promise;
-
         return createElement('div', {
             withCommand: {
                 data: {
@@ -89,16 +75,24 @@ function IntersectionObserverElement({
 }
 
 function Suspense(props: {children: VInput; timeout: number; fallback: VInput}) {
-    const suspenseState = getCurrentComponent<SuspenseState>();
-    const showFallback = suspenseState.components.size > 0 && suspenseState.timeoutAt <= GLOBAL_NOW;
+    const instance = getCurrentComponent<SuspenseState>();
+    if (instance.state === undefined) {
+        instance.state = {
+            version: 0,
+            timeoutAt: 0.0,
+            components: new Map(),
+        };
+    }
+    const state = instance.state;
+    const showFallback = state.components.size > 0 && state.timeoutAt <= GLOBAL_NOW;
     const fallback = showFallback ? props.fallback : null;
     const vDomChild = ensureVDomNode(props.children);
-    const children = cloneVNode(vDomChild, {...vDomChild.props, hidden: suspenseState.components.size > 0}, false);
+    const children = cloneVNode(vDomChild, {...vDomChild.props, hidden: state.components.size > 0}, false);
     return createElement(Boundary, {
         onCatch: (err, node) => {
             if (err instanceof Promise) {
-                scheduleUpdate(() => restartComponent(suspenseState));
-                setPromiseToParentSuspense(node.state, suspenseState, props.timeout, err);
+                scheduleUpdate(() => restartComponent(instance));
+                setPromiseToParentSuspense(node.instance, instance, props.timeout, err);
                 return true;
             }
             return false;
@@ -108,7 +102,14 @@ function Suspense(props: {children: VInput; timeout: number; fallback: VInput}) 
 }
 
 function ErrorBoundary(props: {children: VInput; fallback: (error: Error) => VInput}) {
-    const state = getCurrentComponent<ErrorBoundaryState>();
+    const instance = getCurrentComponent<ErrorBoundaryState>();
+    if (instance.state === undefined) {
+        instance.state = {
+            fallbackRendered: false,
+            errors: [],
+        };
+    }
+    const state = instance.state;
     const children = state.errors.length > 0 ? props.fallback(state.errors[0]) : props.children;
     if (state.errors.length > 0) {
         state.fallbackRendered = true;
@@ -122,7 +123,7 @@ function ErrorBoundary(props: {children: VInput; fallback: (error: Error) => VIn
                 if (state.errors.length === 0) {
                     state.errors.push(err);
                     new Promise(() => node.type(node.props)).catch(() => {});
-                    scheduleUpdate(() => restartComponent(state));
+                    scheduleUpdate(() => restartComponent(instance));
                 }
                 return true;
             }
