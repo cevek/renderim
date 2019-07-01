@@ -13,7 +13,7 @@ function transformCallbackBackend(callback: Function): RPCCallback {
             return callbackWithCommand.command;
         }
     }
-    const id = String(callbackId++);
+    const id = String(GLOBAL_RPC_CALLBACK_ID_COUNTER++);
     const command: RPCCallback = {
         type: '__fn__',
         id,
@@ -21,7 +21,7 @@ function transformCallbackBackend(callback: Function): RPCCallback {
         returnValue: undefined,
     };
     callbackWithCommand.command = command;
-    callbackMap.set(id, callbackWithCommand);
+    GLOBAL_RPC_CALLBACK_MAP.set(id, callbackWithCommand);
     return command;
 }
 
@@ -38,12 +38,12 @@ function setDataToCallback<Args extends object[]>(callback: (...args: Args) => v
 function disposeCallback(callback: Function) {
     const callbackWithCommand = callback as CallbackWithCommand;
     const command = nonNull(callbackWithCommand.command);
-    callbackMap.delete(command.id);
+    GLOBAL_RPC_CALLBACK_MAP.delete(command.id);
     callbackWithCommand.command = undefined;
 }
 function transformCallbackOnce(callback: Function): RPCCallback {
     const command = transformCallbackBackend((...args: unknown[]) => {
-        callbackMap.delete(command.id);
+        GLOBAL_RPC_CALLBACK_MAP.delete(command.id);
         return callback(...args);
     });
     return command;
@@ -59,7 +59,7 @@ self.addEventListener('message', msg => {
     if (Array.isArray(data)) {
         for (const item of data) {
             if (isObj<RPCResult>(item) && item.type === '__res__') {
-                const callbackObj = callbackMap.get(item.id);
+                const callbackObj = GLOBAL_RPC_CALLBACK_MAP.get(item.id);
                 if (callbackObj === undefined) throw new Error('Callback is not registered');
                 callbackObj(...item.data);
             }

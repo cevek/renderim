@@ -1,10 +1,10 @@
-let nodeIdCounter = 0;
-let vNodeIdCounter = 0;
-let commandList: Command[] = [];
-const roots = new Map<RootId, VNode>();
-let currentComponent: ComponentState | undefined;
+const GLOBAL_ROOTS = new Map<RootId, VNode>();
+let GLOBAL_CLIENT_NODE_ID_COUNTER = 0;
+let GLOBAL_VNODE_ID_COUNTER = 0;
+let GLOBAL_COMMAND_LIST: Command[] = [];
+let GLOBAL_CURRENT_COMPONENT: ComponentState | undefined;
 
-const hooks = {
+const GLOBAL_HOOKS = {
     beforeComponent(node: VComponentNodeCreated) {},
     afterComponent(node: VComponentNodeCreated) {},
     unmountComponent(node: VComponentNodeCreated) {},
@@ -12,12 +12,12 @@ const hooks = {
     cancelComponent(node: VComponentNodeCreated) {},
 };
 
-let rootSuspended = false;
-let isMounting = false;
-let now = Date.now();
-let trxId = 1;
+let GLOBAL_UPDATE_CANCELLED = false;
+let GLOBAL_MOUNTING = false;
+let GLOBAL_NOW = Date.now();
+let GLOBAL_TRX_ID = 1;
 
-type Update =
+type Task =
     | {kind: 'created'; node: VNodeCreated}
     | {kind: 'removed'; node: VNode}
     | {kind: 'obsolete'; node: VNode}
@@ -25,20 +25,19 @@ type Update =
     | {kind: 'updateComponent'; node: VComponentNode}
     | {kind: 'restart'; node: VComponentNode; newChild: VNodeCreated};
 
-let updatings: Update[] = [];
-// let maybeCancelled: VNodeCreated[] = [];
-// let maybeRemoved: VNode[] = [];
-// let maybeObsolete: VNode[] = [];
-// let updatedComponents: ({node: VComponentNode; isRestart: boolean; newChild: VNodeCreated})[] = [];
-// let maybeUpdatedParent: ({node: VNode; newParent: ParentComponent})[] = [];
-const windowObj = {} as ID;
-const clientLoadedScripts = new Map<string | number, Promise<unknown> | Error | string>();
+let GLOBAL_TASKS: Task[] = [];
+const ClientWindow = {} as ID;
 
-const schedule: (() => void)[] = [];
+const GLOBAL_SCHEDULE: (() => void)[] = [];
 
-// let isCustomUrlCall = false;
-const GCVNodes = process.env.NODE_ENV === 'development' ? new WeakSet<VNodeCreated | VNode>() : undefined;
-((self as {}) as {GCVNodes: typeof GCVNodes}).GCVNodes = GCVNodes;
+const GLOBAL_CLIENT_SCRIPTS_MAP = new Map<Function | string, Promise<unknown> | Error | string>();
+
+let GLOBAL_RPC_CALLBACK_ID_COUNTER = 0;
+const GLOBAL_RPC_CALLBACK_MAP = new Map<string, Function>();
+
+const GLOBAL_DEV_GC_VNODES = process.env.NODE_ENV === 'development' ? new WeakSet<VNodeCreated | VNode>() : undefined;
+((self as {}) as {GCVNodes: typeof GLOBAL_DEV_GC_VNODES}).GCVNodes = GLOBAL_DEV_GC_VNODES;
+
 const kindParent = {type: 'kind'};
 const componentKind = ({kind: 'component', parent: kindParent} as unknown) as 'component';
 const domKind = ({kind: 'dom', parent: kindParent} as unknown) as 'dom';
@@ -47,8 +46,3 @@ const arrayKind = ({kind: 'array', parent: kindParent} as unknown) as 'array';
 const portalKind = ({kind: 'portal', parent: kindParent} as unknown) as 'portal';
 
 const CancellationToken = {cancellationToken: true};
-
-const clientScripts = new Map<Function | string, Promise<unknown> | Error | string>();
-
-let callbackId = 0;
-const callbackMap = new Map<string, Function>();

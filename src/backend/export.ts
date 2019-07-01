@@ -26,10 +26,10 @@ function render(node: VInput, htmlId: string) {
     const rootId = htmlId as RootId;
     const id = (htmlId as unknown) as ID;
     const rootNode = node as VComponentNodeCreated;
-    const oldNode = roots.get(rootId);
-    assert(commandList.length === 0);
+    const oldNode = GLOBAL_ROOTS.get(rootId);
+    assert(GLOBAL_COMMAND_LIST.length === 0);
     if (oldNode === undefined) {
-        isMounting = true;
+        GLOBAL_MOUNTING = true;
         addCommand(rootNode, {action: 'start', group: 'mount', rootId: rootId});
     }
     const newNode =
@@ -45,10 +45,10 @@ function render(node: VInput, htmlId: string) {
             unmounted: [],
             node: convertVNodeToDevToolsJSON(newNode),
         };
-        commandList.push(devToolsCommand);
+        GLOBAL_COMMAND_LIST.push(devToolsCommand);
     }
-    if (oldNode === undefined || !rootSuspended) {
-        roots.set(rootId, newNode);
+    if (oldNode === undefined || !GLOBAL_UPDATE_CANCELLED) {
+        GLOBAL_ROOTS.set(rootId, newNode);
     }
     commitUpdating();
     return newNode.status === 'removed' ? undefined : newNode;
@@ -60,7 +60,7 @@ function unmountComponentAtNode(htmlId: string) {
     commitUpdating();
 }
 function unmount(htmlId: RootId) {
-    const node = roots.get(htmlId);
+    const node = GLOBAL_ROOTS.get(htmlId);
     if (node !== undefined) {
         removeVNode(node, true);
         if (process.env.NODE_ENV === 'development') {
@@ -71,17 +71,17 @@ function unmount(htmlId: RootId) {
                 unmounted: [getPersistId(node)],
                 node: undefined,
             };
-            commandList.push(devToolsCommand);
+            GLOBAL_COMMAND_LIST.push(devToolsCommand);
         }
-        roots.delete(htmlId);
+        GLOBAL_ROOTS.delete(htmlId);
     }
 }
 
 function transactionStart() {
-    rootSuspended = false;
-    now = Date.now();
-    trxId++;
-    for (const [, root] of roots) {
+    GLOBAL_UPDATE_CANCELLED = false;
+    GLOBAL_NOW = Date.now();
+    GLOBAL_TRX_ID++;
+    for (const [, root] of GLOBAL_ROOTS) {
         visitEachNode(root, node => {
             if (node.kind === componentKind) {
                 assert(node.state.node === node);
@@ -92,8 +92,8 @@ function transactionStart() {
 }
 
 function commitUpdating(): void {
-    const shouldCancel = !isMounting && rootSuspended;
-    for (const up of updatings) {
+    const shouldCancel = !GLOBAL_MOUNTING && GLOBAL_UPDATE_CANCELLED;
+    for (const up of GLOBAL_TASKS) {
         const {node} = up;
         if (node.status === 'obsolete' && up.kind === 'updateComponent') {
             continue;
@@ -102,7 +102,7 @@ function commitUpdating(): void {
             if (up.kind === 'created') {
                 const {node} = up;
                 if (node.kind === componentKind) {
-                    hooks.cancelComponent(node);
+                    GLOBAL_HOOKS.cancelComponent(node);
                 }
                 node.status = 'cancelled';
                 destroyVNode(node);
@@ -127,10 +127,10 @@ function commitUpdating(): void {
             assert(node.status === 'active');
             assert(newChild.status === 'active');
             (node as VComponentNodeCreated).children = newChild;
-            hooks.restartComponent(node);
+            GLOBAL_HOOKS.restartComponent(node);
             if (process.env.NODE_ENV === 'development') {
                 const unmounted = [];
-                for (const up2 of updatings) {
+                for (const up2 of GLOBAL_TASKS) {
                     if (up2.kind === 'removed') {
                         unmounted.push(getPersistId(node));
                     }
@@ -142,7 +142,7 @@ function commitUpdating(): void {
                     unmounted: unmounted,
                     node: convertVNodeToDevToolsJSON(node),
                 };
-                commandList.push(devToolsCommand);
+                GLOBAL_COMMAND_LIST.push(devToolsCommand);
             }
         } else if (up.kind === 'updateComponent') {
             const {node} = up;
@@ -156,20 +156,20 @@ function commitUpdating(): void {
         }
     }
 
-    const prevUpdatings = updatings;
-    updatings = [];
-    rootSuspended = false;
-    isMounting = false;
+    const prevUpdatings = GLOBAL_TASKS;
+    GLOBAL_TASKS = [];
+    GLOBAL_UPDATE_CANCELLED = false;
+    GLOBAL_MOUNTING = false;
 
-    if (schedule.length > 0) {
-        const cb = schedule.shift()!;
+    if (GLOBAL_SCHEDULE.length > 0) {
+        const cb = GLOBAL_SCHEDULE.shift()!;
         transactionStart();
         cb();
         commitUpdating();
         return;
     }
 
-    for (const [, root] of roots) {
+    for (const [, root] of GLOBAL_ROOTS) {
         if (root.status === 'removed') {
             visitEachNode(root, node => {
                 assert(node.status === 'removed');
@@ -183,11 +183,11 @@ function commitUpdating(): void {
             });
         }
     }
-    const filteredCommands = filterObsoleteCommands(commandList);
+    const filteredCommands = filterObsoleteCommands(GLOBAL_COMMAND_LIST);
     if (filteredCommands.length > 0) {
         sendCommands(filteredCommands);
     }
-    commandList = [];
+    GLOBAL_COMMAND_LIST = [];
 }
 
 function filterObsoleteCommands(commandList: Command[]) {
@@ -208,10 +208,10 @@ function destroyVNode(node: VNodeCreated) {
         disposeVDomNodeCallbacks(node);
     }
     if (node.kind === componentKind) {
-        hooks.unmountComponent(node);
+        GLOBAL_HOOKS.unmountComponent(node);
     }
-    if (GCVNodes !== undefined) {
-        GCVNodes.add(node);
+    if (GLOBAL_DEV_GC_VNODES !== undefined) {
+        GLOBAL_DEV_GC_VNODES.add(node);
     }
 }
 
@@ -227,12 +227,12 @@ function disposeVDomNodeCallbacks(node: VDomNodeCreated) {
 }
 
 function getCurrentComponent<T extends ComponentState>() {
-    if (currentComponent === undefined) throw new Error('No current component');
-    return currentComponent as T;
+    if (GLOBAL_CURRENT_COMPONENT === undefined) throw new Error('No current component');
+    return GLOBAL_CURRENT_COMPONENT as T;
 }
 
 function cancelUpdating() {
-    rootSuspended = true;
+    GLOBAL_UPDATE_CANCELLED = true;
 }
 
 exports.Suspense = Suspense;
@@ -257,8 +257,8 @@ exports.withEventData = withEventData;
 exports.IntersectionObserverContainer = IntersectionObserverContainer;
 exports.IntersectionObserverElement = IntersectionObserverElement;
 
-exports.setHook = function setHook<K extends keyof typeof hooks>(type: K, value: typeof hooks[K]) {
-    hooks[type] = value;
+exports.setHook = function setHook<K extends keyof typeof GLOBAL_HOOKS>(type: K, value: typeof GLOBAL_HOOKS[K]) {
+    GLOBAL_HOOKS[type] = value;
 };
 exports.IntersectionObserverElement = IntersectionObserverElement;
 

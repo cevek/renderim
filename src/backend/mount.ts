@@ -4,7 +4,7 @@ function mountVNode(parentNode: ParentComponent, node: VNodeCreated, parentId: I
     }
     assert(node.status === 'created');
     // assert(!maybeCancelled.includes(node));
-    updatings.push({kind: 'created', node: node})
+    GLOBAL_TASKS.push({kind: 'created', node: node})
 
     node.parentComponent = parentNode;
     if (node.kind === componentKind) {

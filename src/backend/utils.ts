@@ -3,7 +3,7 @@ function never(val?: never): never {
 }
 
 function genNodeId() {
-    return (nodeIdCounter++ as unknown) as ID;
+    return (GLOBAL_CLIENT_NODE_ID_COUNTER++ as unknown) as ID;
 }
 
 function findChildVDom(node: VNode): VDomNode | VTextNode {
@@ -35,7 +35,7 @@ function noop() {}
 function addCommand(node: VNodeCreated, command: Command) {
     const comandWithVNode = command as CommandWithParentVNode;
     comandWithVNode.vNode = node;
-    commandList.push(command);
+    GLOBAL_COMMAND_LIST.push(command);
 }
 
 // function toJSON(node: VNode): unknown {
@@ -135,5 +135,5 @@ function is<T>(val: unknown): val is T {
 }
 
 function scheduleUpdate(cb: () => void) {
-    schedule.push(cb);
+    GLOBAL_SCHEDULE.push(cb);
 }

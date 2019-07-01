@@ -90,7 +90,7 @@ function IntersectionObserverElement({
 
 function Suspense(props: {children: VInput; timeout: number; fallback: VInput}) {
     const suspenseState = getCurrentComponent<SuspenseState>();
-    const showFallback = suspenseState.components.size > 0 && suspenseState.timeoutAt <= now;
+    const showFallback = suspenseState.components.size > 0 && suspenseState.timeoutAt <= GLOBAL_NOW;
     const fallback = showFallback ? props.fallback : null;
     const vDomChild = ensureVDomNode(props.children);
     const children = cloneVNode(vDomChild, {...vDomChild.props, hidden: suspenseState.components.size > 0}, false);
@@ -149,7 +149,7 @@ function Boundary(props: BoundaryProps) {
 }
 
 function loadClientScript(src: string | (() => Promise<unknown>)): string {
-    const res = clientScripts.get(src);
+    const res = GLOBAL_CLIENT_SCRIPTS_MAP.get(src);
     if (res instanceof Promise) throw res;
     if (res instanceof Error) throw res;
     if (res !== undefined) return res;
@@ -158,7 +158,7 @@ function loadClientScript(src: string | (() => Promise<unknown>)): string {
         let resolve!: () => void;
         const promise = new Promise(res => (resolve = res));
         const load = () => {
-            clientScripts.set(src, 'loaded');
+            GLOBAL_CLIENT_SCRIPTS_MAP.set(src, 'loaded');
             resolve();
         };
         sendCommands([
@@ -175,7 +175,7 @@ function loadClientScript(src: string | (() => Promise<unknown>)): string {
     throw src().catch(err => {
         const m = err.message.match(/^Cannot find module '(.*?)'$/);
         if (m !== null) {
-            clientScripts.set(src, m[1]);
+            GLOBAL_CLIENT_SCRIPTS_MAP.set(src, m[1]);
         } else {
             throw err;
         }

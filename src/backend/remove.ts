@@ -1,5 +1,5 @@
 function removeVNode(node: VNode, realRemove: boolean) {
-    updatings.push({kind: 'removed', node});
+    GLOBAL_TASKS.push({kind: 'removed', node});
     assert(node.status === 'active');
     if (node.kind === componentKind) {
         removeVNode(node.children, realRemove);

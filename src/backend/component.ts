@@ -1,19 +1,19 @@
 function runComponent(node: VComponentNodeCreated) {
     assert(node.status === 'created' || node.status === 'active');
-    currentComponent = node.state;
-    node.state.trxId = trxId;
+    GLOBAL_CURRENT_COMPONENT = node.state;
+    node.state.trxId = GLOBAL_TRX_ID;
     let newChildren;
     try {
         const prevErrored = node.state.errored;
         node.state.errored = false;
-        hooks.beforeComponent(node);
+        GLOBAL_HOOKS.beforeComponent(node);
         newChildren = norm(node.type(node.props));
-        hooks.afterComponent(node);
+        GLOBAL_HOOKS.afterComponent(node);
         if (prevErrored) {
             processBoundarySubcomponentErrorGone(node);
         }
     } catch (err) {
-        hooks.afterComponent(node);
+        GLOBAL_HOOKS.afterComponent(node);
         newChildren = norm(undefined);
         node.state.errored = true;
         if (err === CancellationToken) {
@@ -22,7 +22,7 @@ function runComponent(node: VComponentNodeCreated) {
             processBoundarySubcomponentError(node, err);
         }
     } finally {
-        currentComponent = undefined;
+        GLOBAL_CURRENT_COMPONENT = undefined;
     }
     return newChildren;
 }
@@ -40,7 +40,7 @@ function getParents(node: VNodeCreated) {
 function restartComponent(state: ComponentState): boolean {
     const node = state.node;
     if (
-        state.trxId === trxId ||
+        state.trxId === GLOBAL_TRX_ID ||
         node.status === 'removed' ||
         node.status === 'obsolete' ||
         node.status === 'cancelled'
@@ -52,8 +52,8 @@ function restartComponent(state: ComponentState): boolean {
     visitEachNode(node, n => assert(n.status === 'active'));
     const newChildren = runComponent(node);
     const newChild = updateVNode(node, newChildren, node.children, node.id) as VComponentNode;
-    updatings.push({kind: 'restart', node, newChild});
-    updatings.push({kind: 'updateComponent', node});
+    GLOBAL_TASKS.push({kind: 'restart', node, newChild});
+    GLOBAL_TASKS.push({kind: 'updateComponent', node});
     return true;
 }
 
@@ -64,7 +64,7 @@ function setPromiseToParentSuspense(
     promise: Promise<unknown>,
 ) {
     if (suspenseState.components.size === 0) {
-        suspenseState.timeoutAt = now + timeout;
+        suspenseState.timeoutAt = GLOBAL_NOW + timeout;
     }
     suspenseState.version++;
     suspenseState.components.set(componentState, promise);
@@ -74,9 +74,9 @@ function setPromiseToParentSuspense(
         restartSuspense(suspenseState, version);
     });
 
-    if (suspenseState.timeoutAt > now) {
+    if (suspenseState.timeoutAt > GLOBAL_NOW) {
         const parentSuspense = getParents(suspenseState.node).find(parent => parent.type === Suspense);
-        const sleepPromise = sleep(suspenseState.timeoutAt - now + 1);
+        const sleepPromise = sleep(suspenseState.timeoutAt - GLOBAL_NOW + 1);
         if (parentSuspense === undefined) {
             sleepPromise.then(() => {
                 if (suspenseState.version === version && suspenseState.components.size > 0) {

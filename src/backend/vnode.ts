@@ -1,6 +1,6 @@
 function createVTextNode(text: string): VTextNodeCreated {
     return {
-        _id: vNodeIdCounter++,
+        _id: GLOBAL_VNODE_ID_COUNTER++,
         status: 'created',
         id: genNodeId(),
         children: text,
@@ -15,7 +15,7 @@ function createVTextNode(text: string): VTextNodeCreated {
 
 function createDomVNode(type: string, attrs: Attrs, key: string | undefined, children: VInput[]): VDomNodeCreated {
     return {
-        _id: vNodeIdCounter++,
+        _id: GLOBAL_VNODE_ID_COUNTER++,
         status: 'created',
         id: genNodeId(),
         children: children,
@@ -33,7 +33,7 @@ function createComponentVNode<Props extends object>(
     props: object,
     key?: string,
 ): VComponentNodeCreated {
-    const componentId = nodeIdCounter++;
+    const componentId = GLOBAL_CLIENT_NODE_ID_COUNTER++;
     let state;
     if (type === ErrorBoundary) {
         const val: ErrorBoundaryState = {
@@ -60,7 +60,7 @@ function createComponentVNode<Props extends object>(
         state = {trxId: -1, componentId, errored: false, node: undefined!};
     }
     const node: VComponentNodeCreated = {
-        _id: vNodeIdCounter++,
+        _id: GLOBAL_VNODE_ID_COUNTER++,
         status: 'created',
         id: undefined!,
         children: undefined!,
@@ -77,7 +77,7 @@ function createComponentVNode<Props extends object>(
 
 function createVArrayNode(arr: VInput[]): VArrayNodeCreated {
     return {
-        _id: vNodeIdCounter++,
+        _id: GLOBAL_VNODE_ID_COUNTER++,
         status: 'created',
         kind: arrayKind,
         id: undefined!,
@@ -85,13 +85,13 @@ function createVArrayNode(arr: VInput[]): VArrayNodeCreated {
         key: undefined,
         props: undefined,
         type: undefined,
-        state: nodeIdCounter++,
+        state: GLOBAL_CLIENT_NODE_ID_COUNTER++,
         parentComponent: undefined!,
     };
 }
 function createVPortalNode(type: ID, children: VInput): VPortalNodeCreated {
     return {
-        _id: vNodeIdCounter++,
+        _id: GLOBAL_VNODE_ID_COUNTER++,
         status: 'created',
         kind: portalKind,
         id: undefined,

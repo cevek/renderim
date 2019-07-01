@@ -8,7 +8,7 @@ function replaceVNode<T extends VNode>(parentNode: ParentComponent, node: VNodeC
 function updateVNode(parentNode: ParentComponent, node: VNodeCreated, oldNode: VNode, parentId: ID): VNode {
     assert(oldNode.status === 'active');
     if (oldNode === node && getPersistId(oldNode.parentComponent) === getPersistId(parentNode)) {
-        updatings.push({kind: 'parent', node: oldNode, newParent: parentNode});
+        GLOBAL_TASKS.push({kind: 'parent', node: oldNode, newParent: parentNode});
         return oldNode;
     }
     if (node.status === 'active') {
@@ -44,12 +44,12 @@ function afterUpdate<T extends VNode>(node: VNodeCreated) {
 function beforeUpdate(node: VNodeCreated, oldNode: VNode) {
     // assert(!maybeObsolete.includes(oldNode));
     // assert(!maybeCancelled.includes(node));
-    updatings.push({kind: 'obsolete', node: oldNode});
-    updatings.push({kind: 'created', node});
+    GLOBAL_TASKS.push({kind: 'obsolete', node: oldNode});
+    GLOBAL_TASKS.push({kind: 'created', node});
 }
 
 function updateComponent(node: VComponentNodeCreated, oldNode: VComponentNode, parentId: ID): VComponentNode {
-    assert(node.state.trxId !== trxId);
+    assert(node.state.trxId !== GLOBAL_TRX_ID);
     assert(node.status === 'created');
     assert(oldNode.status === 'active');
     if (node.type !== oldNode.type) {
@@ -60,7 +60,7 @@ function updateComponent(node: VComponentNodeCreated, oldNode: VComponentNode, p
     node.state = oldNode.state;
     const newChildren = shouldComponentUpdate(node.props, oldNode.props) ? runComponent(node) : oldNode.children;
     node.children = updateVNode(node, newChildren, oldNode.children, parentId);
-    updatings.push({kind: 'updateComponent', node: node as VComponentNode});
+    GLOBAL_TASKS.push({kind: 'updateComponent', node: node as VComponentNode});
     return afterUpdate(node);
 }
 
