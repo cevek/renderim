@@ -3,6 +3,7 @@ interface Window {
     registerWorker(worker: Worker): void;
 }
 declare module 'renderim' {
+    export type ComponentInstance = {__type: 'ComponentInstance'};
     export function Fragment(props: {children: JSX.InputElement}): JSX.Element;
     export function lazy<P>(cmp: () => Promise<{default: (props: P) => JSX.InputElement}>): (props: P) => JSX.Element;
     export function client<T>(
@@ -59,6 +60,8 @@ declare module 'renderim' {
     export function getNodeRootId(node: JSX.Element): string;
     export function scheduleUpdate(cb: () => void): void;
     export function cancelUpdating(): void;
+    export function getCurrentComponent(): ComponentInstance;
+    export function restartComponent(node: ComponentInstance);
     export function setHook(
         type: 'beforeComponent' | 'afterComponent' | 'unmountComponent' | 'restartComponent' | 'cancelComponent',
         value: (node: JSX.Element) => void,

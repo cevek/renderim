@@ -1,6 +1,6 @@
 function runComponent(node: VComponentNodeCreated) {
     assert(node.status === 'created' || node.status === 'active');
-    currentComponent = node;
+    currentComponent = node.state;
     node.state.trxId = trxId;
     let newChildren;
     try {
@@ -39,7 +39,12 @@ function getParents(node: VNodeCreated) {
 
 function restartComponent(state: ComponentState): boolean {
     const node = state.node;
-    if (state.trxId === trxId || node.status === 'removed' || node.status === 'obsolete' || node.status === 'cancelled') {
+    if (
+        state.trxId === trxId ||
+        node.status === 'removed' ||
+        node.status === 'obsolete' ||
+        node.status === 'cancelled'
+    ) {
         return false;
     }
     // console.log('restart', node.type.name, node);
@@ -54,35 +59,35 @@ function restartComponent(state: ComponentState): boolean {
 
 function setPromiseToParentSuspense(
     componentState: ComponentState,
-    suspense: VComponentType<typeof Suspense, SuspenseState>,
+    suspenseState: SuspenseState,
+    timeout: number,
     promise: Promise<unknown>,
 ) {
-    const state = suspense.state;
-    if (state.components.size === 0) {
-        state.timeoutAt = now + suspense.props.timeout;
+    if (suspenseState.components.size === 0) {
+        suspenseState.timeoutAt = now + timeout;
     }
-    state.version++;
-    state.components.set(componentState, promise);
-    const version = state.version;
-    resolveSuspensePromises(state).then(() => {
+    suspenseState.version++;
+    suspenseState.components.set(componentState, promise);
+    const version = suspenseState.version;
+    resolveSuspensePromises(suspenseState).then(() => {
         // console.log('will restart suspense state, promises resolved', state);
-        restartSuspense(state, version);
+        restartSuspense(suspenseState, version);
     });
 
-    if (state.timeoutAt > now) {
-        const parentSuspense = getParents(suspense).find(parent => parent.type === Suspense);
-        const sleepPromise = sleep(state.timeoutAt - now + 1);
+    if (suspenseState.timeoutAt > now) {
+        const parentSuspense = getParents(suspenseState.node).find(parent => parent.type === Suspense);
+        const sleepPromise = sleep(suspenseState.timeoutAt - now + 1);
         if (parentSuspense === undefined) {
             sleepPromise.then(() => {
-                if (state.version === version && state.components.size > 0) {
+                if (suspenseState.version === version && suspenseState.components.size > 0) {
                     transactionStart();
-                    restartComponent(state);
+                    restartComponent(suspenseState);
                     commitUpdating();
                 }
             });
             cancelUpdating();
         } else {
-            throw Promise.race([Promise.all([...state.components.values()]), sleepPromise]);
+            throw Promise.race([Promise.all([...suspenseState.components.values()]), sleepPromise]);
         }
     }
 }

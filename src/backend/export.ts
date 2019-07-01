@@ -226,9 +226,9 @@ function disposeVDomNodeCallbacks(node: VDomNodeCreated) {
     }
 }
 
-function getCurrentComponentNode() {
+function getCurrentComponent<T extends ComponentState>() {
     if (currentComponent === undefined) throw new Error('No current component');
-    return currentComponent;
+    return currentComponent as T;
 }
 
 function cancelUpdating() {
@@ -245,6 +245,7 @@ exports.render = render;
 exports.createElement = createElement;
 exports.createContext = createContext;
 exports.restartComponent = restartComponent;
+exports.getCurrentComponent = getCurrentComponent;
 exports.unmountComponentAtNode = unmountComponentAtNode;
 
 exports.withPreventDefault = withPreventDefault;

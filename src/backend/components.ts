@@ -89,17 +89,16 @@ function IntersectionObserverElement({
 }
 
 function Suspense(props: {children: VInput; timeout: number; fallback: VInput}) {
-    const currentNode = getCurrentComponentNode() as VComponentType<typeof Suspense, SuspenseState>;
-    const state = currentNode.state;
-    const showFallback = state.components.size > 0 && state.timeoutAt <= now;
+    const suspenseState = getCurrentComponent<SuspenseState>();
+    const showFallback = suspenseState.components.size > 0 && suspenseState.timeoutAt <= now;
     const fallback = showFallback ? props.fallback : null;
     const vDomChild = ensureVDomNode(props.children);
-    const children = cloneVNode(vDomChild, {...vDomChild.props, hidden: state.components.size > 0}, false);
+    const children = cloneVNode(vDomChild, {...vDomChild.props, hidden: suspenseState.components.size > 0}, false);
     return createElement(Boundary, {
         onCatch: (err, node) => {
             if (err instanceof Promise) {
-                scheduleUpdate(() => restartComponent(state));
-                setPromiseToParentSuspense(node.state, currentNode, err);
+                scheduleUpdate(() => restartComponent(suspenseState));
+                setPromiseToParentSuspense(node.state, suspenseState, props.timeout, err);
                 return true;
             }
             return false;
@@ -109,8 +108,7 @@ function Suspense(props: {children: VInput; timeout: number; fallback: VInput}) 
 }
 
 function ErrorBoundary(props: {children: VInput; fallback: (error: Error) => VInput}) {
-    const currentNode = getCurrentComponentNode() as VComponentType<typeof ErrorBoundary, ErrorBoundaryState>;
-    const state = currentNode.state;
+    const state = getCurrentComponent<ErrorBoundaryState>();
     const children = state.errors.length > 0 ? props.fallback(state.errors[0]) : props.children;
     if (state.errors.length > 0) {
         state.fallbackRendered = true;
