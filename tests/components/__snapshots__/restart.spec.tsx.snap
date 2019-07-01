@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Dedup component restarts: 1.root 1`] = `
+"<div>
+   <Foo>
+      <span>
+         <Bar>
+            <span>
+               123
+            </span>
+         </Bar>
+      </span>
+   </Foo>
+</div>"
+`;
