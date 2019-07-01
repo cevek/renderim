@@ -49,6 +49,7 @@ function beforeUpdate(node: VNodeCreated, oldNode: VNode) {
 }
 
 function updateComponent(node: VComponentNodeCreated, oldNode: VComponentNode, parentId: ID): VComponentNode {
+    assert(node.state.trxId !== trxId);
     assert(node.status === 'created');
     assert(oldNode.status === 'active');
     if (node.type !== oldNode.type) {

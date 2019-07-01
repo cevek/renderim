@@ -26,6 +26,7 @@ interface ComponentState {
     node: VComponentNode;
     componentId: number;
     errored: boolean;
+    trxId: number;
 }
 
 interface VComponentNodeCreated extends VBase {

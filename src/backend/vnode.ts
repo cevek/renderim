@@ -37,6 +37,7 @@ function createComponentVNode<Props extends object>(
     let state;
     if (type === ErrorBoundary) {
         const val: ErrorBoundaryState = {
+            trxId: -1,
             componentId,
             errored: false,
             fallbackRendered: false,
@@ -46,6 +47,7 @@ function createComponentVNode<Props extends object>(
         state = val;
     } else if (type === Suspense) {
         const val: SuspenseState = {
+            trxId: -1,
             componentId,
             version: 0,
             errored: false,
@@ -55,7 +57,7 @@ function createComponentVNode<Props extends object>(
         };
         state = val;
     } else {
-        state = {componentId, errored: false, node: undefined!};
+        state = {trxId: -1, componentId, errored: false, node: undefined!};
     }
     const node: VComponentNodeCreated = {
         _id: vNodeIdCounter++,

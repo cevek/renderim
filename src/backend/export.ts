@@ -80,6 +80,7 @@ function unmount(htmlId: RootId) {
 function transactionStart() {
     rootSuspended = false;
     now = Date.now();
+    trxId++;
     for (const [, root] of roots) {
         visitEachNode(root, node => {
             if (node.kind === componentKind) {
@@ -158,26 +159,14 @@ function commitUpdating(): void {
     const prevUpdatings = updatings;
     updatings = [];
     rootSuspended = false;
+    isMounting = false;
 
     if (schedule.length > 0) {
         const cb = schedule.shift()!;
+        transactionStart();
         cb();
-        return commitUpdating();
-    }
-
-    const filteredCommands = (commandList as CommandWithParentVNode[]).filter(command => {
-        const vNode = command.vNode;
-        if (vNode === undefined) return true;
-        let skip = vNode.status === 'cancelled';
-        if (command.action === 'remove' && vNode.status !== 'removed') {
-            skip = true;
-        }
-        command.vNode = undefined!;
-        return !skip;
-    });
-    commandList = [];
-    if (filteredCommands.length > 0) {
-        sendCommands(filteredCommands);
+        commitUpdating();
+        return;
     }
 
     for (const [, root] of roots) {
@@ -194,8 +183,24 @@ function commitUpdating(): void {
             });
         }
     }
+    const filteredCommands = filterObsoleteCommands(commandList);
+    if (filteredCommands.length > 0) {
+        sendCommands(filteredCommands);
+    }
+    commandList = [];
+}
 
-    isMounting = false;
+function filterObsoleteCommands(commandList: Command[]) {
+    return (commandList as CommandWithParentVNode[]).filter(command => {
+        const vNode = command.vNode;
+        if (vNode === undefined) return true;
+        let skip = vNode.status === 'cancelled';
+        if (command.action === 'remove' && vNode.status !== 'removed') {
+            skip = true;
+        }
+        command.vNode = undefined!;
+        return !skip;
+    });
 }
 
 function destroyVNode(node: VNodeCreated) {

@@ -1,6 +1,7 @@
 function runComponent(node: VComponentNodeCreated) {
     assert(node.status === 'created' || node.status === 'active');
     currentComponent = node;
+    node.state.trxId = trxId;
     let newChildren;
     try {
         const prevErrored = node.state.errored;
@@ -38,7 +39,9 @@ function getParents(node: VNodeCreated) {
 
 function restartComponent(state: ComponentState): boolean {
     const node = state.node;
-    if (node.status === 'removed' || node.status === 'obsolete' || node.status === 'cancelled') return false;
+    if (state.trxId === trxId || node.status === 'removed' || node.status === 'obsolete' || node.status === 'cancelled') {
+        return false;
+    }
     // console.log('restart', node.type.name, node);
     assert(node.status === 'active');
     visitEachNode(node, n => assert(n.status === 'active'));

@@ -15,7 +15,7 @@ const hooks = {
 let rootSuspended = false;
 let isMounting = false;
 let now = Date.now();
-let isForceUpdate = false;
+let trxId = 1;
 
 type Update =
     | {kind: 'created'; node: VNodeCreated}
