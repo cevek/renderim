@@ -148,8 +148,6 @@ function Boundary(props: BoundaryProps) {
     return props.children;
 }
 
-const clientScripts = new Map<Function | string, Promise<unknown> | Error | string>();
-
 function loadClientScript(src: string | (() => Promise<unknown>)): string {
     const res = clientScripts.get(src);
     if (res instanceof Promise) throw res;

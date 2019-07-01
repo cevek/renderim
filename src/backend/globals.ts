@@ -47,3 +47,8 @@ const arrayKind = ({kind: 'array', parent: kindParent} as unknown) as 'array';
 const portalKind = ({kind: 'portal', parent: kindParent} as unknown) as 'portal';
 
 const CancellationToken = {cancellationToken: true};
+
+const clientScripts = new Map<Function | string, Promise<unknown> | Error | string>();
+
+let callbackId = 0;
+const callbackMap = new Map<string, Function>();

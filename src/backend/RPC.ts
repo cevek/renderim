@@ -2,8 +2,6 @@ function sendCommands(commands: readonly Command[]) {
     (self.postMessage as (data: unknown) => void)(commands);
 }
 
-let callbackId = 0;
-const callbackMap = new Map<string, Function>();
 function transformCallbackBackend(callback: Function): RPCCallback {
     const callbackWithCommand = callback as CallbackWithCommand;
     if (callbackWithCommand.extractArgs === undefined) {
