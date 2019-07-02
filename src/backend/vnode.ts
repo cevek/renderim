@@ -2,28 +2,27 @@ function createVTextNode(text: string): VTextNodeCreated {
     return {
         _id: GLOBAL_VNODE_ID_COUNTER++,
         status: 'created',
-        id: genNodeId(),
         children: text,
         key: undefined,
         kind: textKind,
         props: undefined,
         type: undefined,
-        instance: undefined,
+        instance: genNodeId(),
         parentComponent: undefined!,
     };
 }
 
+// foo.bar
 function createDomVNode(type: string, attrs: Attrs, key: string | undefined, children: VInput[]): VDomNodeCreated {
     return {
         _id: GLOBAL_VNODE_ID_COUNTER++,
         status: 'created',
-        id: genNodeId(),
         children: children,
         key: key,
         kind: domKind,
         props: attrs,
         type: type,
-        instance: undefined,
+        instance: genNodeId(),
         parentComponent: undefined!,
     };
 }
@@ -37,13 +36,13 @@ function createComponentVNode<Props extends object>(
     const node: VComponentNodeCreated = {
         _id: GLOBAL_VNODE_ID_COUNTER++,
         status: 'created',
-        id: undefined!,
         children: undefined!,
         key: key,
         kind: componentKind,
         props,
         type,
         instance: {
+            parentDom: undefined!,
             trxId: -1,
             componentId,
             errored: false,
@@ -61,7 +60,6 @@ function createVArrayNode(arr: VInput[]): VArrayNodeCreated {
         _id: GLOBAL_VNODE_ID_COUNTER++,
         status: 'created',
         kind: arrayKind,
-        id: undefined!,
         children: arr,
         key: undefined,
         props: undefined,
@@ -75,12 +73,11 @@ function createVPortalNode(type: ID, children: VInput): VPortalNodeCreated {
         _id: GLOBAL_VNODE_ID_COUNTER++,
         status: 'created',
         kind: portalKind,
-        id: undefined,
         children: children,
         key: undefined,
         props: undefined,
-        type: type,
-        instance: undefined,
+        type: undefined,
+        instance: type,
         parentComponent: undefined!,
     };
 }
@@ -132,7 +129,7 @@ function cloneVNode<T extends VNodeCreated>(n: T, newProps = n.props, deep: bool
     }
     if (node.kind === portalKind) {
         return createVPortalNode(
-            node.type,
+            node.instance,
             deep ? cloneVNode(norm(node.children), undefined, true) : node.children,
         ) as T;
     }
@@ -153,10 +150,10 @@ function getPersistId(node: VNodeCreated | RootId): ID {
         return node.instance.componentId as ID;
     }
     if (node.kind === portalKind) {
-        return node.type;
+        return node.instance;
     }
     if (node.kind === arrayKind) {
         return node.instance as ID;
     }
-    return node.id;
+    return node.instance;
 }

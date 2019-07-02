@@ -9,18 +9,18 @@ function removeVNode(node: VNode, realRemove: boolean) {
             addCommand(node, {
                 action: 'remove',
                 group: 'custom',
-                parentId: node.id,
+                parentId: node.instance,
                 data: props.withCommand.data,
                 name: props.withCommand.name,
             });
         }
         removeChildren(node, false);
         if (realRemove) {
-            addCommand(node, {action: 'remove', group: 'tag', tag: node.type, id: node.id});
+            addCommand(node, {action: 'remove', group: 'tag', tag: node.type, id: node.instance});
         }
     } else if (node.kind === textKind) {
         if (realRemove) {
-            addCommand(node, {action: 'remove', group: 'text', id: node.id});
+            addCommand(node, {action: 'remove', group: 'text', id: node.instance});
         }
     } else if (node.kind === arrayKind) {
         removeChildren(node, realRemove);

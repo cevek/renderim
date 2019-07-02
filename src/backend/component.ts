@@ -51,7 +51,7 @@ function restartComponent(instance: ComponentInstance): boolean {
     assert(node.status === 'active');
     visitEachNode(node, n => assert(n.status === 'active'));
     const newChildren = runComponent(node);
-    const newChild = updateVNode(node, newChildren, node.children, node.id) as VComponentNode;
+    const newChild = updateVNode(node, newChildren, node.children, instance.parentDom) as VComponentNode;
     GLOBAL_TASKS.push({kind: 'restart', node, newChild});
     GLOBAL_TASKS.push({kind: 'updateComponent', node});
     return true;

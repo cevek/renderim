@@ -18,7 +18,7 @@ function mountVNode(parentNode: ParentComponent, node: VNodeCreated, parentId: I
             rootId: findRootId(node),
             parentId,
             beforeId,
-            id: node.id,
+            id: node.instance,
             text: node.children,
         });
     } else if (node.kind === arrayKind) {
@@ -26,7 +26,7 @@ function mountVNode(parentNode: ParentComponent, node: VNodeCreated, parentId: I
             mountChild(node, i, parentId, beforeId);
         }
     } else if (node.kind === portalKind) {
-        node.children = mountVNode(node, norm(node.children), node.type, null);
+        node.children = mountVNode(node, norm(node.children), node.instance, null);
     } else {
         throw never(node);
     }
@@ -35,7 +35,7 @@ function mountVNode(parentNode: ParentComponent, node: VNodeCreated, parentId: I
 }
 
 function mountComponent(node: VComponentNodeCreated, parentId: ID, beforeId: ID | null): VComponentNodeCreated {
-    node.id = parentId;
+    node.instance.parentDom = parentId;
     const newChildren = runComponent(node);
     node.children = mountVNode(node, newChildren, parentId, beforeId);
     return node;
@@ -49,12 +49,12 @@ function mountVDom(node: VDomNodeCreated, parentId: ID, beforeId: ID | null) {
         parentId,
         beforeId,
         rootId: findRootId(node),
-        id: node.id,
+        id: node.instance,
         attrs: transformAttrCallbacks(node.props),
         tag: node.type,
     });
     for (let i = 0; i < node.children.length; i++) {
-        mountChild(node, i, node.id, null);
+        mountChild(node, i, node.instance, null);
     }
     if (node.type === 'select') {
         updateSelectValue(node);
@@ -63,7 +63,7 @@ function mountVDom(node: VDomNodeCreated, parentId: ID, beforeId: ID | null) {
         addCommand(node, {
             action: 'create',
             group: 'custom',
-            parentId: node.id,
+            parentId: node.instance,
             data: props.withCommand.data,
             name: props.withCommand.name,
         });

@@ -65,7 +65,7 @@ if (process.env.NODE_ENV === 'development') {
         return {
             _id: id,
             _rootNodeID: findRootId(node),
-            _nodeId: findChildVDom(node).id,
+            _nodeId: findChildVDom(node).instance,
             _stringText: stringText,
             _instance: instance,
             _currentElement: currentElement,

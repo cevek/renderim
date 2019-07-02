@@ -1,5 +1,5 @@
 function replaceVNode<T extends VNode>(parentNode: ParentComponent, node: VNodeCreated, oldNode: VNode, parentId: ID) {
-    const beforeId = findChildVDom(oldNode).id;
+    const beforeId = findChildVDom(oldNode).instance;
     removeVNode(oldNode, true);
     const newNode = mountVNode(parentNode, node, parentId, beforeId);
     return newNode as T;
@@ -56,8 +56,8 @@ function updateComponent(node: VComponentNodeCreated, oldNode: VComponentNode, p
         return replaceVNode(node.parentComponent, node, oldNode, parentId);
     }
     beforeUpdate(node, oldNode);
-    node.id = parentId;
     node.instance = oldNode.instance;
+    node.instance.parentDom = parentId;
     const newChildren = shouldComponentUpdate(node.props, oldNode.props) ? runComponent(node) : oldNode.children;
     node.children = updateVNode(node, newChildren, oldNode.children, parentId);
     GLOBAL_TASKS.push({kind: 'updateComponent', node: node as VComponentNode});
@@ -84,7 +84,7 @@ function updateDom(node: VDomNodeCreated, oldNode: VDomNode, parentId: ID): VDom
         return replaceVNode(node.parentComponent, node, oldNode, parentId);
     }
     beforeUpdate(node, oldNode);
-    node.id = oldNode.id;
+    node.instance = oldNode.instance;
     const props = node.props as JSX.IntrinsicElements[string];
     const len = Math.min(node.children.length, oldNode.children.length);
     const diffAttrs = updateAttrs(node.props, oldNode.props);
@@ -93,7 +93,7 @@ function updateDom(node: VDomNodeCreated, oldNode: VDomNode, parentId: ID): VDom
             action: 'update',
             group: 'tag',
             tag: node.type,
-            id: node.id,
+            id: node.instance,
             attrs: diffAttrs,
         });
     }
@@ -102,7 +102,7 @@ function updateDom(node: VDomNodeCreated, oldNode: VDomNode, parentId: ID): VDom
         updateChild(node, i, oldChild, parentId);
     }
     for (let i = len; i < node.children.length; i++) {
-        mountChild(node, i, node.id, null);
+        mountChild(node, i, node.instance, null);
     }
     for (let i = len; i < oldNode.children.length; i++) {
         const oldChild = oldNode.children[i];
@@ -115,7 +115,7 @@ function updateDom(node: VDomNodeCreated, oldNode: VDomNode, parentId: ID): VDom
         addCommand(node, {
             action: 'update',
             group: 'custom',
-            parentId: node.id,
+            parentId: node.instance,
             data: props.withCommand.data,
             name: props.withCommand.name,
         });
@@ -124,20 +124,20 @@ function updateDom(node: VDomNodeCreated, oldNode: VDomNode, parentId: ID): VDom
 }
 
 function updateText(node: VTextNodeCreated, oldNode: VTextNode): VTextNode {
-    node.id = oldNode.id;
+    node.instance = oldNode.instance;
     beforeUpdate(node, oldNode);
     if (node.children !== oldNode.children) {
-        addCommand(node, {action: 'update', group: 'text', id: node.id, text: node.children});
+        addCommand(node, {action: 'update', group: 'text', id: node.instance, text: node.children});
     }
     return afterUpdate(node);
 }
 
 function updatePortal(node: VPortalNodeCreated, oldNode: VPortalNode): VPortalNode {
     if (node.type !== oldNode.type) {
-        return replaceVNode(node.parentComponent, node, oldNode, node.type);
+        return replaceVNode(node.parentComponent, node, oldNode, node.instance);
     }
     beforeUpdate(node, oldNode);
-    node.children = updateVNode(node, norm(node.children), oldNode.children, node.type);
+    node.children = updateVNode(node, norm(node.children), oldNode.children, node.instance);
     return afterUpdate(node);
 }
 

@@ -24,7 +24,7 @@ function updateArray(node: VArrayNodeCreated, oldNode: VArrayNode, parentId: ID)
         for (let i = newEnd - 1; i >= skipHead; i--) {
             const child = norm(node.children[i]);
             const oldChildIdx = map[child.key!];
-            const beforeId = beforeVNode === undefined ? null : findChildVDom(beforeVNode).id;
+            const beforeId = beforeVNode === undefined ? null : findChildVDom(beforeVNode).instance;
             if (oldChildIdx !== undefined && oldUsed[oldChildIdx] === undefined) {
                 oldUsed[oldChildIdx] = true;
                 const oldChild = oldList[oldChildIdx];
@@ -77,12 +77,12 @@ function updateTail(node: VArrayNodeCreated, oldNode: VArrayNode, skipHead: numb
 function moveChild(node: VNode, beforeId: ID | null): ID | null {
     assert(node.status === 'active');
     if (node.kind === domKind) {
-        addCommand(node, {action: 'move', group: 'tag', tag: node.type, id: node.id, beforeId});
-        return node.id;
+        addCommand(node, {action: 'move', group: 'tag', tag: node.type, id: node.instance, beforeId});
+        return node.instance;
     }
     if (node.kind === textKind) {
-        addCommand(node, {action: 'move', group: 'text', id: node.id, beforeId});
-        return node.id;
+        addCommand(node, {action: 'move', group: 'text', id: node.instance, beforeId});
+        return node.instance;
     }
     if (node.kind === componentKind) {
         return moveChild(node.children, beforeId);

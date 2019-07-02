@@ -76,7 +76,7 @@ function updateSelectValue(node: VDomNodeCreated) {
     addCommand(node, {
         action: 'update',
         group: 'tag',
-        id: node.id,
+        id: node.instance,
         attrs: {value: node.props.value},
         tag: node.type,
     });

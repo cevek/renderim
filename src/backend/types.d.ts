@@ -23,6 +23,7 @@ interface VBase {
 }
 
 interface ComponentInstance<T = unknown> {
+    parentDom: ID;
     node: VComponentNode;
     componentId: number;
     errored: boolean;
@@ -35,12 +36,10 @@ interface VComponentNodeCreated extends VBase {
     readonly type: (props: object) => VInput;
     readonly props: object;
     readonly key: string | undefined;
-    id: ID;
     children: VInput;
     instance: ComponentInstance;
 }
 interface VComponentNode extends VComponentNodeCreated {
-    readonly id: ID;
     readonly children: VNode;
     readonly status: VNodeStatus;
     readonly instance: ComponentInstance;
@@ -52,13 +51,12 @@ interface VDomNodeCreated extends VBase {
     readonly type: string;
     readonly props: Attrs;
     readonly key: string | undefined;
-    readonly instance: undefined;
-    id: ID;
+    instance: ID;
     children: readonly VInput[];
 }
 
 interface VDomNode extends VDomNodeCreated {
-    readonly id: ID;
+    readonly instance: ID;
     readonly children: readonly VNode[];
     readonly parentComponent: ParentComponent;
     readonly status: VNodeStatus;
@@ -69,18 +67,16 @@ interface VTextNodeCreated extends VBase {
     readonly type: undefined;
     readonly props: undefined;
     readonly key: undefined;
-    readonly instance: undefined;
-    id: ID;
+    instance: ID;
     children: string;
 }
 interface VTextNode extends VTextNodeCreated {
-    readonly id: ID;
+    readonly instance: ID;
     readonly children: string;
     readonly parentComponent: ParentComponent;
     readonly status: VNodeStatus;
 }
 interface VArrayNodeCreated extends VBase {
-    readonly id: undefined;
     readonly kind: 'array';
     readonly type: undefined;
     readonly props: undefined;
@@ -95,12 +91,11 @@ interface VArrayNode extends VArrayNodeCreated {
     readonly parentComponent: ParentComponent;
 }
 interface VPortalNodeCreated extends VBase {
-    readonly id: undefined;
     readonly kind: 'portal';
-    readonly type: ID;
+    readonly type: undefined;
     readonly props: undefined;
     readonly key: undefined;
-    readonly instance: undefined;
+    readonly instance: ID;
     children: VInput;
 }
 interface VPortalNode extends VPortalNodeCreated {
