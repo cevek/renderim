@@ -1,0 +1,10 @@
+node_modules
+dist
+.DS_Store
+*.js
+!jest.config.js
+bench.html
+.cache
+x.tsx
+!index.js
+!client.js
