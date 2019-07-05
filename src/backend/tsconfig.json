@@ -21,6 +21,7 @@
         "context.ts",
         "array.ts",
         "remove.ts",
+        "debug.ts",
         "utils.ts",
         "attrs.ts",
         "export.ts",

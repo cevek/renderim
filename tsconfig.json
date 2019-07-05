@@ -7,7 +7,8 @@
         "module": "amd",
         "strict": true,
         "typeRoots": [],
-        "esModuleInterop": true
+        "esModuleInterop": true,
+        "plugins": [{"transform": "assertio/transform"}]
     },
     "exclude": ["node_modules", "dist"]
 }

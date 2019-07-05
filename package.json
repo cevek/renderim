@@ -12,7 +12,7 @@
     ],
     "typings": "index.d.ts",
     "scripts": {
-        "build": "tsc -b src/backend src/frontend",
+        "build": "NODE_ENV=production ttsc -b src/backend src/frontend",
         "watch": "tsc -b src/backend src/frontend -w",
         "prepublishOnly": "rm -rf dist && npm run build && npm test",
         "test": "jest",
@@ -25,6 +25,10 @@
         "@types/jest": ">=24.0.13",
         "jest": ">=24.8.0",
         "ts-jest": ">=24.0.2",
+        "ttypescript": "^1.5.7",
         "typescript": ">=3.5.1"
+    },
+    "dependencies": {
+        "assertio": "^1.0.1"
     }
 }

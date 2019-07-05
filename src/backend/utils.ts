@@ -1,7 +1,3 @@
-function never(val?: never): never {
-    throw new Error('Never possible: ' + val);
-}
-
 function genNodeId() {
     return (GLOBAL_CLIENT_NODE_ID_COUNTER++ as unknown) as ID;
 }
@@ -14,17 +10,6 @@ function findChildVDom(node: VNode): VDomNode | VTextNode {
     return never(node);
 }
 
-function assert(val: boolean) {
-    if (typeof val !== 'boolean') throw new Error('Not Boolean');
-    if (!val) {
-        debugger;
-        throw new Error('Assert!');
-    }
-}
-function nonNull<T>(val: T | undefined): T {
-    assert(val !== undefined);
-    return val!;
-}
 
 function sleep(ms: number) {
     return new Promise(res => setTimeout(res, ms));
@@ -57,32 +42,6 @@ function ensureObject<T extends object>(value: T | null | undefined | number | s
     return {} as T;
 }
 
-function visitEachNode(node: VNodeCreated, cb: (node: VNodeCreated) => void): void {
-    cb(node);
-    if (node.kind === componentKind) {
-        return visitEachNode(node.children as VNode, cb);
-    }
-    if (node.kind === domKind) {
-        for (const child of node.children) {
-            visitEachNode(child as VNode, cb);
-        }
-        return;
-    }
-    if (node.kind === arrayKind) {
-        for (const child of node.children) {
-            visitEachNode(child as VNode, cb);
-        }
-        return;
-    }
-    if (node.kind === portalKind) {
-        visitEachNode(node.children as VNode, cb);
-        return;
-    }
-    if (node.kind === textKind) {
-        return;
-    }
-    return never(node);
-}
 
 // function getClientScriptUrl(src: string | (() => Promise<unknown>)) {
 //     isCustomUrlCall = true;
@@ -130,9 +89,6 @@ function immutableDeepMerge<T>(obj1: T, obj2: T): T {
     return obj2;
 }
 
-function is<T>(val: unknown): val is T {
-    return true;
-}
 
 function scheduleUpdate(cb: () => void) {
     GLOBAL_SCHEDULE.push(cb);
