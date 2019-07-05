@@ -83,7 +83,7 @@ function transactionStart() {
     GLOBAL_TRX_ID++;
     for (const [, root] of GLOBAL_ROOTS) {
         visitEachNode(root, node => {
-            if (node.kind === componentKind) {
+            if (node.kind === COMPONENT_KIND) {
                 assert(node.instance.node === node);
             }
             assert(node.status === 'active');
@@ -101,7 +101,7 @@ function commitUpdating(): void {
         if (shouldCancel) {
             if (up.kind === 'created') {
                 const {node} = up;
-                if (node.kind === componentKind) {
+                if (node.kind === COMPONENT_KIND) {
                     GLOBAL_HOOKS.cancelComponent(node);
                 }
                 node.status = 'cancelled';
@@ -116,7 +116,7 @@ function commitUpdating(): void {
             (node as VNodeCreated).status = 'obsolete';
             destroyVNode(node);
         } else if (up.kind === 'removed') {
-            if (node.kind === componentKind) {
+            if (node.kind === COMPONENT_KIND) {
                 processBoundarySubcomponentRemoved(node);
             }
             (node as VNodeCreated).status = 'removed';
@@ -176,7 +176,7 @@ function commitUpdating(): void {
             });
         } else {
             visitEachNode(root, node => {
-                if (node.kind === componentKind) {
+                if (node.kind === COMPONENT_KIND) {
                     assert(node.instance.node === node);
                 }
                 assert(node.status === 'active');
@@ -204,10 +204,10 @@ function filterObsoleteCommands(commandList: Command[]) {
 }
 
 function destroyVNode(node: VNodeCreated) {
-    if (node.kind === domKind) {
+    if (node.kind === DOM_KIND) {
         disposeVDomNodeCallbacks(node);
     }
-    if (node.kind === componentKind) {
+    if (node.kind === COMPONENT_KIND) {
         GLOBAL_HOOKS.unmountComponent(node);
     }
     if (GLOBAL_DEV_GC_VNODES !== undefined) {
@@ -266,5 +266,5 @@ exports.loadClientScript = loadClientScript;
 
 exports.getNodeRootId = findRootId;
 exports.scheduleUpdate = scheduleUpdate;
-exports.CancellationToken = CancellationToken;
+exports.CancellationToken = CANCELLATION_TOKEN;
 exports.cancelUpdating = cancelUpdating;

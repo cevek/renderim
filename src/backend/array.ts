@@ -76,24 +76,24 @@ function updateTail(node: VArrayNodeCreated, oldNode: VArrayNode, skipHead: numb
 
 function moveChild(node: VNode, beforeId: ID | null): ID | null {
     assert(node.status === 'active');
-    if (node.kind === domKind) {
+    if (node.kind === DOM_KIND) {
         addCommand(node, {action: 'move', group: 'tag', tag: node.type, id: node.instance, beforeId});
         return node.instance;
     }
-    if (node.kind === textKind) {
+    if (node.kind === TEXT_KIND) {
         addCommand(node, {action: 'move', group: 'text', id: node.instance, beforeId});
         return node.instance;
     }
-    if (node.kind === componentKind) {
+    if (node.kind === COMPONENT_KIND) {
         return moveChild(node.children, beforeId);
     }
-    if (node.kind === arrayKind) {
+    if (node.kind === ARRAY_KIND) {
         for (let i = node.children.length - 1; i >= 0; i--) {
             beforeId = moveChild(node.children[i], beforeId);
         }
         return beforeId;
     }
-    if (node.kind === portalKind) {
+    if (node.kind === PORTAL_KIND) {
         return never();
     }
     return never(node);

@@ -6,7 +6,7 @@ if (!isObj(self.window)) {
                     {
                         group: 'RPC',
                         action: 'call',
-                        obj: ClientWindow,
+                        obj: CLIENT_WINDOW_OBJECT_ID,
                         path: ['location', 'reload'],
                         args: [],
                         callback: transformCallbackBackend(() => {}),

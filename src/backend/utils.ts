@@ -3,10 +3,10 @@ function genNodeId() {
 }
 
 function findChildVDom(node: VNode): VDomNode | VTextNode {
-    if (node.kind === domKind || node.kind === textKind) return node;
-    if (node.kind === componentKind) return findChildVDom(node.children);
-    if (node.kind === arrayKind) return findChildVDom(node.children[0]);
-    if (node.kind === portalKind) return findChildVDom(node.children);
+    if (node.kind === DOM_KIND || node.kind === TEXT_KIND) return node;
+    if (node.kind === COMPONENT_KIND) return findChildVDom(node.children);
+    if (node.kind === ARRAY_KIND) return findChildVDom(node.children[0]);
+    if (node.kind === PORTAL_KIND) return findChildVDom(node.children);
     return never(node);
 }
 

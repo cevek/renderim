@@ -19,19 +19,19 @@ function updateVNode(parentNode: ParentComponent, node: VNodeCreated, oldNode: V
     if (node.kind !== oldNode.kind) {
         return replaceVNode(parentNode, node, oldNode, parentId);
     }
-    if (node.kind === componentKind) {
+    if (node.kind === COMPONENT_KIND) {
         return updateComponent(node, oldNode as VComponentNode, parentId);
     }
-    if (node.kind === domKind) {
+    if (node.kind === DOM_KIND) {
         return updateDom(node, oldNode as VDomNode, parentId);
     }
-    if (node.kind === textKind) {
+    if (node.kind === TEXT_KIND) {
         return updateText(node, oldNode as VTextNode);
     }
-    if (node.kind === arrayKind) {
+    if (node.kind === ARRAY_KIND) {
         return updateArray(node, oldNode as VArrayNode, parentId);
     }
-    if (node.kind === portalKind) {
+    if (node.kind === PORTAL_KIND) {
         return updatePortal(node, oldNode as VPortalNode);
     }
     throw never(node);

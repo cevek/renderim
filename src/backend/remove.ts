@@ -1,9 +1,9 @@
 function removeVNode(node: VNode, realRemove: boolean) {
     GLOBAL_TASKS.push({kind: 'removed', node});
     assert(node.status === 'active');
-    if (node.kind === componentKind) {
+    if (node.kind === COMPONENT_KIND) {
         removeVNode(node.children, realRemove);
-    } else if (node.kind === domKind) {
+    } else if (node.kind === DOM_KIND) {
         const props = node.props as JSX.IntrinsicElements[string];
         if (props.withCommand !== undefined) {
             addCommand(node, {
@@ -18,13 +18,13 @@ function removeVNode(node: VNode, realRemove: boolean) {
         if (realRemove) {
             addCommand(node, {action: 'remove', group: 'tag', tag: node.type, id: node.instance});
         }
-    } else if (node.kind === textKind) {
+    } else if (node.kind === TEXT_KIND) {
         if (realRemove) {
             addCommand(node, {action: 'remove', group: 'text', id: node.instance});
         }
-    } else if (node.kind === arrayKind) {
+    } else if (node.kind === ARRAY_KIND) {
         removeChildren(node, realRemove);
-    } else if (node.kind === portalKind) {
+    } else if (node.kind === PORTAL_KIND) {
         removeVNode(node.children, true);
     }
 }

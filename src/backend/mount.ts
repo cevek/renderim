@@ -7,11 +7,11 @@ function mountVNode(parentNode: ParentComponent, node: VNodeCreated, parentId: I
     GLOBAL_TASKS.push({kind: 'created', node: node})
 
     node.parentComponent = parentNode;
-    if (node.kind === componentKind) {
+    if (node.kind === COMPONENT_KIND) {
         node = mountComponent(node, parentId, beforeId);
-    } else if (node.kind === domKind) {
+    } else if (node.kind === DOM_KIND) {
         node = mountVDom(node, parentId, beforeId);
-    } else if (node.kind === textKind) {
+    } else if (node.kind === TEXT_KIND) {
         addCommand(node, {
             action: 'create',
             group: 'text',
@@ -21,11 +21,11 @@ function mountVNode(parentNode: ParentComponent, node: VNodeCreated, parentId: I
             id: node.instance,
             text: node.children,
         });
-    } else if (node.kind === arrayKind) {
+    } else if (node.kind === ARRAY_KIND) {
         for (let i = 0; i < node.children.length; i++) {
             mountChild(node, i, parentId, beforeId);
         }
-    } else if (node.kind === portalKind) {
+    } else if (node.kind === PORTAL_KIND) {
         node.children = mountVNode(node, norm(node.children), node.instance, null);
     } else {
         throw never(node);

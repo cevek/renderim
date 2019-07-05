@@ -17,26 +17,26 @@ function never(val?: never): never {
 
 function visitEachNode(node: VNodeCreated, cb: (node: VNodeCreated) => void): void {
     cb(node);
-    if (node.kind === componentKind) {
+    if (node.kind === COMPONENT_KIND) {
         return visitEachNode(node.children as VNode, cb);
     }
-    if (node.kind === domKind) {
+    if (node.kind === DOM_KIND) {
         for (const child of node.children) {
             visitEachNode(child as VNode, cb);
         }
         return;
     }
-    if (node.kind === arrayKind) {
+    if (node.kind === ARRAY_KIND) {
         for (const child of node.children) {
             visitEachNode(child as VNode, cb);
         }
         return;
     }
-    if (node.kind === portalKind) {
+    if (node.kind === PORTAL_KIND) {
         visitEachNode(node.children as VNode, cb);
         return;
     }
-    if (node.kind === textKind) {
+    if (node.kind === TEXT_KIND) {
         return;
     }
     return never(node);

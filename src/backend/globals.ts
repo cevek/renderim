@@ -26,7 +26,7 @@ type Task =
     | {kind: 'restart'; node: VComponentNode; newChild: VNodeCreated};
 
 let GLOBAL_TASKS: Task[] = [];
-const ClientWindow = {} as ID;
+const CLIENT_WINDOW_OBJECT_ID = {} as ID;
 
 const GLOBAL_SCHEDULE: (() => void)[] = [];
 
@@ -38,11 +38,11 @@ const GLOBAL_RPC_CALLBACK_MAP = new Map<string, Function>();
 const GLOBAL_DEV_GC_VNODES = process.env.NODE_ENV === 'development' ? new WeakSet<VNodeCreated | VNode>() : undefined;
 ((self as {}) as {GCVNodes: typeof GLOBAL_DEV_GC_VNODES}).GCVNodes = GLOBAL_DEV_GC_VNODES;
 
-const kindParent = {type: 'kind'};
-const componentKind = ({kind: 'component', parent: kindParent} as unknown) as 'component';
-const domKind = ({kind: 'dom', parent: kindParent} as unknown) as 'dom';
-const textKind = ({kind: 'text', parent: kindParent} as unknown) as 'text';
-const arrayKind = ({kind: 'array', parent: kindParent} as unknown) as 'array';
-const portalKind = ({kind: 'portal', parent: kindParent} as unknown) as 'portal';
+const PARENT_KIND = {type: 'kind'};
+const COMPONENT_KIND = ({kind: 'component', parent: PARENT_KIND} as unknown) as 'component';
+const DOM_KIND = ({kind: 'dom', parent: PARENT_KIND} as unknown) as 'dom';
+const TEXT_KIND = ({kind: 'text', parent: PARENT_KIND} as unknown) as 'text';
+const ARRAY_KIND = ({kind: 'array', parent: PARENT_KIND} as unknown) as 'array';
+const PORTAL_KIND = ({kind: 'portal', parent: PARENT_KIND} as unknown) as 'portal';
 
-const CancellationToken = {cancellationToken: true};
+const CANCELLATION_TOKEN = {cancellationToken: true};

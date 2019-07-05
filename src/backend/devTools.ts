@@ -31,31 +31,31 @@ if (process.env.NODE_ENV === 'development') {
         let renderedComponent;
         let instance = {};
         const props = convertProps(node.props) as {[key: string]: unknown};
-        if (node.kind === componentKind) {
+        if (node.kind === COMPONENT_KIND) {
             children = [];
             if (node.type === Fragment) {
                 currentElement = {type: '#fragment', props};
-                if (node.children.kind === arrayKind) {
+                if (node.children.kind === ARRAY_KIND) {
                     children = node.children.children.map(convertVNodeToDevToolsJSON);
                 }
-            } else if (node.type === Portal && node.children.kind === portalKind) {
+            } else if (node.type === Portal && node.children.kind === PORTAL_KIND) {
                 currentElement = {type: '#portal', props};
-                if (node.children.children.kind === arrayKind) {
+                if (node.children.children.kind === ARRAY_KIND) {
                     children = node.children.children.children.map(convertVNodeToDevToolsJSON);
                 }
             } else {
                 currentElement = {type: node.type.name, props};
                 renderedComponent = convertVNodeToDevToolsJSON(node.children);
             }
-        } else if (node.kind === domKind) {
+        } else if (node.kind === DOM_KIND) {
             currentElement = {type: node.type, props};
             children = node.children.map(convertVNodeToDevToolsJSON);
-        } else if (node.kind === arrayKind) {
+        } else if (node.kind === ARRAY_KIND) {
             currentElement = {type: '#array', props: {}};
             children = node.children.map(convertVNodeToDevToolsJSON);
-        } else if (node.kind === portalKind) {
+        } else if (node.kind === PORTAL_KIND) {
             currentElement = {type: '#portal', props: {}};
-        } else if (node.kind === textKind) {
+        } else if (node.kind === TEXT_KIND) {
             currentElement = String(node.children);
             stringText = String(node.children);
         } else {

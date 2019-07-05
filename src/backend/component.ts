@@ -16,7 +16,7 @@ function runComponent(node: VComponentNodeCreated) {
         GLOBAL_HOOKS.afterComponent(node);
         newChildren = norm(undefined);
         node.instance.errored = true;
-        if (err === CancellationToken) {
+        if (err === CANCELLATION_TOKEN) {
             cancelUpdating();
         } else {
             processBoundarySubcomponentError(node, err);

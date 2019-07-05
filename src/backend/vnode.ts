@@ -4,7 +4,7 @@ function createVTextNode(text: string): VTextNodeCreated {
         status: 'created',
         children: text,
         key: undefined,
-        kind: textKind,
+        kind: TEXT_KIND,
         props: undefined,
         type: undefined,
         instance: genNodeId(),
@@ -19,7 +19,7 @@ function createDomVNode(type: string, attrs: Attrs, key: string | undefined, chi
         status: 'created',
         children: children,
         key: key,
-        kind: domKind,
+        kind: DOM_KIND,
         props: attrs,
         type: type,
         instance: genNodeId(),
@@ -38,7 +38,7 @@ function createComponentVNode<Props extends object>(
         status: 'created',
         children: undefined!,
         key: key,
-        kind: componentKind,
+        kind: COMPONENT_KIND,
         props,
         type,
         instance: {
@@ -59,7 +59,7 @@ function createVArrayNode(arr: VInput[]): VArrayNodeCreated {
     return {
         _id: GLOBAL_VNODE_ID_COUNTER++,
         status: 'created',
-        kind: arrayKind,
+        kind: ARRAY_KIND,
         children: arr,
         key: undefined,
         props: undefined,
@@ -72,7 +72,7 @@ function createVPortalNode(type: ID, children: VInput): VPortalNodeCreated {
     return {
         _id: GLOBAL_VNODE_ID_COUNTER++,
         status: 'created',
-        kind: portalKind,
+        kind: PORTAL_KIND,
         children: children,
         key: undefined,
         props: undefined,
@@ -107,52 +107,52 @@ function norm(value: VInput): VNodeCreated {
 }
 
 function isVNode(value: unknown): value is VNodeCreated {
-    return isObj<{kind?: {parent?: {}}}>(value) && isObj(value.kind) && value.kind.parent === kindParent;
+    return isObj<{kind?: {parent?: {}}}>(value) && isObj(value.kind) && value.kind.parent === PARENT_KIND;
 }
 
 function cloneVNode<T extends VNodeCreated>(n: T, newProps = n.props, deep: boolean): T {
     const node = n as VNodeCreated;
-    if (node.kind === componentKind) {
+    if (node.kind === COMPONENT_KIND) {
         return createComponentVNode(node.type, newProps as object, node.key) as T;
     }
-    if (node.kind === domKind) {
+    if (node.kind === DOM_KIND) {
         const children = deep
             ? (node as VDomNodeCreated).children.map(node => cloneVNode(norm(node), undefined, true))
             : (node.children as VInput[]);
         return createDomVNode(node.type, newProps as Attrs, node.key, children) as T;
     }
-    if (node.kind === arrayKind) {
+    if (node.kind === ARRAY_KIND) {
         const children = deep
             ? (node as VArrayNodeCreated).children.map(node => cloneVNode(norm(node), undefined, true))
             : (node.children as VInput[]);
         return createVArrayNode(children) as T;
     }
-    if (node.kind === portalKind) {
+    if (node.kind === PORTAL_KIND) {
         return createVPortalNode(
             node.instance,
             deep ? cloneVNode(norm(node.children), undefined, true) : node.children,
         ) as T;
     }
-    if (node.kind === textKind) {
+    if (node.kind === TEXT_KIND) {
         return createVTextNode(node.children) as T;
     }
     return never(node);
 }
 
 function ensureVDomNode(node: VInput) {
-    if (!isVNode(node) || node.kind !== domKind) throw new Error('Children must be a tag element');
+    if (!isVNode(node) || node.kind !== DOM_KIND) throw new Error('Children must be a tag element');
     return node;
 }
 
 function getPersistId(node: VNodeCreated | RootId): ID {
     if (typeof node === 'string') return (node as unknown) as ID;
-    if (node.kind === componentKind) {
+    if (node.kind === COMPONENT_KIND) {
         return node.instance.componentId as ID;
     }
-    if (node.kind === portalKind) {
+    if (node.kind === PORTAL_KIND) {
         return node.instance;
     }
-    if (node.kind === arrayKind) {
+    if (node.kind === ARRAY_KIND) {
         return node.instance as ID;
     }
     return node.instance;
