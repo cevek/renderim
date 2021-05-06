@@ -22,6 +22,6 @@
     "dependencies": {
         "@types/highcharts": "^5.0.41",
         "app": "^0.1.0",
-        "highcharts": "^7.1.2"
+        "highcharts": "^9.0.0"
     }
 }
